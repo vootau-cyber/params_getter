@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "timestamp": "2026-08-06T09:53:51.470Z",
+    "author_name": "Иванов И.И.",
+    "author_role": "Инженер",
+    "changed_sections": [
+      "meta"
+    ],
+    "version_label": "Версия 1",
+    "data_file": "versions/v_1.json"
+  }
+]

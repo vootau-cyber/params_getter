@@ -1,0 +1,2002 @@
+     1→// =============================================================================
+     2→// Schema definition for Russian maritime/port security data entry application
+     3→// Generated from seed_domain_data_full.json
+     4→// =============================================================================
+     5→
+     6→export type FieldType =
+     7→  | "text"
+     8→  | "number"
+     9→  | "date"
+    10→  | "boolean"
+    11→  | "array"
+    12→  | "select"
+    13→  | "textarea"
+    14→  | "object";
+    15→
+    16→export interface FieldDef {
+    17→  key: string;
+    18→  label: string;
+    19→  type: FieldType;
+    20→  hint?: string;
+    21→  placeholder?: string;
+    22→  options?: string[];
+    23→  readOnly?: boolean;
+    24→  nestedFields?: FieldDef[];
+    25→  defaultValue?: unknown;
+    26→}
+    27→
+    28→export interface SectionDef {
+    29→  key: string;
+    30→  label: string;
+    31→  description: string;
+    32→  icon: string; // lucide-react icon name
+    33→  fields: FieldDef[];
+    34→}
+    35→
+    36→// =============================================================================
+    37→// All 30 sections
+    38→// =============================================================================
+    39→
+    40→export const SCHEMA_SECTIONS: SectionDef[] = [
+    41→  // ──────────────────────────────────────────────────────────────────────────
+    42→  // 1. СТИ — Субъект транспортной инфраструктуры
+    43→  // ──────────────────────────────────────────────────────────────────────────
+    44→  {
+    45→    key: "sti",
+    46→    label: "Субъект транспортной инфраструктуры (СТИ)",
+    47→    description:
+    48→      "Основные сведения о субъекте транспортной инфраструктуры — организации, владеющей ОТИ",
+    49→    icon: "Building2",
+    50→    fields: [
+    51→      {
+    52→        key: "sti_full_name",
+    53→        label: "Полное наименование",
+    54→        type: "text",
+    55→        placeholder: "ООО «Морской порт»",
+    56→        hint: "Полное юридическое наименование организации",
+    57→        defaultValue: "",
+    58→      },
+    59→      {
+    60→        key: "sti_short_name",
+    61→        label: "Краткое наименование",
+    62→        type: "text",
+    63→        placeholder: "Морпорт",
+    64→        hint: "Сокращённое наименование для использования в документах",
+    65→        defaultValue: "",
+    66→      },
+    67→      {
+    68→        key: "sti_legal_address",
+    69→        label: "Юридический адрес",
+    70→        type: "text",
+    71→        placeholder: "г. Москва, ул. Морская, д. 1",
+    72→        defaultValue: "",
+    73→      },
+    74→      {
+    75→        key: "sti_postal_address",
+    76→        label: "Почтовый адрес",
+    77→        type: "text",
+    78→        placeholder: "г. Москва, ул. Морская, д. 1, оф. 10",
+    79→        defaultValue: "",
+    80→      },
+    81→      {
+    82→        key: "sti_phone",
+    83→        label: "Телефон",
+    84→        type: "text",
+    85→        placeholder: "+7 (495) 123-45-67",
+    86→        defaultValue: "",
+    87→      },
+    88→      {
+    89→        key: "sti_email",
+    90→        label: "Электронная почта",
+    91→        type: "text",
+    92→        placeholder: "info@example.ru",
+    93→        defaultValue: "",
+    94→      },
+    95→      {
+    96→        key: "sti_website",
+    97→        label: "Веб-сайт",
+    98→        type: "text",
+    99→        placeholder: "https://example.ru",
+   100→        defaultValue: "",
+   101→      },
+   102→      {
+   103→        key: "sti_ogrn",
+   104→        label: "ОГРН",
+   105→        type: "text",
+   106→        placeholder: "1234567890123",
+   107→        hint: "Основной государственный регистрационный номер юридического лица",
+   108→        defaultValue: "",
+   109→      },
+   110→      {
+   111→        key: "sti_inn",
+   112→        label: "ИНН",
+   113→        type: "text",
+   114→        placeholder: "1234567890",
+   115→        hint: "Идентификационный номер налогоплательщика",
+   116→        defaultValue: "",
+   117→      },
+   118→      {
+   119→        key: "sti_kpp",
+   120→        label: "КПП",
+   121→        type: "text",
+   122→        placeholder: "123456789",
+   123→        hint: "Код причины постановки на учёт",
+   124→        defaultValue: "",
+   125→      },
+   126→      {
+   127→        key: "sti_okpo",
+   128→        label: "ОКПО",
+   129→        type: "text",
+   130→        placeholder: "12345678",
+   131→        hint: "Общероссийский классификатор предприятий и организаций",
+   132→        defaultValue: "",
+   133→      },
+   134→      {
+   135→        key: "sti_egrl_date",
+   136→        label: "Дата внесения в ЕГРЛ",
+   137→        type: "date",
+   138→        hint: "Дата внесения записи в Единый государственный реестр юридических лиц",
+   139→        defaultValue: null,
+   140→      },
+   141→      {
+   142→        key: "sti_egrip_date",
+   143→        label: "Дата внесения в ЕГРИП",
+   144→        type: "date",
+   145→        hint: "Дата внесения записи в Единый государственный реестр индивидуальных предпринимателей",
+   146→        defaultValue: null,
+   147→      },
+   148→      {
+   149→        key: "sti_ip_fio",
+   150→        label: "ФИО индивидуального предпринимателя",
+   151→        type: "text",
+   152→        placeholder: "Иванов Иван Иванович",
+   153→        hint: "Заполняется, если субъект — индивидуальный предприниматель",
+   154→        defaultValue: "",
+   155→      },
+   156→      {
+   157→        key: "sti_ip_address",
+   158→        label: "Адрес ИП",
+   159→        type: "text",
+   160→        placeholder: "г. Москва, ул. Портовая, д. 5",
+   161→        hint: "Адрес регистрации индивидуального предпринимателя",
+   162→        defaultValue: "",
+   163→      },
+   164→      {
+   165→        key: "sti_ip_inn",
+   166→        label: "ИНН ИП",
+   167→        type: "text",
+   168→        placeholder: "123456789012",
+   169→        hint: "ИНН индивидуального предпринимателя",
+   170→        defaultValue: "",
+   171→      },
+   172→      {
+   173→        key: "sti_ip_ogrnip",
+   174→        label: "ОГРНИП",
+   175→        type: "text",
+   176→        placeholder: "312345678901234",
+   177→        hint: "Основной государственный регистрационный номер ИП",
+   178→        defaultValue: "",
+   179→      },
+   180→      {
+   181→        key: "sti_person_fio",
+   182→        label: "ФИО ответственного лица",
+   183→        type: "text",
+   184→        placeholder: "Петров Пётр Петрович",
+   185→        hint: "ФИО лица, ответственного за транспортную безопасность",
+   186→        defaultValue: "",
+   187→      },
+   188→      {
+   189→        key: "sti_person_address",
+   190→        label: "Адрес ответственного лица",
+   191→        type: "text",
+   192→        defaultValue: "",
+   193→      },
+   194→      {
+   195→        key: "sti_person_inn",
+   196→        label: "ИНН ответственного лица",
+   197→        type: "text",
+   198→        defaultValue: "",
+   199→      },
+   200→      {
+   201→        key: "sti_head_fio",
+   202→        label: "ФИО руководителя",
+   203→        type: "text",
+   204→        placeholder: "Сидоров Сидор Сидорович",
+   205→        defaultValue: "",
+   206→      },
+   207→      {
+   208→        key: "sti_head_position",
+   209→        label: "Должность руководителя",
+   210→        type: "text",
+   211→        placeholder: "Генеральный директор",
+   212→        defaultValue: "",
+   213→      },
+   214→      {
+   215→        key: "sti_narrative_description",
+   216→        label: "Описание СТИ",
+   217→        type: "textarea",
+   218→        hint: "Подробное описание субъекта транспортной инфраструктуры",
+   219→        placeholder: "Общая информация о деятельности организации…",
+   220→        defaultValue: "",
+   221→      },
+   222→      {
+   223→        key: "sti_regulatory_triggers",
+   224→        label: "Нормативные триггеры",
+   225→        type: "array",
+   226→        hint: "Введите значения через запятую",
+   227→        defaultValue: [],
+   228→      },
+   229→      {
+   230→        key: "sti_target_doc_sections",
+   231→        label: "Разделы целевого документа",
+   232→        type: "array",
+   233→        hint: "Введите значения через запятую",
+   234→        defaultValue: [],
+   235→      },
+   236→      {
+   237→        key: "qdrant_sti_type_tag",
+   238→        label: "Тег типа СТИ",
+   239→        type: "text",
+   240→        hint: "Тег для поиска и кластеризации в векторной базе",
+   241→        defaultValue: "",
+   242→      },
+   243→      {
+   244→        key: "qdrant_ownership_tag",
+   245→        label: "Тег формы собственности",
+   246→        type: "text",
+   247→        hint: "Тег для поиска и кластеризации в векторной базе",
+   248→        defaultValue: "",
+   249→      },
+   250→    ],
+   251→  },
+   252→
+   253→  // ──────────────────────────────────────────────────────────────────────────
+   254→  // 2. СТИ — Лицензии
+   255→  // ──────────────────────────────────────────────────────────────────────────
+   256→  {
+   257→    key: "sti_licenses",
+   258→    label: "Лицензии СТИ",
+   259→    description: "Лицензии, выданные субъекту транспортной инфраструктуры",
+   260→    icon: "FileText",
+   261→    fields: [
+   262→      {
+   263→        key: "sti_ref",
+   264→        label: "Ссылка на СТИ",
+   265→        type: "text",
+   266→        hint: "Бизнес-ссылка на субъект транспортной инфраструктуры",
+   267→        defaultValue: "",
+   268→      },
+   269→      {
+   270→        key: "license_type",
+   271→        label: "Тип лицензии",
+   272→        type: "text",
+   273→        placeholder: "Лицензия на осуществление деятельности по транспортной безопасности",
+   274→        defaultValue: "",
+   275→      },
+   276→      {
+   277→        key: "license_num",
+   278→        label: "Номер лицензии",
+   279→        type: "text",
+   280→        placeholder: "ЛТБ-12345",
+   281→        defaultValue: "",
+   282→      },
+   283→      {
+   284→        key: "license_date",
+   285→        label: "Дата лицензии",
+   286→        type: "date",
+   287→        hint: "Дата выдачи лицензии",
+   288→        defaultValue: null,
+   289→      },
+   290→      {
+   291→        key: "license_term",
+   292→        label: "Срок действия",
+   293→        type: "text",
+   294→        placeholder: "Бессрочно",
+   295→        hint: "Описание срока действия лицензии",
+   296→        defaultValue: "",
+   297→      },
+   298→      {
+   299→        key: "license_classes",
+   300→        label: "Классы лицензии",
+   301→        type: "array",
+   302→        hint: "Введите значения через запятую",
+   303→        defaultValue: [],
+   304→      },
+   305→      {
+   306→        key: "license_objects_approval",
+   307→        label: "Утверждённые объекты",
+   308→        type: "text",
+   309→        hint: "Сведения об объектах, указанных в лицензии",
+   310→        defaultValue: "",
+   311→      },
+   312→      {
+   313→        key: "license_is_active",
+   314→        label: "Лицензия активна",
+   315→        type: "boolean",
+   316→        hint: "Действует ли лицензия на данный момент",
+   317→        defaultValue: true,
+   318→      },
+   319→    ],
+   320→  },
+   321→
+   322→  // ──────────────────────────────────────────────────────────────────────────
+   323→  // 3. ОТИ — Объект транспортной инфраструктуры
+   324→  // ──────────────────────────────────────────────────────────────────────────
+   325→  {
+   326→    key: "oti",
+   327→    label: "Объект транспортной инфраструктуры (ОТИ)",
+   328→    description:
+   329→      "Регистрационные и категорировочные сведения об объекте транспортной инфраструктуры",
+   330→    icon: "MapPin",
+   331→    fields: [
+   332→      {
+   333→        key: "sti_ref",
+   334→        label: "Ссылка на СТИ",
+   335→        type: "text",
+   336→        hint: "Бизнес-ссылка на субъект транспортной инфраструктуры",
+   337→        defaultValue: "",
+   338→      },
+   339→      {
+   340→        key: "oti_registry_num",
+   341→        label: "Реестровый номер ОТИ",
+   342→        type: "text",
+   343→        placeholder: "ОТИ-01-001",
+   344→        defaultValue: "",
+   345→      },
+   346→      {
+   347→        key: "oti_registry_entry_date",
+   348→        label: "Дата внесения в реестр",
+   349→        type: "date",
+   350→        defaultValue: null,
+   351→      },
+   352→      {
+   353→        key: "oti_full_name",
+   354→        label: "Полное наименование ОТИ",
+   355→        type: "text",
+   356→        placeholder: "Морской порт «Восточный»",
+   357→        defaultValue: "",
+   358→      },
+   359→      {
+   360→        key: "oti_short_name",
+   361→        label: "Краткое наименование ОТИ",
+   362→        type: "text",
+   363→        placeholder: "Порт Восточный",
+   364→        defaultValue: "",
+   365→      },
+   366→      {
+   367→        key: "port_facility_name",
+   368→        label: "Наименование портового средства",
+   369→        type: "text",
+   370→        placeholder: "Причал №1",
+   371→        defaultValue: "",
+   372→      },
+   373→      {
+   374→        key: "port_name",
+   375→        label: "Наименование порта",
+   376→        type: "text",
+   377→        placeholder: "Порт Владивосток",
+   378→        defaultValue: "",
+   379→      },
+   380→      {
+   381→        key: "oti_location",
+   382→        label: "Местоположение ОТИ",
+   383→        type: "text",
+   384→        placeholder: "г. Владивосток, бухта Золотой Рог",
+   385→        defaultValue: "",
+   386→      },
+   387→      {
+   388→        key: "oti_category",
+   389→        label: "Категория ОТИ",
+   390→        type: "select",
+   391→        hint: "Категория уязвимости ОТИ по результатам оценки",
+   392→        options: ["1", "2", "3", "4"],
+   393→        defaultValue: null,
+   394→      },
+   395→      {
+   396→        key: "oti_category_assign_date",
+   397→        label: "Дата присвоения категории",
+   398→        type: "date",
+   399→        defaultValue: null,
+   400→      },
+   401→      {
+   402→        key: "oti_registry_basis",
+   403→        label: "Основание внесения в реестр",
+   404→        type: "textarea",
+   405→        hint: "Документальное основание включения ОТИ в реестр",
+   406→        defaultValue: "",
+   407→      },
+   408→      {
+   409→        key: "oti_change_basis",
+   410→        label: "Основание изменения",
+   411→        type: "textarea",
+   412→        hint: "Основание для изменения категории ОТИ",
+   413→        defaultValue: "",
+   414→      },
+   415→      {
+   416→        key: "oti_change_date",
+   417→        label: "Дата изменения категории",
+   418→        type: "date",
+   419→        defaultValue: null,
+   420→      },
+   421→      {
+   422→        key: "oti_review_date",
+   423→        label: "Дата пересмотра категории",
+   424→        type: "date",
+   425→        defaultValue: null,
+   426→      },
+   427→      {
+   428→        key: "oti_new_category",
+   429→        label: "Новая категория ОТИ",
+   430→        type: "select",
+   431→        hint: "Категория после пересмотра",
+   432→        options: ["1", "2", "3", "4"],
+   433→        defaultValue: null,
+   434→      },
+   435→      {
+   436→        key: "oti_review_basis",
+   437→        label: "Основание пересмотра",
+   438→        type: "textarea",
+   439→        hint: "Основание для пересмотра категории ОТИ",
+   440→        defaultValue: "",
+   441→      },
+   442→      {
+   443→        key: "oti_exclude_basis",
+   444→        label: "Основание исключения",
+   445→        type: "textarea",
+   446→        hint: "Основание для исключения ОТИ из реестра",
+   447→        defaultValue: "",
+   448→      },
+   449→      {
+   450→        key: "oti_exclude_date",
+   451→        label: "Дата исключения из реестра",
+   452→        type: "date",
+   453→        defaultValue: null,
+   454→      },
+   455→      {
+   456→        key: "oti_imo_code",
+   457→        label: "Код ИМО (IMO)",
+   458→        type: "text",
+   459→        placeholder: "RU VVO",
+   460→        hint: "Код Международной морской организации",
+   461→        defaultValue: "",
+   462→      },
+   463→      {
+   464→        key: "oti_area_ha",
+   465→        label: "Площадь ОТИ, га",
+   466→        type: "number",
+   467→        hint: "Общая площадь объекта в гектарах",
+   468→        defaultValue: null,
+   469→      },
+   470→      {
+   471→        key: "oti_berths_count",
+   472→        label: "Количество причалов",
+   473→        type: "number",
+   474→        hint: "Число причальных мест в ОТИ",
+   475→        defaultValue: null,
+   476→      },
+   477→      {
+   478→        key: "oti_berth_front_len",
+   479→        label: "Длина причального фронта, м",
+   480→        type: "number",
+   481→        defaultValue: null,
+   482→      },
+   483→      {
+   484→        key: "oti_center_lat",
+   485→        label: "Широта центра ОТИ",
+   486→        type: "number",
+   487→        hint: "Географическая широта центральной точки ОТИ (градусы)",
+   488→        defaultValue: null,
+   489→      },
+   490→      {
+   491→        key: "oti_center_lon",
+   492→        label: "Долгота центра ОТИ",
+   493→        type: "number",
+   494→        hint: "Географическая долгота центральной точки ОТИ (градусы)",
+   495→        defaultValue: null,
+   496→      },
+   497→      {
+   498→        key: "oti_purpose",
+   499→        label: "Назначение ОТИ",
+   500→        type: "textarea",
+   501→        hint: "Описание целевого назначения объекта транспортной инфраструктуры",
+   502→        defaultValue: "",
+   503→      },
+   504→      {
+   505→        key: "oti_checkpoint_type",
+   506→        label: "Тип пункта пропуска",
+   507→        type: "text",
+   508→        placeholder: "Морской пункт пропуска",
+   509→        defaultValue: "",
+   510→      },
+   511→      {
+   512→        key: "developer_org",
+   513→        label: "Организация-разработчик",
+   514→        type: "text",
+   515→        hint: "Организация, разработавшая план обеспечения транспортной безопасности",
+   516→        defaultValue: "",
+   517→      },
+   518→      {
+   519→        key: "survey_date",
+   520→        label: "Дата обследования",
+   521→        type: "date",
+   522→        hint: "Дата проведения обследования ОТИ",
+   523→        defaultValue: null,
+   524→      },
+   525→      {
+   526→        key: "oti_narrative_description",
+   527→        label: "Описание ОТИ",
+   528→        type: "textarea",
+   529→        hint: "Подробное текстовое описание объекта",
+   530→        defaultValue: "",
+   531→      },
+   532→      {
+   533→        key: "oti_regulatory_triggers",
+   534→        label: "Нормативные триггеры",
+   535→        type: "array",
+   536→        hint: "Введите значения через запятую",
+   537→        defaultValue: [],
+   538→      },
+   539→      {
+   540→        key: "oti_target_doc_sections",
+   541→        label: "Разделы целевого документа",
+   542→        type: "array",
+   543→        hint: "Введите значения через запятую",
+   544→        defaultValue: [],
+   545→      },
+   546→      {
+   547→        key: "qdrant_doc_section_id",
+   548→        label: "Идентификатор раздела документа",
+   549→        type: "text",
+   550→        hint: "Ссылка на раздел документа в векторной базе",
+   551→        defaultValue: "",
+   552→      },
+   553→      {
+   554→        key: "qdrant_climate_zone_tag",
+   555→        label: "Тег климатической зоны",
+   556→        type: "text",
+   557→        hint: "Тег для поиска и кластеризации",
+   558→        defaultValue: "",
+   559→      },
+   560→      {
+   561→        key: "qdrant_hydrology_risk_tag",
+   562→        label: "Тег гидрологического риска",
+   563→        type: "text",
+   564→        hint: "Тег для поиска и кластеризации",
+   565→        defaultValue: "",
+   566→      },
+   567→      {
+   568→        key: "qdrant_oti_category_tag",
+   569→        label: "Тег категории ОТИ",
+   570→        type: "text",
+   571→        hint: "Тег для поиска и кластеризации",
+   572→        defaultValue: "",
+   573→      },
+   574→    ],
+   575→  },
+   576→
+   577→  // ──────────────────────────────────────────────────────────────────────────
+   578→  // 4. Ответственные лица
+   579→  // ──────────────────────────────────────────────────────────────────────────
+   580→  {
+   581→    key: "persons",
+   582→    label: "Ответственные лица",
+   583→    description:
+   584→      "Данные о лицах, ответственных за обеспечение транспортной безопасности",
+   585→    icon: "Users",
+   586→    fields: [
+   587→      {
+   588→        key: "sti_ref",
+   589→        label: "Ссылка на СТИ",
+   590→        type: "text",
+   591→        hint: "Бизнес-ссылка на субъект транспортной инфраструктуры",
+   592→        defaultValue: "",
+   593→      },
+   594→      {
+   595→        key: "oti_ref",
+   596→        label: "Ссылка на ОТИ",
+   597→        type: "text",
+   598→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+   599→        defaultValue: "",
+   600→      },
+   601→      {
+   602→        key: "person_role",
+   603→        label: "Роль",
+   604→        type: "text",
+   605→        placeholder: "Ответственный за транспортную безопасность",
+   606→        defaultValue: "",
+   607→      },
+   608→      {
+   609→        key: "qdrant_person_role_tag",
+   610→        label: "Тег роли лица",
+   611→        type: "text",
+   612→        hint: "Тег для поиска и кластеризации",
+   613→        defaultValue: "",
+   614→      },
+   615→      {
+   616→        key: "person_fio",
+   617→        label: "ФИО",
+   618→        type: "text",
+   619→        placeholder: "Иванов Иван Иванович",
+   620→        defaultValue: "",
+   621→      },
+   622→      {
+   623→        key: "person_position",
+   624→        label: "Должность",
+   625→        type: "text",
+   626→        placeholder: "Заместитель директора по безопасности",
+   627→        defaultValue: "",
+   628→      },
+   629→      {
+   630→        key: "person_work_phone",
+   631→        label: "Рабочий телефон",
+   632→        type: "text",
+   633→        placeholder: "+7 (495) 123-45-67",
+   634→        defaultValue: "",
+   635→      },
+   636→      {
+   637→        key: "person_mob_phone",
+   638→        label: "Мобильный телефон",
+   639→        type: "text",
+   640→        placeholder: "+7 (916) 123-45-67",
+   641→        defaultValue: "",
+   642→      },
+   643→      {
+   644→        key: "person_fax",
+   645→        label: "Факс",
+   646→        type: "text",
+   647→        placeholder: "+7 (495) 123-45-68",
+   648→        defaultValue: "",
+   649→      },
+   650→      {
+   651→        key: "person_email",
+   652→        label: "Электронная почта",
+   653→        type: "text",
+   654→        placeholder: "ivanov@example.ru",
+   655→        defaultValue: "",
+   656→      },
+   657→      {
+   658→        key: "person_order",
+   659→        label: "Приказ о назначении",
+   660→        type: "text",
+   661→        hint: "Номер и дата приказа о назначении на должность",
+   662→        defaultValue: "",
+   663→      },
+   664→      {
+   665→        key: "person_education",
+   666→        label: "Образование",
+   667→        type: "text",
+   668→        placeholder: "Высшее, МГУ им. М.В. Ломоносова",
+   669→        defaultValue: "",
+   670→      },
+   671→      {
+   672→        key: "person_training",
+   673→        label: "Подготовка / повышение квалификации",
+   674→        type: "textarea",
+   675→        hint: "Сведения о подготовке и повышении квалификации в области транспортной безопасности",
+   676→        defaultValue: "",
+   677→      },
+   678→      {
+   679→        key: "person_attestation_reestr_num",
+   680→        label: "Номер в реестре аттестованных лиц",
+   681→        type: "text",
+   682→        defaultValue: "",
+   683→      },
+   684→      {
+   685→        key: "person_attestation_num",
+   686→        label: "Номер аттестата",
+   687→        type: "text",
+   688→        placeholder: "АТТ-12345",
+   689→        defaultValue: "",
+   690→      },
+   691→      {
+   692→        key: "person_attestation_date",
+   693→        label: "Дата аттестации",
+   694→        type: "date",
+   695→        defaultValue: null,
+   696→      },
+   697→      {
+   698→        key: "person_attestation_num_date",
+   699→        label: "Номер и дата аттестации",
+   700→        type: "text",
+   701→        hint: "Аттестат № и дата в текстовом формате",
+   702→        defaultValue: "",
+   703→      },
+   704→      {
+   705→        key: "person_attestation_exp_date",
+   706→        label: "Дата окончания действия аттестации",
+   707→        type: "date",
+   708→        defaultValue: null,
+   709→      },
+   710→      {
+   711→        key: "person_attestation_category",
+   712→        label: "Категория аттестации",
+   713→        type: "select",
+   714→        hint: "Категория (уровень компетенции) по результатам аттестации",
+   715→        options: ["1", "2", "3", "4"],
+   716→        defaultValue: null,
+   717→      },
+   718→      {
+   719→        key: "person_attestation_issuing_body",
+   720→        label: "Орган, выдавший аттестат",
+   721→        type: "text",
+   722→        defaultValue: "",
+   723→      },
+   724→      {
+   725→        key: "person_is_active",
+   726→        label: "Действующее лицо",
+   727→        type: "boolean",
+   728→        hint: "Активно ли лицо на данный момент",
+   729→        defaultValue: true,
+   730→      },
+   731→      {
+   732→        key: "person_narrative_description",
+   733→        label: "Описание / примечания",
+   734→        type: "textarea",
+   735→        defaultValue: "",
+   736→      },
+   737→      {
+   738→        key: "person_target_doc_sections",
+   739→        label: "Разделы целевого документа",
+   740→        type: "array",
+   741→        hint: "Введите значения через запятую",
+   742→        defaultValue: [],
+   743→      },
+   744→      {
+   745→        key: "persons_regulatory_triggers",
+   746→        label: "Нормативные триггеры",
+   747→        type: "array",
+   748→        hint: "Введите значения через запятую",
+   749→        defaultValue: [],
+   750→      },
+   751→    ],
+   752→  },
+   753→
+   754→  // ──────────────────────────────────────────────────────────────────────────
+   755→  // 5. Оценки уязвимости
+   756→  // ──────────────────────────────────────────────────────────────────────────
+   757→  {
+   758→    key: "assessments",
+   759→    label: "Оценки уязвимости",
+   760→    description:
+   761→      "Результаты оценки уязвимости объектов транспортной инфраструктуры",
+   762→    icon: "Shield",
+   763→    fields: [
+   764→      {
+   765→        key: "oti_ref",
+   766→        label: "Ссылка на ОТИ",
+   767→        type: "text",
+   768→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+   769→        defaultValue: "",
+   770→      },
+   771→      {
+   772→        key: "assessment_type",
+   773→        label: "Тип оценки",
+   774→        type: "text",
+   775→        placeholder: "Внутренняя оценка уязвимости",
+   776→        hint: "Внутренняя или внешняя оценка уязвимости",
+   777→        defaultValue: "",
+   778→      },
+   779→      {
+   780→        key: "qdrant_assessment_type_tag",
+   781→        label: "Тег типа оценки",
+   782→        type: "text",
+   783→        hint: "Тег для поиска и кластеризации",
+   784→        defaultValue: "",
+   785→      },
+   786→      {
+   787→        key: "assessment_date_conduct",
+   788→        label: "Дата проведения оценки",
+   789→        type: "date",
+   790→        defaultValue: null,
+   791→      },
+   792→      {
+   793→        key: "assessment_date_approval",
+   794→        label: "Дата утверждения оценки",
+   795→        type: "date",
+   796→        defaultValue: null,
+   797→      },
+   798→      {
+   799→        key: "assessment_number",
+   800→        label: "Номер оценки",
+   801→        type: "text",
+   802→        placeholder: "ОУ-2024-001",
+   803→        defaultValue: "",
+   804→      },
+   805→      {
+   806→        key: "assessment_authority",
+   807→        label: "Утвердивший орган",
+   808→        type: "text",
+   809→        hint: "Наименование органа, утвердившего оценку",
+   810→        defaultValue: "",
+   811→      },
+   812→      {
+   813→        key: "assessment_status",
+   814→        label: "Статус оценки",
+   815→        type: "text",
+   816→        placeholder: "Утверждена",
+   817→        defaultValue: "",
+   818→      },
+   819→      {
+   820→        key: "assessment_validity_period",
+   821→        label: "Период действия",
+   822→        type: "text",
+   823→        hint: "Срок действия результатов оценки",
+   824→        defaultValue: "",
+   825→      },
+   826→      {
+   827→        key: "assessment_plan_ref",
+   828→        label: "Ссылка на план",
+   829→        type: "text",
+   830→        hint: "Бизнес-ссылка на план обеспечения транспортной безопасности",
+   831→        defaultValue: "",
+   832→      },
+   833→      {
+   834→        key: "assessment_narrative_description",
+   835→        label: "Описание оценки",
+   836→        type: "textarea",
+   837→        hint: "Подробное описание результатов оценки уязвимости",
+   838→        defaultValue: "",
+   839→      },
+   840→      {
+   841→        key: "assessment_regulatory_triggers",
+   842→        label: "Нормативные триггеры",
+   843→        type: "array",
+   844→        hint: "Введите значения через запятую",
+   845→        defaultValue: [],
+   846→      },
+   847→      {
+   848→        key: "assessment_target_doc_sections",
+   849→        label: "Разделы целевого документа",
+   850→        type: "array",
+   851→        hint: "Введите значения через запятую",
+   852→        defaultValue: [],
+   853→      },
+   854→    ],
+   855→  },
+   856→
+   857→  // ──────────────────────────────────────────────────────────────────────────
+   858→  // 6. Планы обеспечения транспортной безопасности
+   859→  // ──────────────────────────────────────────────────────────────────────────
+   860→  {
+   861→    key: "security_plans",
+   862→    label: "Планы обеспечения транспортной безопасности",
+   863→    description:
+   864→      "Планы обеспечения транспортной безопасности для объектов транспортной инфраструктуры",
+   865→    icon: "ClipboardList",
+   866→    fields: [
+   867→      {
+   868→        key: "oti_ref",
+   869→        label: "Ссылка на ОТИ",
+   870→        type: "text",
+   871→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+   872→        defaultValue: "",
+   873→      },
+   874→      {
+   875→        key: "plan_type",
+   876→        label: "Тип плана",
+   877→        type: "text",
+   878→        placeholder: "План обеспечения транспортной безопасности",
+   879→        defaultValue: "",
+   880→      },
+   881→      {
+   882→        key: "qdrant_plan_type_tag",
+   883→        label: "Тег типа плана",
+   884→        type: "text",
+   885→        hint: "Тег для поиска и кластеризации",
+   886→        defaultValue: "",
+   887→      },
+   888→      {
+   889→        key: "plan_start_conduct_date",
+   890→        label: "Дата начала разработки",
+   891→        type: "date",
+   892→        defaultValue: null,
+   893→      },
+   894→      {
+   895→        key: "plan_end_conduct_date",
+   896→        label: "Дата окончания разработки",
+   897→        type: "date",
+   898→        defaultValue: null,
+   899→      },
+   900→      {
+   901→        key: "plan_date_approval",
+   902→        label: "Дата утверждения плана",
+   903→        type: "date",
+   904→        defaultValue: null,
+   905→      },
+   906→      {
+   907→        key: "plan_number",
+   908→        label: "Номер плана",
+   909→        type: "text",
+   910→        placeholder: "ПОТБ-2024-001",
+   911→        defaultValue: "",
+   912→      },
+   913→      {
+   914→        key: "plan_authority",
+   915→        label: "Утвердивший орган",
+   916→        type: "text",
+   917→        defaultValue: "",
+   918→      },
+   919→      {
+   920→        key: "plan_status",
+   921→        label: "Статус плана",
+   922→        type: "text",
+   923→        placeholder: "Утверждён",
+   924→        defaultValue: "",
+   925→      },
+   926→      {
+   927→        key: "plan_implementation_status",
+   928→        label: "Статус реализации",
+   929→        type: "text",
+   930→        placeholder: "Реализуется",
+   931→        defaultValue: "",
+   932→      },
+   933→      {
+   934→        key: "plan_assessment_ref",
+   935→        label: "Ссылка на оценку уязвимости",
+   936→        type: "text",
+   937→        hint: "Бизнес-ссылка на соответствующую оценку уязвимости",
+   938→        defaultValue: "",
+   939→      },
+   940→      {
+   941→        key: "plan_narrative_description",
+   942→        label: "Описание плана",
+   943→        type: "textarea",
+   944→        hint: "Подробное описание плана обеспечения транспортной безопасности",
+   945→        defaultValue: "",
+   946→      },
+   947→      {
+   948→        key: "plan_regulatory_triggers",
+   949→        label: "Нормативные триггеры",
+   950→        type: "array",
+   951→        hint: "Введите значения через запятую",
+   952→        defaultValue: [],
+   953→      },
+   954→      {
+   955→        key: "plan_target_doc_sections",
+   956→        label: "Разделы целевого документа",
+   957→        type: "array",
+   958→        hint: "Введите значения через запятую",
+   959→        defaultValue: [],
+   960→      },
+   961→    ],
+   962→  },
+   963→
+   964→  // ──────────────────────────────────────────────────────────────────────────
+   965→  // 7. Земельные участки
+   966→  // ──────────────────────────────────────────────────────────────────────────
+   967→  {
+   968→    key: "land",
+   969→    label: "Земельные участки",
+   970→    description: "Сведения о земельных участках, на которых расположен ОТИ",
+   971→    icon: "LandPlot",
+   972→    fields: [
+   973→      {
+   974→        key: "oti_ref",
+   975→        label: "Ссылка на ОТИ",
+   976→        type: "text",
+   977→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+   978→        defaultValue: "",
+   979→      },
+   980→      {
+   981→        key: "cadastre_number",
+   982→        label: "Кадастровый номер",
+   983→        type: "text",
+   984→        placeholder: "77:01:0000001:123",
+   985→        defaultValue: "",
+   986→      },
+   987→      {
+   988→        key: "area_sqm",
+   989→        label: "Площадь, кв. м",
+   990→        type: "number",
+   991→        defaultValue: null,
+   992→      },
+   993→      {
+   994→        key: "land_lease_term",
+   995→        label: "Срок аренды",
+   996→        type: "text",
+   997→        placeholder: "49 лет",
+   998→        defaultValue: "",
+   999→      },
+  1000→      {
+  1001→        key: "lease_contract_num",
+  1002→        label: "Номер договора аренды",
+  1003→        type: "text",
+  1004→        defaultValue: "",
+  1005→      },
+  1006→      {
+  1007→        key: "lease_end_date",
+  1008→        label: "Дата окончания аренды",
+  1009→        type: "date",
+  1010→        defaultValue: null,
+  1011→      },
+  1012→      {
+  1013→        key: "owner",
+  1014→        label: "Собственник / арендодатель",
+  1015→        type: "text",
+  1016→        defaultValue: "",
+  1017→      },
+  1018→      {
+  1019→        key: "soil_type",
+  1020→        label: "Тип грунта",
+  1021→        type: "text",
+  1022→        placeholder: "Суглинок",
+  1023→        defaultValue: "",
+  1024→      },
+  1025→      {
+  1026→        key: "vegetation",
+  1027→        label: "Наличие растительности",
+  1028→        type: "boolean",
+  1029→        hint: "Присутствует ли древесно-кустарниковая растительность на участке",
+  1030→        defaultValue: false,
+  1031→      },
+  1032→      {
+  1033→        key: "encumbrances",
+  1034→        label: "Обременения",
+  1035→        type: "text",
+  1036→        hint: "Сведения об обременениях земельного участка",
+  1037→        defaultValue: "",
+  1038→      },
+  1039→      {
+  1040→        key: "is_flood_zone",
+  1041→        label: "Зона затопления",
+  1042→        type: "boolean",
+  1043→        hint: "Попадает ли участок в зону возможного затопления",
+  1044→        defaultValue: false,
+  1045→      },
+  1046→      {
+  1047→        key: "land_narrative_description",
+  1048→        label: "Описание земельного участка",
+  1049→        type: "textarea",
+  1050→        defaultValue: "",
+  1051→      },
+  1052→      {
+  1053→        key: "land_regulatory_triggers",
+  1054→        label: "Нормативные триггеры",
+  1055→        type: "array",
+  1056→        hint: "Введите значения через запятую",
+  1057→        defaultValue: [],
+  1058→      },
+  1059→      {
+  1060→        key: "land_target_doc_sections",
+  1061→        label: "Разделы целевого документа",
+  1062→        type: "array",
+  1063→        hint: "Введите значения через запятую",
+  1064→        defaultValue: [],
+  1065→      },
+  1066→      {
+  1067→        key: "qdrant_flood_risk_tag",
+  1068→        label: "Тег риска затопления",
+  1069→        type: "text",
+  1070→        hint: "Тег для поиска и кластеризации",
+  1071→        defaultValue: "",
+  1072→      },
+  1073→      {
+  1074→        key: "qdrant_soil_type_tag",
+  1075→        label: "Тег типа грунта",
+  1076→        type: "text",
+  1077→        hint: "Тег для поиска и кластеризации",
+  1078→        defaultValue: "",
+  1079→      },
+  1080→    ],
+  1081→  },
+  1082→
+  1083→  // ──────────────────────────────────────────────────────────────────────────
+  1084→  // 8. Сводка по землям
+  1085→  // ──────────────────────────────────────────────────────────────────────────
+  1086→  {
+  1087→    key: "land_summary",
+  1088→    label: "Сводка по землям",
+  1089→    description: "Сводные данные по земельным участкам ОТИ",
+  1090→    icon: "LandPlot",
+  1091→    fields: [
+  1092→      {
+  1093→        key: "oti_ref",
+  1094→        label: "Ссылка на ОТИ",
+  1095→        type: "text",
+  1096→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+  1097→        defaultValue: "",
+  1098→      },
+  1099→      {
+  1100→        key: "land_lease_term_summary",
+  1101→        label: "Сводка по срокам аренды",
+  1102→        type: "textarea",
+  1103→        hint: "Агрегированная информация о сроках аренды по всем участкам",
+  1104→        defaultValue: "",
+  1105→      },
+  1106→      {
+  1107→        key: "land_narrative_description",
+  1108→        label: "Описание земельных участков",
+  1109→        type: "textarea",
+  1110→        defaultValue: "",
+  1111→      },
+  1112→      {
+  1113→        key: "land_regulatory_triggers",
+  1114→        label: "Нормативные триггеры",
+  1115→        type: "array",
+  1116→        hint: "Введите значения через запятую",
+  1117→        defaultValue: [],
+  1118→      },
+  1119→      {
+  1120→        key: "land_target_doc_sections",
+  1121→        label: "Разделы целевого документа",
+  1122→        type: "array",
+  1123→        hint: "Введите значения через запятую",
+  1124→        defaultValue: [],
+  1125→      },
+  1126→      {
+  1127→        key: "qdrant_flood_risk_tag",
+  1128→        label: "Тег риска затопления",
+  1129→        type: "text",
+  1130→        hint: "Тег для поиска и кластеризации",
+  1131→        defaultValue: "",
+  1132→      },
+  1133→      {
+  1134→        key: "qdrant_soil_type_tag",
+  1135→        label: "Тег типа грунта",
+  1136→        type: "text",
+  1137→        hint: "Тег для поиска и кластеризации",
+  1138→        defaultValue: "",
+  1139→      },
+  1140→    ],
+  1141→  },
+  1142→
+  1143→  // ──────────────────────────────────────────────────────────────────────────
+  1144→  // 9. Акватории
+  1145→  // ──────────────────────────────────────────────────────────────────────────
+  1146→  {
+  1147→    key: "aquatories",
+  1148→    label: "Акватории",
+  1149→    description: "Акватории, обслуживаемые объектом транспортной инфраструктуры",
+  1150→    icon: "Waves",
+  1151→    fields: [
+  1152→      {
+  1153→        key: "oti_ref",
+  1154→        label: "Ссылка на ОТИ",
+  1155→        type: "text",
+  1156→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+  1157→        defaultValue: "",
+  1158→      },
+  1159→      {
+  1160→        key: "aquatory_area_sqm",
+  1161→        label: "Площадь акватории, кв. м",
+  1162→        type: "number",
+  1163→        defaultValue: null,
+  1164→      },
+  1165→      {
+  1166→        key: "aquatory_depths",
+  1167→        label: "Глубины акватории (текст)",
+  1168→        type: "text",
+  1169→        hint: "Текстовое описание глубин акватории",
+  1170→        defaultValue: "",
+  1171→      },
+  1172→      {
+  1173→        key: "aquatory_depths_min_m",
+  1174→        label: "Минимальная глубина, м",
+  1175→        type: "number",
+  1176→        defaultValue: null,
+  1177→      },
+  1178→      {
+  1179→        key: "aquatory_depths_max_m",
+  1180→        label: "Максимальная глубина, м",
+  1181→        type: "number",
+  1182→        defaultValue: null,
+  1183→      },
+  1184→      {
+  1185→        key: "aquatory_bottom_type",
+  1186→        label: "Тип дна",
+  1187→        type: "text",
+  1188→        placeholder: "Песчаное, глинистое",
+  1189→        defaultValue: "",
+  1190→      },
+  1191→      {
+  1192→        key: "aquatory_current_speed_ms",
+  1193→        label: "Скорость течения, м/с",
+  1194→        type: "text",
+  1195→        hint: "Средняя скорость течения в акватории",
+  1196→        defaultValue: "",
+  1197→      },
+  1198→      {
+  1199→        key: "aquatory_ice_regime",
+  1200→        label: "Ледовый режим",
+  1201→        type: "text",
+  1202→        placeholder: "Свободный от льда, ледовый",
+  1203→        defaultValue: "",
+  1204→      },
+  1205→      {
+  1206→        key: "fairways_anchorages",
+  1207→        label: "Наличие фарватеров и якорных стоянок",
+  1208→        type: "boolean",
+  1209→        defaultValue: false,
+  1210→      },
+  1211→      {
+  1212→        key: "fairways_anchorages_details",
+  1213→        label: "Подробности по фарватерам и стоянкам",
+  1214→        type: "textarea",
+  1215→        hint: "Описание фарватеров и якорных стоянок",
+  1216→        defaultValue: "",
+  1217→      },
+  1218→      {
+  1219→        key: "aquatory_security_implication",
+  1220→        label: "Последствия для безопасности",
+  1221→        type: "textarea",
+  1222→        hint: "Влияние характеристик акватории на транспортную безопасность",
+  1223→        defaultValue: "",
+  1224→      },
+  1225→      {
+  1226→        key: "aquatory_patrol_requirement",
+  1227→        label: "Необходимость патрулирования",
+  1228→        type: "boolean",
+  1229→        hint: "Требуется ли патрулирование акватории",
+  1230→        defaultValue: false,
+  1231→      },
+  1232→      {
+  1233→        key: "aquatory_narrative_description",
+  1234→        label: "Описание акватории",
+  1235→        type: "textarea",
+  1236→        defaultValue: "",
+  1237→      },
+  1238→      {
+  1239→        key: "aquatory_regulatory_triggers",
+  1240→        label: "Нормативные триггеры",
+  1241→        type: "array",
+  1242→        hint: "Введите значения через запятую",
+  1243→        defaultValue: [],
+  1244→      },
+  1245→      {
+  1246→        key: "aquatory_target_doc_sections",
+  1247→        label: "Разделы целевого документа",
+  1248→        type: "array",
+  1249→        hint: "Введите значения через запятую",
+  1250→        defaultValue: [],
+  1251→      },
+  1252→      {
+  1253→        key: "qdrant_ice_regime_tag",
+  1254→        label: "Тег ледового режима",
+  1255→        type: "text",
+  1256→        hint: "Тег для поиска и кластеризации",
+  1257→        defaultValue: "",
+  1258→      },
+  1259→      {
+  1260→        key: "points",
+  1261→        label: "Опорные точки акватории",
+  1262→        type: "object",
+  1263→        hint: "Координаты опорных точек, определяющих границы акватории",
+  1264→        defaultValue: [],
+  1265→        nestedFields: [
+  1266→          {
+  1267→            key: "p",
+  1268→            label: "Порядковый номер (строка)",
+  1269→            type: "number",
+  1270→            defaultValue: 1,
+  1271→          },
+  1272→          {
+  1273→            key: "point_number",
+  1274→            label: "Номер точки",
+  1275→            type: "number",
+  1276→            defaultValue: 1,
+  1277→          },
+  1278→          {
+  1279→            key: "lat",
+  1280→            label: "Широта (градусы, минуты)",
+  1281→            type: "text",
+  1282→            placeholder: "43°07'N",
+  1283→            defaultValue: "",
+  1284→          },
+  1285→          {
+  1286→            key: "lon",
+  1287→            label: "Долгота (градусы, минуты)",
+  1288→            type: "text",
+  1289→            placeholder: "131°54'E",
+  1290→            defaultValue: "",
+  1291→          },
+  1292→          {
+  1293→            key: "lat_decimal",
+  1294→            label: "Широта (десятичные градусы)",
+  1295→            type: "number",
+  1296→            defaultValue: null,
+  1297→          },
+  1298→          {
+  1299→            key: "lon_decimal",
+  1300→            label: "Долгота (десятичные градусы)",
+  1301→            type: "number",
+  1302→            defaultValue: null,
+  1303→          },
+  1304→        ],
+  1305→      },
+  1306→    ],
+  1307→  },
+  1308→
+  1309→  // ──────────────────────────────────────────────────────────────────────────
+  1310→  // 10. Грузы
+  1311→  // ──────────────────────────────────────────────────────────────────────────
+  1312→  {
+  1313→    key: "cargo",
+  1314→    label: "Грузы",
+  1315→    description: "Сведения о грузах, перерабатываемых на ОТИ",
+  1316→    icon: "Package",
+  1317→    fields: [
+  1318→      {
+  1319→        key: "oti_ref",
+  1320→        label: "Ссылка на ОТИ",
+  1321→        type: "text",
+  1322→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+  1323→        defaultValue: "",
+  1324→      },
+  1325→      {
+  1326→        key: "cargo_name",
+  1327→        label: "Наименование груза",
+  1328→        type: "text",
+  1329→        placeholder: "Нефть сырая",
+  1330→        defaultValue: "",
+  1331→      },
+  1332→      {
+  1333→        key: "imo_class",
+  1334→        label: "Класс ИМО",
+  1335→        type: "text",
+  1336→        hint: "Класс опасности груза по коду ИМО",
+  1337→        defaultValue: "",
+  1338→      },
+  1339→      {
+  1340→        key: "is_dangerous",
+  1341→        label: "Опасный груз",
+  1342→        type: "boolean",
+  1343→        hint: "Является ли груз опасным",
+  1344→        defaultValue: false,
+  1345→      },
+  1346→      {
+  1347→        key: "un_number",
+  1348→        label: "Номер ООН (UN)",
+  1349→        type: "text",
+  1350→        hint: "Номер опасного груза по номенклатуре ООН",
+  1351→        defaultValue: "",
+  1352→      },
+  1353→      {
+  1354→        key: "features",
+  1355→        label: "Характеристики груза",
+  1356→        type: "array",
+  1357→        hint: "Введите значения через запятую",
+  1358→        defaultValue: [],
+  1359→      },
+  1360→      {
+  1361→        key: "packaging_type",
+  1362→        label: "Тип упаковки",
+  1363→        type: "text",
+  1364→        placeholder: "Наливной, навалочный, тарный",
+  1365→        defaultValue: "",
+  1366→      },
+  1367→      {
+  1368→        key: "max_weight_per_ship_t",
+  1369→        label: "Максимальный вес на судно, т",
+  1370→        type: "number",
+  1371→        defaultValue: null,
+  1372→      },
+  1373→      {
+  1374→        key: "berth_name",
+  1375→        label: "Наименование причала",
+  1376→        type: "text",
+  1377→        defaultValue: "",
+  1378→      },
+  1379→      {
+  1380→        key: "berth_infra_ref",
+  1381→        label: "Ссылка на инфраструктуру причала",
+  1382→        type: "text",
+  1383→        hint: "Бизнес-ссылка на инфраструктурный объект причала",
+  1384→        defaultValue: "",
+  1385→      },
+  1386→      {
+  1387→        key: "season_start",
+  1388→        label: "Начало навигации",
+  1389→        type: "text",
+  1390→        hint: "Начало периода обработки груза (месяц/дата)",
+  1391→        defaultValue: "",
+  1392→      },
+  1393→      {
+  1394→        key: "season_end",
+  1395→        label: "Конец навигации",
+  1396→        type: "text",
+  1397→        hint: "Конец периода обработки груза (месяц/дата)",
+  1398→        defaultValue: "",
+  1399→      },
+  1400→      {
+  1401→        key: "cargo_narrative_description",
+  1402→        label: "Описание груза",
+  1403→        type: "textarea",
+  1404→        defaultValue: "",
+  1405→      },
+  1406→      {
+  1407→        key: "cargo_regulatory_triggers",
+  1408→        label: "Нормативные триггеры",
+  1409→        type: "array",
+  1410→        hint: "Введите значения через запятую",
+  1411→        defaultValue: [],
+  1412→      },
+  1413→      {
+  1414→        key: "cargo_target_doc_sections",
+  1415→        label: "Разделы целевого документа",
+  1416→        type: "array",
+  1417→        hint: "Введите значения через запятую",
+  1418→        defaultValue: [],
+  1419→      },
+  1420→      {
+  1421→        key: "qdrant_cargo_type_tag",
+  1422→        label: "Тег типа груза",
+  1423→        type: "text",
+  1424→        hint: "Тег для поиска и кластеризации",
+  1425→        defaultValue: "",
+  1426→      },
+  1427→      {
+  1428→        key: "qdrant_dangerous_cargo_tag",
+  1429→        label: "Тег опасного груза",
+  1430→        type: "text",
+  1431→        hint: "Тег для поиска и кластеризации",
+  1432→        defaultValue: "",
+  1433→      },
+  1434→      {
+  1435→        key: "qdrant_imo_class_tag",
+  1436→        label: "Тег класса ИМО",
+  1437→        type: "text",
+  1438→        hint: "Тег для поиска и кластеризации",
+  1439→        defaultValue: "",
+  1440→      },
+  1441→    ],
+  1442→  },
+  1443→
+  1444→  // ──────────────────────────────────────────────────────────────────────────
+  1445→  // 11. Сводка по грузам
+  1446→  // ──────────────────────────────────────────────────────────────────────────
+  1447→  {
+  1448→    key: "cargo_summary",
+  1449→    label: "Сводка по грузам",
+  1450→    description: "Сводные данные по грузам, перерабатываемым на ОТИ",
+  1451→    icon: "BarChart3",
+  1452→    fields: [
+  1453→      {
+  1454→        key: "oti_ref",
+  1455→        label: "Ссылка на ОТИ",
+  1456→        type: "text",
+  1457→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+  1458→        defaultValue: "",
+  1459→      },
+  1460→      {
+  1461→        key: "cargo_general",
+  1462→        label: "Общие сведения о грузах",
+  1463→        type: "textarea",
+  1464→        hint: "Общая характеристика грузов, перерабатываемых на ОТИ",
+  1465→        defaultValue: "",
+  1466→      },
+  1467→      {
+  1468→        key: "cargo_general_list",
+  1469→        label: "Перечень грузов общего назначения",
+  1470→        type: "object",
+  1471→        hint: "Список наименований и классов грузов",
+  1472→        defaultValue: [],
+  1473→        nestedFields: [
+  1474→          {
+  1475→            key: "name",
+  1476→            label: "Наименование груза",
+  1477→            type: "text",
+  1478→            defaultValue: "",
+  1479→          },
+  1480→          {
+  1481→            key: "imo_class",
+  1482→            label: "Класс ИМО",
+  1483→            type: "text",
+  1484→            defaultValue: "",
+  1485→          },
+  1486→        ],
+  1487→      },
+  1488→      {
+  1489→        key: "cargo_dangerous_list",
+  1490→        label: "Перечень опасных грузов",
+  1491→        type: "object",
+  1492→        hint: "Детализированный список опасных грузов",
+  1493→        defaultValue: [],
+  1494→        nestedFields: [
+  1495→          {
+  1496→            key: "name",
+  1497→            label: "Наименование груза",
+  1498→            type: "text",
+  1499→            defaultValue: "",
+  1500→          },
+  1501→          {
+  1502→            key: "imo_class",
+  1503→            label: "Класс ИМО",
+  1504→            type: "text",
+  1505→            defaultValue: "",
+  1506→          },
+  1507→          {
+  1508→            key: "features",
+  1509→            label: "Характеристики",
+  1510→            type: "array",
+  1511→            hint: "Введите значения через запятую",
+  1512→            defaultValue: [],
+  1513→          },
+  1514→          {
+  1515→            key: "un_number",
+  1516→            label: "Номер ООН (UN)",
+  1517→            type: "text",
+  1518→            defaultValue: "",
+  1519→          },
+  1520→          {
+  1521→            key: "packaging_type",
+  1522→            label: "Тип упаковки",
+  1523→            type: "text",
+  1524→            defaultValue: "",
+  1525→          },
+  1526→          {
+  1527→            key: "max_weight_per_ship_t",
+  1528→            label: "Макс. вес на судно, т",
+  1529→            type: "number",
+  1530→            defaultValue: null,
+  1531→          },
+  1532→          {
+  1533→            key: "berth_name",
+  1534→            label: "Наименование причала",
+  1535→            type: "text",
+  1536→            defaultValue: "",
+  1537→          },
+  1538→          {
+  1539→            key: "season_start",
+  1540→            label: "Начало навигации",
+  1541→            type: "text",
+  1542→            defaultValue: "",
+  1543→          },
+  1544→          {
+  1545→            key: "season_end",
+  1546→            label: "Конец навигации",
+  1547→            type: "text",
+  1548→            defaultValue: "",
+  1549→          },
+  1550→        ],
+  1551→      },
+  1552→      {
+  1553→        key: "dangerous_cargo_regulatory",
+  1554→        label: "Нормативные требования по опасным грузам",
+  1555→        type: "array",
+  1556→        hint: "Введите значения через запятую",
+  1557→        defaultValue: [],
+  1558→      },
+  1559→      {
+  1560→        key: "dangerous_cargo_context",
+  1561→        label: "Контекст опасных грузов",
+  1562→        type: "textarea",
+  1563→        hint: "Описание особенностей переработки опасных грузов",
+  1564→        defaultValue: "",
+  1565→      },
+  1566→      {
+  1567→        key: "cargo_narrative_description",
+  1568→        label: "Описание грузов (сводно)",
+  1569→        type: "textarea",
+  1570→        defaultValue: "",
+  1571→      },
+  1572→      {
+  1573→        key: "cargo_regulatory_triggers",
+  1574→        label: "Нормативные триггеры",
+  1575→        type: "array",
+  1576→        hint: "Введите значения через запятую",
+  1577→        defaultValue: [],
+  1578→      },
+  1579→      {
+  1580→        key: "cargo_target_doc_sections",
+  1581→        label: "Разделы целевого документа",
+  1582→        type: "array",
+  1583→        hint: "Введите значения через запятую",
+  1584→        defaultValue: [],
+  1585→      },
+  1586→      {
+  1587→        key: "qdrant_cargo_type_tag",
+  1588→        label: "Тег типа груза",
+  1589→        type: "text",
+  1590→        hint: "Тег для поиска и кластеризации",
+  1591→        defaultValue: "",
+  1592→      },
+  1593→      {
+  1594→        key: "qdrant_dangerous_cargo_tag",
+  1595→        label: "Тег опасного груза",
+  1596→        type: "text",
+  1597→        hint: "Тег для поиска и кластеризации",
+  1598→        defaultValue: "",
+  1599→      },
+  1600→      {
+  1601→        key: "qdrant_imo_class_tag",
+  1602→        label: "Тег класса ИМО",
+  1603→        type: "text",
+  1604→        hint: "Тег для поиска и кластеризации",
+  1605→        defaultValue: "",
+  1606→      },
+  1607→    ],
+  1608→  },
+  1609→
+  1610→  // ──────────────────────────────────────────────────────────────────────────
+  1611→  // 12. Грузооборот
+  1612→  // ──────────────────────────────────────────────────────────────────────────
+  1613→  {
+  1614→    key: "cargo_turnover",
+  1615→    label: "Грузооборот",
+  1616→    description: "Данные по грузообороту и судозаходам ОТИ",
+  1617→    icon: "BarChart3",
+  1618→    fields: [
+  1619→      {
+  1620→        key: "oti_ref",
+  1621→        label: "Ссылка на ОТИ",
+  1622→        type: "text",
+  1623→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+  1624→        defaultValue: "",
+  1625→      },
+  1626→      {
+  1627→        key: "year",
+  1628→        label: "Год",
+  1629→        type: "number",
+  1630→        hint: "Отчётный год",
+  1631→        defaultValue: null,
+  1632→      },
+  1633→      {
+  1634→        key: "period_date",
+  1635→        label: "Дата периода",
+  1636→        type: "date",
+  1637→        hint: "Начало отчётного периода",
+  1638→        defaultValue: null,
+  1639→      },
+  1640→      {
+  1641→        key: "is_current_period",
+  1642→        label: "Текущий период",
+  1643→        type: "boolean",
+  1644→        hint: "Является ли данный период текущим",
+  1645→        defaultValue: false,
+  1646→      },
+  1647→      {
+  1648→        key: "tons",
+  1649→        label: "Грузооборот, тыс. тонн",
+  1650→        type: "number",
+  1651→        defaultValue: null,
+  1652→      },
+  1653→      {
+  1654→        key: "ships",
+  1655→        label: "Количество судов",
+  1656→        type: "number",
+  1657→        hint: "Общее количество судозаходов",
+  1658→        defaultValue: null,
+  1659→      },
+  1660→      {
+  1661→        key: "foreign_ships",
+  1662→        label: "Иностранные суда",
+  1663→        type: "number",
+  1664→        hint: "Количество судов под иностранным флагом",
+  1665→        defaultValue: null,
+  1666→      },
+  1667→      {
+  1668→        key: "coasting_ships",
+  1669→        label: "Судна каботажа",
+  1670→        type: "number",
+  1671→        hint: "Количество судов каботажного плавания",
+  1672→        defaultValue: null,
+  1673→      },
+  1674→      {
+  1675→        key: "river_ships",
+  1676→        label: "Речные суда",
+  1677→        type: "number",
+  1678→        hint: "Количество речных судов",
+  1679→        defaultValue: null,
+  1680→      },
+  1681→    ],
+  1682→  },
+  1683→
+  1684→  // ──────────────────────────────────────────────────────────────────────────
+  1685→  // 13. Операции ОТИ
+  1686→  // ──────────────────────────────────────────────────────────────────────────
+  1687→  {
+  1688→    key: "oti_operations",
+  1689→    label: "Операции ОТИ",
+  1690→    description: "Сведения об операционной деятельности ОТИ",
+  1691→    icon: "Settings",
+  1692→    fields: [
+  1693→      {
+  1694→        key: "oti_ref",
+  1695→        label: "Ссылка на ОТИ",
+  1696→        type: "text",
+  1697→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+  1698→        defaultValue: "",
+  1699→      },
+  1700→      {
+  1701→        key: "is_passenger_ops",
+  1702→        label: "Пассажирские операции",
+  1703→        type: "boolean",
+  1704→        hint: "Осуществляется ли посадка/высадка пассажиров",
+  1705→        defaultValue: false,
+  1706→      },
+  1707→      {
+  1708→        key: "is_bunkering",
+  1709→        label: "Бункеровка",
+  1710→        type: "boolean",
+  1711→        hint: "Оказывается ли услуга бункеровки судов",
+  1712→        defaultValue: false,
+  1713→      },
+  1714→      {
+  1715→        key: "is_unaccompanied_baggage",
+  1716→        label: "Не сопровождаемый багаж",
+  1717→        type: "boolean",
+  1718→        hint: "Обрабатывается ли не сопровождаемый багаж",
+  1719→        defaultValue: false,
+  1720→      },
+  1721→      {
+  1722→        key: "operation_mode",
+  1723→        label: "Режим работы",
+  1724→        type: "text",
+  1725→        placeholder: "Круглосуточный",
+  1726→        defaultValue: "",
+  1727→      },
+  1728→      {
+  1729→        key: "operation_mode_shift_type",
+  1730→        label: "Тип сменности",
+  1731→        type: "text",
+  1732→        placeholder: "2-сменный, 3-сменный",
+  1733→        defaultValue: "",
+  1734→      },
+  1735→      {
+  1736→        key: "max_people_on_oti",
+  1737→        label: "Макс. количество людей на ОТИ",
+  1738→        type: "number",
+  1739→        hint: "Максимальное количество людей, одновременно находящихся на ОТИ",
+  1740→        defaultValue: null,
+  1741→      },
+  1742→      {
+  1743→        key: "max_people_on_oti_includes",
+  1744→        label: "Включая (состав людей)",
+  1745→        type: "text",
+  1746→        hint: "Указание, какие категории людей включены в подсчёт",
+  1747→        defaultValue: "",
+  1748→      },
+  1749→      {
+  1750→        key: "brigade_size",
+  1751→        label: "Размер бригады (текст)",
+  1752→        type: "text",
+  1753→        hint: "Текстовое описание численности бригад",
+  1754→        defaultValue: "",
+  1755→      },
+  1756→      {
+  1757→        key: "brigade_size_day",
+  1758→        label: "Размер бригады (дневная смена)",
+  1759→        type: "number",
+  1760→        hint: "Численность бригады в дневную смену",
+  1761→        defaultValue: null,
+  1762→      },
+  1763→      {
+  1764→        key: "brigade_size_night",
+  1765→        label: "Размер бригады (ночная смена)",
+  1766→        type: "number",
+  1767→        hint: "Численность бригады в ночную смену",
+  1768→        defaultValue: null,
+  1769→      },
+  1770→    ],
+  1771→  },
+  1772→
+  1773→  // ──────────────────────────────────────────────────────────────────────────
+  1774→  // 14. ОПО — Опасные производственные объекты
+  1775→  // ──────────────────────────────────────────────────────────────────────────
+  1776→  {
+  1777→    key: "opo",
+  1778→    label: "Опасные производственные объекты (ОПО)",
+  1779→    description:
+  1780→      "Сведения об опасных производственных объектах на территории ОТИ",
+  1781→    icon: "AlertTriangle",
+  1782→    fields: [
+  1783→      {
+  1784→        key: "oti_ref",
+  1785→        label: "Ссылка на ОТИ",
+  1786→        type: "text",
+  1787→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+  1788→        defaultValue: "",
+  1789→      },
+  1790→      {
+  1791→        key: "opo_registry_num",
+  1792→        label: "Реестровый номер ОПО",
+  1793→        type: "text",
+  1794→        placeholder: "ОПО-001",
+  1795→        defaultValue: "",
+  1796→      },
+  1797→      {
+  1798→        key: "opo_name",
+  1799→        label: "Наименование ОПО",
+  1800→        type: "text",
+  1801→        placeholder: "Резервуарный парк РП-1",
+  1802→        defaultValue: "",
+  1803→      },
+  1804→      {
+  1805→        key: "opo_hazard_class",
+  1806→        label: "Класс опасности ОПО",
+  1807→        type: "select",
+  1808→        hint: "Класс опасности по Ростехнадзору",
+  1809→        options: ["1", "2", "3", "4"],
+  1810→        defaultValue: null,
+  1811→      },
+  1812→      {
+  1813→        key: "opo_basis",
+  1814→        label: "Основание",
+  1815→        type: "textarea",
+  1816→        hint: "Основание отнесения объекта к категории ОПО",
+  1817→        defaultValue: "",
+  1818→      },
+  1819→      {
+  1820→        key: "opo_regulatory_triggers",
+  1821→        label: "Нормативные триггеры",
+  1822→        type: "array",
+  1823→        hint: "Введите значения через запятую",
+  1824→        defaultValue: [],
+  1825→      },
+  1826→      {
+  1827→        key: "opo_pmla_exists",
+  1828→        label: "Наличие ПМЛА",
+  1829→        type: "boolean",
+  1830→        hint: "Разработан ли план мероприятий по локализации и ликвидации аварий",
+  1831→        defaultValue: false,
+  1832→      },
+  1833→      {
+  1834→        key: "opo_accident_scenarios",
+  1835→        label: "Сценарии аварий",
+  1836→        type: "object",
+  1837→        hint: "Возможные сценарии аварий на ОПО",
+  1838→        defaultValue: [],
+  1839→        nestedFields: [
+  1840→          {
+  1841→            key: "scenario_id",
+  1842→            label: "Идентификатор сценария",
+  1843→            type: "text",
+  1844→            defaultValue: "",
+  1845→          },
+  1846→          {
+  1847→            key: "description",
+  1848→            label: "Описание сценария",
+  1849→            type: "textarea",
+  1850→            hint: "Подробное описание возможного сценария аварии",
+  1851→            defaultValue: "",
+  1852→          },
+  1853→          {
+  1854→            key: "max_explosion_weight_t",
+  1855→            label: "Макс. тротиловый эквивалент, т",
+  1856→            type: "number",
+  1857→            hint: "Максимальный вес взрывчатого вещества в тротиловом эквиваленте",
+  1858→            defaultValue: null,
+  1859→          },
+  1860→        ],
+  1861→      },
+  1862→      {
+  1863→        key: "opo_target_doc_sections",
+  1864→        label: "Разделы целевого документа",
+  1865→        type: "array",
+  1866→        hint: "Введите значения через запятую",
+  1867→        defaultValue: [],
+  1868→      },
+  1869→      {
+  1870→        key: "opo_narrative_description",
+  1871→        label: "Описание ОПО",
+  1872→        type: "textarea",
+  1873→        defaultValue: "",
+  1874→      },
+  1875→    ],
+  1876→  },
+  1877→
+  1878→  // ──────────────────────────────────────────────────────────────────────────
+  1879→  // 15. Инфраструктура
+  1880→  // ──────────────────────────────────────────────────────────────────────────
+  1881→  {
+  1882→    key: "infrastructure",
+  1883→    label: "Инфраструктура",
+  1884→    description:
+  1885→      "Инфраструктурные объекты, расположенные на территории ОТИ",
+  1886→    icon: "Construction",
+  1887→    fields: [
+  1888→      {
+  1889→        key: "oti_ref",
+  1890→        label: "Ссылка на ОТИ",
+  1891→        type: "text",
+  1892→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+  1893→        defaultValue: "",
+  1894→      },
+  1895→      {
+  1896→        key: "obj_type",
+  1897→        label: "Тип объекта",
+  1898→        type: "text",
+  1899→        placeholder: "Здание, сооружение, причал, склад, дорога",
+  1900→        defaultValue: "",
+  1901→      },
+  1902→      {
+  1903→        key: "obj_name",
+  1904→        label: "Наименование объекта",
+  1905→        type: "text",
+  1906→        defaultValue: "",
+  1907→      },
+  1908→      {
+  1909→        key: "length_m",
+  1910→        label: "Длина, м",
+  1911→        type: "number",
+  1912→        defaultValue: null,
+  1913→      },
+  1914→      {
+  1915→        key: "width_m",
+  1916→        label: "Ширина, м",
+  1917→        type: "number",
+  1918→        defaultValue: null,
+  1919→      },
+  1920→      {
+  1921→        key: "depth_m",
+  1922→        label: "Глубина, м",
+  1923→        type: "number",
+  1924→        defaultValue: null,
+  1925→      },
+  1926→      {
+  1927→        key: "area_sqm",
+  1928→        label: "Площадь, кв. м",
+  1929→        type: "number",
+  1930→        defaultValue: null,
+  1931→      },
+  1932→      {
+  1933→        key: "perimeter_m",
+  1934→        label: "Периметр, м",
+  1935→        type: "number",
+  1936→        defaultValue: null,
+  1937→      },
+  1938→      {
+  1939→        key: "height_m",
+  1940→        label: "Высота, м",
+  1941→        type: "number",
+  1942→        defaultValue: null,
+  1943→      },
+  1944→      {
+  1945→        key: "quantity",
+  1946→        label: "Количество",
+  1947→        type: "number",
+  1948→        hint: "Количество однотипных объектов",
+  1949→        defaultValue: null,
+  1950→      },
+  1951→      {
+  1952→        key: "capacity_value",
+  1953→        label: "Вместимость (число)",
+  1954→        type: "number",
+  1955→        defaultValue: null,
+  1956→      },
+  1957→      {
+  1958→        key: "capacity_unit",
+  1959→        label: "Единица вместимости",
+  1960→        type: "text",
+  1961→        placeholder: "куб. м, т, шт.",
+  1962→        defaultValue: "",
+  1963→      },
+  1964→      {
+  1965→        key: "voltage_kw",
+  1966→        label: "Напряжение / мощность, кВт",
+  1967→        type: "number",
+  1968→        defaultValue: null,
+  1969→      },
+  1970→      {
+  1971→        key: "material",
+  1972→        label: "Материал",
+  1973→        type: "text",
+  1974→        placeholder: "Железобетон, сталь",
+  1975→        defaultValue: "",
+  1976→      },
+  1977→      {
+  1978→        key: "surface_type",
+  1979→        label: "Тип покрытия",
+  1980→        type: "text",
+  1981→        defaultValue: "",
+  1982→      },
+  1983→      {
+  1984→        key: "cargo_type",
+  1985→        label: "Тип груза",
+  1986→        type: "text",
+  1987→        hint: "Тип груза, для которого предназначен объект",
+  1988→        defaultValue: "",
+  1989→      },
+  1990→      {
+  1991→        key: "vessel_type",
+  1992→        label: "Тип судна",
+  1993→        type: "text",
+  1994→        defaultValue: "",
+  1995→      },
+  1996→      {
+  1997→        key: "throughput_summer",
+  1998→        label: "Пропускная способность (летний период)",
+  1999→        type: "text",
+  2000→        defaultValue: "",
+
+[showing lines 1-2000 of 4220; use offset=2001 with limit to continue reading]
