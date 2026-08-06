@@ -213,6 +213,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "sti_narrative_description",
+        readOnly: true,
         label: "Описание СТИ",
         type: "textarea",
         hint: "Подробное описание субъекта транспортной инфраструктуры",
@@ -221,6 +222,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "sti_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -228,6 +230,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "sti_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -235,6 +238,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_sti_type_tag",
+        readOnly: true,
         label: "Тег типа СТИ",
         type: "text",
         hint: "Тег для поиска и кластеризации в векторной базе",
@@ -242,6 +246,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_ownership_tag",
+        readOnly: true,
         label: "Тег формы собственности",
         type: "text",
         hint: "Тег для поиска и кластеризации в векторной базе",
@@ -524,6 +529,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "oti_narrative_description",
+        readOnly: true,
         label: "Описание ОТИ",
         type: "textarea",
         hint: "Подробное текстовое описание объекта",
@@ -531,6 +537,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "oti_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -538,6 +545,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "oti_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -545,6 +553,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_doc_section_id",
+        readOnly: true,
         label: "Идентификатор раздела документа",
         type: "text",
         hint: "Ссылка на раздел документа в векторной базе",
@@ -552,6 +561,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_climate_zone_tag",
+        readOnly: true,
         label: "Тег климатической зоны",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -559,6 +569,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_hydrology_risk_tag",
+        readOnly: true,
         label: "Тег гидрологического риска",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -566,6 +577,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_oti_category_tag",
+        readOnly: true,
         label: "Тег категории ОТИ",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -607,6 +619,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_person_role_tag",
+        readOnly: true,
         label: "Тег роли лица",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -703,6 +716,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "person_attestation_exp_date",
+        readOnly: true,
         label: "Дата окончания действия аттестации",
         type: "date",
         defaultValue: null,
@@ -730,12 +744,14 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "person_narrative_description",
+        readOnly: true,
         label: "Описание / примечания",
         type: "textarea",
         defaultValue: "",
       },
       {
         key: "person_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -743,6 +759,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "persons_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -778,6 +795,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_assessment_type_tag",
+        readOnly: true,
         label: "Тег типа оценки",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -832,6 +850,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "assessment_narrative_description",
+        readOnly: true,
         label: "Описание оценки",
         type: "textarea",
         hint: "Подробное описание результатов оценки уязвимости",
@@ -839,6 +858,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "assessment_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -846,6 +866,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "assessment_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -880,6 +901,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_plan_type_tag",
+        readOnly: true,
         label: "Тег типа плана",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -939,6 +961,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "plan_narrative_description",
+        readOnly: true,
         label: "Описание плана",
         type: "textarea",
         hint: "Подробное описание плана обеспечения транспортной безопасности",
@@ -946,6 +969,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "plan_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -953,6 +977,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "plan_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1045,12 +1070,14 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "land_narrative_description",
+        readOnly: true,
         label: "Описание земельного участка",
         type: "textarea",
         defaultValue: "",
       },
       {
         key: "land_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1058,6 +1085,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "land_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1065,6 +1093,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_flood_risk_tag",
+        readOnly: true,
         label: "Тег риска затопления",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -1072,6 +1101,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_soil_type_tag",
+        readOnly: true,
         label: "Тег типа грунта",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -1105,12 +1135,14 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "land_narrative_description",
+        readOnly: true,
         label: "Описание земельных участков",
         type: "textarea",
         defaultValue: "",
       },
       {
         key: "land_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1118,6 +1150,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "land_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1125,6 +1158,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_flood_risk_tag",
+        readOnly: true,
         label: "Тег риска затопления",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -1132,6 +1166,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_soil_type_tag",
+        readOnly: true,
         label: "Тег типа грунта",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -1217,6 +1252,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "aquatory_security_implication",
+        readOnly: true,
         label: "Последствия для безопасности",
         type: "textarea",
         hint: "Влияние характеристик акватории на транспортную безопасность",
@@ -1224,6 +1260,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "aquatory_patrol_requirement",
+        readOnly: true,
         label: "Необходимость патрулирования",
         type: "boolean",
         hint: "Требуется ли патрулирование акватории",
@@ -1231,12 +1268,14 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "aquatory_narrative_description",
+        readOnly: true,
         label: "Описание акватории",
         type: "textarea",
         defaultValue: "",
       },
       {
         key: "aquatory_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1244,6 +1283,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "aquatory_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1251,6 +1291,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_ice_regime_tag",
+        readOnly: true,
         label: "Тег ледового режима",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -1291,12 +1332,14 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
           },
           {
             key: "lat_decimal",
+            readOnly: true,
             label: "Широта (десятичные градусы)",
             type: "number",
             defaultValue: null,
           },
           {
             key: "lon_decimal",
+            readOnly: true,
             label: "Долгота (десятичные градусы)",
             type: "number",
             defaultValue: null,
@@ -1399,12 +1442,14 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "cargo_narrative_description",
+        readOnly: true,
         label: "Описание груза",
         type: "textarea",
         defaultValue: "",
       },
       {
         key: "cargo_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1412,6 +1457,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "cargo_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1419,6 +1465,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_cargo_type_tag",
+        readOnly: true,
         label: "Тег типа груза",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -1426,6 +1473,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_dangerous_cargo_tag",
+        readOnly: true,
         label: "Тег опасного груза",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -1433,6 +1481,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_imo_class_tag",
+        readOnly: true,
         label: "Тег класса ИМО",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -1551,6 +1600,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "dangerous_cargo_regulatory",
+        readOnly: true,
         label: "Нормативные требования по опасным грузам",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1558,6 +1608,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "dangerous_cargo_context",
+        readOnly: true,
         label: "Контекст опасных грузов",
         type: "textarea",
         hint: "Описание особенностей переработки опасных грузов",
@@ -1565,12 +1616,14 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "cargo_narrative_description",
+        readOnly: true,
         label: "Описание грузов (сводно)",
         type: "textarea",
         defaultValue: "",
       },
       {
         key: "cargo_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1578,6 +1631,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "cargo_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1585,6 +1639,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_cargo_type_tag",
+        readOnly: true,
         label: "Тег типа груза",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -1592,6 +1647,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_dangerous_cargo_tag",
+        readOnly: true,
         label: "Тег опасного груза",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -1599,6 +1655,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_imo_class_tag",
+        readOnly: true,
         label: "Тег класса ИМО",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -1818,6 +1875,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "opo_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1861,6 +1919,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "opo_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -1868,6 +1927,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "opo_narrative_description",
+        readOnly: true,
         label: "Описание ОПО",
         type: "textarea",
         defaultValue: "",
@@ -2206,6 +2266,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "ce_security_implication",
+        readOnly: true,
         label: "Последствия для безопасности",
         type: "textarea",
         hint: "Последствия нарушения работоспособности критического элемента",
@@ -2213,6 +2274,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_ce_protection_tag",
+        readOnly: true,
         label: "Тег защиты КЭ",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -2259,6 +2321,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "rod_isps_compliance",
+        readOnly: true,
         label: "Соответствие Кодексу ОСПС/МСПС (ISPS)",
         type: "text",
         hint: "Сведения о соответствии международным требованиям",
@@ -2363,6 +2426,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "ce_security_implication",
+        readOnly: true,
         label: "Последствия для безопасности",
         type: "textarea",
         defaultValue: "",
@@ -2388,6 +2452,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "rod_isps_compliance",
+        readOnly: true,
         label: "Соответствие ISPS",
         type: "text",
         defaultValue: "",
@@ -2428,6 +2493,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "ztb_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -2435,6 +2501,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "ztb_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -2442,6 +2509,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_security_zone_tag",
+        readOnly: true,
         label: "Тег зоны безопасности",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -2500,12 +2568,14 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "ptb_narrative_description",
+        readOnly: true,
         label: "Описание ПТБ",
         type: "textarea",
         defaultValue: "",
       },
       {
         key: "ptb_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -2513,6 +2583,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "ptb_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -2520,6 +2591,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_ptb_accreditation_tag",
+        readOnly: true,
         label: "Тег аккредитации ПТБ",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -2527,6 +2599,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_gbr_exists_tag",
+        readOnly: true,
         label: "Тег наличия ГБР",
         type: "text",
         hint: "Тег для поиска и кластеризации (ГБР — группа быстрого реагирования)",
@@ -2797,6 +2870,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "post_type",
+        readOnly: true,
         label: "Тип поста",
         type: "text",
         placeholder: "КПП, контрольно-пропускной пункт, наблюдательный пост",
@@ -2825,6 +2899,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_gbr_exists_tag",
+        readOnly: true,
         label: "Тег наличия ГБР",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -2885,6 +2960,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "staff_attestation_exp_date",
+        readOnly: true,
         label: "Дата окончания аттестации",
         type: "date",
         defaultValue: null,
@@ -3015,6 +3091,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_gbr_exists_tag",
+        readOnly: true,
         label: "Тег наличия ГБР",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3118,6 +3195,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "catalog_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -3125,6 +3203,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "catalog_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -3300,12 +3379,14 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "tsotb_narrative_description",
+        readOnly: true,
         label: "Описание экземпляра ТСОТБ",
         type: "textarea",
         defaultValue: "",
       },
       {
         key: "tsotb_operational_context",
+        readOnly: true,
         label: "Операционный контекст",
         type: "textarea",
         hint: "Особенности эксплуатации конкретного экземпляра",
@@ -3313,6 +3394,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "tsotb_security_implication",
+        readOnly: true,
         label: "Последствия для безопасности",
         type: "textarea",
         hint: "Последствия вывода из строя данного ТСОТБ",
@@ -3320,6 +3402,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_tsotb_category_tag",
+        readOnly: true,
         label: "Тег категории ТСОТБ",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3327,6 +3410,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_certified_pp969_tag",
+        readOnly: true,
         label: "Тег сертификации ПП №969",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3334,6 +3418,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_tsotb_function_tag",
+        readOnly: true,
         label: "Тег функции ТСОТБ",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3341,6 +3426,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_climate_resistance_tag",
+        readOnly: true,
         label: "Тег климатической устойчивости",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3348,6 +3434,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "tsotb_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -3355,6 +3442,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "tsotb_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -3362,6 +3450,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "tsotb_compliance_check_result",
+        readOnly: true,
         label: "Результат проверки соответствия",
         type: "text",
         hint: "Результат последней проверки соответствия требованиям",
@@ -3477,6 +3566,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "eng_catalog_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -3491,6 +3581,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "eng_catalog_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -3498,6 +3589,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_eng_category_tag",
+        readOnly: true,
         label: "Тег категории ИСО",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3505,6 +3597,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_eng_function_tag",
+        readOnly: true,
         label: "Тег функции ИСО",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3841,6 +3934,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "eng_instance_security_implication",
+        readOnly: true,
         label: "Последствия для безопасности",
         type: "textarea",
         hint: "Последствия вывода из строя данного ИСО",
@@ -3848,6 +3942,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "eng_instance_operational_context",
+        readOnly: true,
         label: "Операционный контекст",
         type: "textarea",
         hint: "Особенности эксплуатации конкретного экземпляра ИСО",
@@ -3855,6 +3950,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_eng_material_tag",
+        readOnly: true,
         label: "Тег материала ИСО",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3862,6 +3958,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_eng_gost_tag",
+        readOnly: true,
         label: "Тег соответствия ГОСТ",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3869,6 +3966,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_eng_seasonal_tag",
+        readOnly: true,
         label: "Тег сезонности ИСО",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3876,6 +3974,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_eng_condition_tag",
+        readOnly: true,
         label: "Тег состояния ИСО",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3883,6 +3982,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_ce_protection_tag",
+        readOnly: true,
         label: "Тег защиты КЭ",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -3890,6 +3990,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "eng_instance_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",
@@ -3897,6 +3998,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "eng_instance_regulatory_triggers",
+        readOnly: true,
         label: "Нормативные триггеры",
         type: "array",
         hint: "Введите значения через запятую",
@@ -3904,6 +4006,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "eng_instance_compliance_check_result",
+        readOnly: true,
         label: "Результат проверки соответствия",
         type: "text",
         hint: "Результат последней проверки соответствия требованиям",
@@ -3958,6 +4061,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "climate_hydro_description",
+        readOnly: true,
         label: "Гидрометеорологическое описание",
         type: "textarea",
         hint: "Подробное описание гидрометеорологических условий",
@@ -3965,6 +4069,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "climate_narrative_description",
+        readOnly: true,
         label: "Климатическое описание",
         type: "textarea",
         defaultValue: "",
@@ -4072,6 +4177,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_climate_zone_tag",
+        readOnly: true,
         label: "Тег климатической зоны",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -4079,6 +4185,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_flood_risk_tag",
+        readOnly: true,
         label: "Тег риска затопления",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -4086,6 +4193,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "qdrant_compliance_tag",
+        readOnly: true,
         label: "Тег соответствия",
         type: "text",
         hint: "Тег для поиска и кластеризации",
@@ -4093,6 +4201,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       },
       {
         key: "climate_target_doc_sections",
+        readOnly: true,
         label: "Разделы целевого документа",
         type: "array",
         hint: "Введите значения через запятую",

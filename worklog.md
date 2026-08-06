@@ -68,3 +68,22 @@ Work Log:
 Stage Summary:
 - Application fully functional
 - All core features verified via browser automation
+
+---
+Task ID: 8
+Agent: main
+Task: Verify schema fields against docx, hide auto-generated fields
+
+Work Log:
+- Converted full_variables_list.docx to text and extracted 625 field definitions
+- Identified 91 unique auto-generated fields across 6 categories
+- Categories: Qdrant tags (29), regulatory triggers (15), target doc sections (16), LLM narratives (13), computed fields (5), LLM semantic fields (13)
+- Marked all 91 fields as readOnly: true in schema.ts
+- Updated section-table.tsx to filter readOnly fields from nested arrays and objects
+- Verified no manual fields are missing from schema
+- Browser-tested: confirmed readOnly fields are hidden from STI, OTI, Persons sections
+
+Stage Summary:
+- 91 fields hidden from frontend (auto-generated/computed/LLM)
+- All remaining ~410 fields are manually editable
+- Categories hidden: qdrant_*, *_regulatory_triggers, *_target_doc_sections, *_narrative_description, computed dates, LLM semantic fields

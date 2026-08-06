@@ -348,7 +348,7 @@ function NestedArrayCell({
   removeNestedRow,
 }: NestedArrayCellProps) {
   const [open, setOpen] = useState(false);
-  const nestedFields = field.nestedFields || [];
+  const editableNestedFields = (field.nestedFields || []).filter((nf) => !nf.readOnly);
   const items = value as Record<string, unknown>[];
 
   return (
@@ -371,7 +371,7 @@ function NestedArrayCell({
             <thead>
               <tr className="border-b bg-muted/30">
                 <th className="p-1 text-left font-medium text-muted-foreground w-8">#</th>
-                {nestedFields.map((nf) => (
+                {editableNestedFields.map((nf) => (
                   <th key={nf.key} className="p-1 text-left font-medium text-muted-foreground">
                     {nf.label}
                   </th>
@@ -383,7 +383,7 @@ function NestedArrayCell({
               {items.map((item, ni) => (
                 <tr key={ni} className="border-b last:border-b-0 hover:bg-muted/20">
                   <td className="p-1 text-muted-foreground text-center">{ni + 1}</td>
-                  {nestedFields.map((nf) => (
+                  {editableNestedFields.map((nf) => (
                     <td key={nf.key} className="p-1">
                       <NestedFieldInput
                         nestedField={nf}
@@ -438,12 +438,12 @@ interface NestedObjectCellProps {
 }
 
 function NestedObjectCell({ field, value, sectionKey, rowIndex, updateCell }: NestedObjectCellProps) {
-  const nestedFields = field.nestedFields || [];
+  const editableNestedFields = (field.nestedFields || []).filter((nf) => !nf.readOnly);
   const obj = value || {};
 
   return (
     <div className="space-y-1">
-      {nestedFields.map((nf) => (
+      {editableNestedFields.map((nf) => (
         <div key={nf.key} className="flex items-center gap-2">
           <label className="text-xs text-muted-foreground whitespace-nowrap min-w-[80px]">
             {nf.label}
