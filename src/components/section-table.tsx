@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import {
   Collapsible,
   CollapsibleContent,
@@ -36,8 +35,56 @@ import {
   ChevronDown,
   ChevronRight,
   FileText,
-  Copy,
+  AlertCircle,
 } from 'lucide-react';
+
+// =============================================================================
+// Validation helpers
+// =============================================================================
+
+export type FieldStatus = 'empty' | 'invalid' | 'ok';
+
+/**
+ * Determine if a field value is considered "empty" (unfilled).
+ * Booleans, readOnly, virtual, and object fields are always 'ok'.
+ */
+export function getFieldStatus(field: FieldDef, value: unknown): FieldStatus {
+  // Skip types that don't need validation
+  if (field.readOnly || field.virtual) return 'ok';
+  if (field.type === 'boolean') return 'ok';
+  if (field.type === 'object') return 'ok';
+
+  switch (field.type) {
+    case 'text':
+    case 'textarea':
+      return (value as string) === '' ? 'empty' : 'ok';
+    case 'number':
+      return value === null || value === undefined ? 'empty' : 'ok';
+    case 'date':
+      return value === null || value === undefined || value === '' ? 'empty' : 'ok';
+    case 'select':
+      return (value as string) === '' || value === null ? 'empty' : 'ok';
+    case 'array':
+      return Array.isArray(value) && value.length === 0 ? 'empty' : 'ok';
+    case 'ref':
+      return value === null || value === undefined ? 'empty' : 'ok';
+    default:
+      return 'ok';
+  }
+}
+
+/** Count empty + invalid fields in a record */
+export function countFieldIssues(
+  fields: FieldDef[],
+  row: Record<string, unknown>,
+): number {
+  let count = 0;
+  for (const f of fields) {
+    const status = getFieldStatus(f, row[f.key]);
+    if (status !== 'ok') count++;
+  }
+  return count;
+}
 
 // =============================================================================
 // SectionTable — Vertical card-per-record layout (desktop-only)
@@ -54,9 +101,9 @@ export function SectionTable({ section }: SectionTableProps) {
   const [activeRecord, setActiveRecord] = useState(0);
 
   // Clamp activeRecord when data changes
-  const clampedRecord = data.length > 0 ? Math.min(activeRecord, data.length - 1) : 0;
+  const clampedRecord =
+    data.length > 0 ? Math.min(activeRecord, data.length - 1) : 0;
 
-  // If activeRecord was clamped, update
   React.useEffect(() => {
     if (clampedRecord !== activeRecord) {
       setActiveRecord(clampedRecord);
@@ -65,7 +112,10 @@ export function SectionTable({ section }: SectionTableProps) {
 
   const editableFields = section.fields.filter((f) => !f.readOnly);
   const readOnlyFields = section.fields.filter((f) => f.readOnly);
-  const row = data.length > 0 ? (data[clampedRecord] as Record<string, unknown>) : null;
+  const row =
+    data.length > 0
+      ? (data[clampedRecord] as Record<string, unknown>)
+      : null;
 
   // Empty state
   if (data.length === 0) {
@@ -115,17 +165,30 @@ export function SectionTable({ section }: SectionTableProps) {
       {/* ── Record Tabs ─────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 border-b pb-3">
         <div className="flex items-center gap-1 overflow-x-auto">
-          {data.map((_, idx) => (
-            <Button
-              key={idx}
-              variant={idx === clampedRecord ? 'default' : 'outline'}
-              size="sm"
-              className="shrink-0 h-8 px-3 text-xs"
-              onClick={() => setActiveRecord(idx)}
-            >
-              Запись {idx + 1}
-            </Button>
-          ))}
+          {data.map((_, idx) => {
+            const r = data[idx] as Record<string, unknown>;
+            const issues = countFieldIssues(editableFields, r);
+            const isActive = idx === clampedRecord;
+            return (
+              <Button
+                key={idx}
+                variant={isActive ? 'default' : 'outline'}
+                size="sm"
+                className={`shrink-0 h-8 px-3 text-xs gap-1.5 ${!isActive && issues > 0 ? 'border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive' : ''}`}
+                onClick={() => setActiveRecord(idx)}
+              >
+                Запись {idx + 1}
+                {issues > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className={`text-[9px] px-1 py-0 h-4 ${isActive ? 'bg-white/20 text-primary-foreground' : 'bg-destructive/10 text-destructive'}`}
+                  >
+                    {issues}
+                  </Badge>
+                )}
+              </Button>
+            );
+          })}
         </div>
         <Button
           variant="outline"
@@ -133,7 +196,6 @@ export function SectionTable({ section }: SectionTableProps) {
           className="shrink-0 h-8 text-xs"
           onClick={() => {
             addRow(section.key);
-            // New record is at the end, switch to it
             setTimeout(() => setActiveRecord(data.length), 0);
           }}
         >
@@ -147,7 +209,10 @@ export function SectionTable({ section }: SectionTableProps) {
             className="h-8 text-xs text-destructive hover:text-destructive"
             onClick={() => {
               removeRow(section.key, clampedRecord);
-              if (clampedRecord >= data.length - 1 && clampedRecord > 0) {
+              if (
+                clampedRecord >= data.length - 1 &&
+                clampedRecord > 0
+              ) {
                 setActiveRecord(clampedRecord - 1);
               }
             }}
@@ -290,11 +355,16 @@ function RecordFieldRow({
   const removeNestedRow = useStore((s) => s.removeNestedRow);
 
   const isAutoFilled = field.autoFilled;
+  const status = getFieldStatus(field, value);
+  const hasIssue = status !== 'ok';
 
   const labelContent = (
     <div className="flex items-center gap-1.5">
+      {hasIssue && (
+        <AlertCircle className="size-3.5 text-destructive shrink-0" />
+      )}
       <Label
-        className={`text-xs font-medium ${isAutoFilled ? 'text-primary' : 'text-foreground/80'}`}
+        className={`text-xs font-medium ${isAutoFilled ? 'text-primary' : hasIssue ? 'text-destructive' : 'text-foreground/80'}`}
       >
         {field.label}
       </Label>
@@ -309,7 +379,9 @@ function RecordFieldRow({
       {field.hint && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="text-muted-foreground/50 cursor-help text-[10px] leading-none">?</span>
+            <span className="text-muted-foreground/50 cursor-help text-[10px] leading-none">
+              ?
+            </span>
           </TooltipTrigger>
           <TooltipContent side="top" sideOffset={4} className="max-w-xs">
             <p className="text-xs">{field.hint}</p>
@@ -325,6 +397,7 @@ function RecordFieldRow({
       value={value}
       sectionKey={sectionKey}
       rowIndex={rowIndex}
+      status={status}
       updateCell={updateCell}
       updateNestedCell={updateNestedCell}
       addNestedRow={addNestedRow}
@@ -387,10 +460,32 @@ interface FieldInputProps {
   value: unknown;
   sectionKey: string;
   rowIndex: number;
-  updateCell: (sectionKey: string, rowIndex: number, fieldKey: string, value: unknown) => void;
-  updateNestedCell: (sectionKey: string, rowIndex: number, fieldKey: string, nestedIndex: number, nestedFieldKey: string, value: unknown) => void;
-  addNestedRow: (sectionKey: string, rowIndex: number, fieldKey: string) => void;
-  removeNestedRow: (sectionKey: string, rowIndex: number, fieldKey: string, nestedIndex: number) => void;
+  status: FieldStatus;
+  updateCell: (
+    sectionKey: string,
+    rowIndex: number,
+    fieldKey: string,
+    value: unknown,
+  ) => void;
+  updateNestedCell: (
+    sectionKey: string,
+    rowIndex: number,
+    fieldKey: string,
+    nestedIndex: number,
+    nestedFieldKey: string,
+    value: unknown,
+  ) => void;
+  addNestedRow: (
+    sectionKey: string,
+    rowIndex: number,
+    fieldKey: string,
+  ) => void;
+  removeNestedRow: (
+    sectionKey: string,
+    rowIndex: number,
+    fieldKey: string,
+    nestedIndex: number,
+  ) => void;
 }
 
 function FieldInput({
@@ -398,12 +493,18 @@ function FieldInput({
   value,
   sectionKey,
   rowIndex,
+  status,
   updateCell,
 }: FieldInputProps) {
   const isAutoFilled = field.autoFilled;
+  const isEmpty = status === 'empty';
+
+  // Build class based on status
   const baseInputClass = isAutoFilled
     ? 'h-9 text-sm border-primary/25 bg-primary/5 focus-visible:ring-primary/40'
-    : 'h-9 text-sm focus-visible:ring-1 focus-visible:ring-ring';
+    : isEmpty
+      ? 'h-9 text-sm border-destructive/50 bg-destructive/5 focus-visible:ring-destructive/40'
+      : 'h-9 text-sm focus-visible:ring-1 focus-visible:ring-ring';
 
   switch (field.type) {
     case 'text':
@@ -413,7 +514,9 @@ function FieldInput({
           value={(value as string) || ''}
           placeholder={field.placeholder}
           className={baseInputClass}
-          onChange={(e) => updateCell(sectionKey, rowIndex, field.key, e.target.value)}
+          onChange={(e) =>
+            updateCell(sectionKey, rowIndex, field.key, e.target.value)
+          }
         />
       );
 
@@ -423,8 +526,10 @@ function FieldInput({
           value={(value as string) || ''}
           placeholder={field.placeholder}
           rows={3}
-          className="min-h-[80px] text-sm resize-y focus-visible:ring-1 focus-visible:ring-ring"
-          onChange={(e) => updateCell(sectionKey, rowIndex, field.key, e.target.value)}
+          className={`min-h-[80px] text-sm resize-y ${isEmpty ? 'border-destructive/50 bg-destructive/5 focus-visible:ring-destructive/40' : 'focus-visible:ring-1 focus-visible:ring-ring'}`}
+          onChange={(e) =>
+            updateCell(sectionKey, rowIndex, field.key, e.target.value)
+          }
         />
       );
 
@@ -433,12 +538,19 @@ function FieldInput({
         <Input
           type="number"
           step="any"
-          value={value === null || value === undefined ? '' : String(value)}
+          value={
+            value === null || value === undefined ? '' : String(value)
+          }
           placeholder={field.placeholder}
           className={baseInputClass}
           onChange={(e) => {
             const v = e.target.value;
-            updateCell(sectionKey, rowIndex, field.key, v === '' ? null : Number(v));
+            updateCell(
+              sectionKey,
+              rowIndex,
+              field.key,
+              v === '' ? null : Number(v),
+            );
           }}
         />
       );
@@ -449,7 +561,14 @@ function FieldInput({
           type="date"
           value={(value as string) || ''}
           className={baseInputClass}
-          onChange={(e) => updateCell(sectionKey, rowIndex, field.key, e.target.value || null)}
+          onChange={(e) =>
+            updateCell(
+              sectionKey,
+              rowIndex,
+              field.key,
+              e.target.value || null,
+            )
+          }
         />
       );
 
@@ -458,7 +577,9 @@ function FieldInput({
         <div className="flex items-center h-9">
           <Switch
             checked={!!value}
-            onCheckedChange={(checked) => updateCell(sectionKey, rowIndex, field.key, checked)}
+            onCheckedChange={(checked) =>
+              updateCell(sectionKey, rowIndex, field.key, checked)
+            }
           />
         </div>
       );
@@ -467,9 +588,19 @@ function FieldInput({
       return (
         <Select
           value={(value as string) || ''}
-          onValueChange={(v) => updateCell(sectionKey, rowIndex, field.key, v)}
+          onValueChange={(v) =>
+            updateCell(sectionKey, rowIndex, field.key, v)
+          }
         >
-          <SelectTrigger className={isAutoFilled ? 'h-9 text-sm border-primary/25 bg-primary/5 focus:ring-primary/40 w-full' : 'h-9 text-sm w-full'}>
+          <SelectTrigger
+            className={
+              isAutoFilled
+                ? 'h-9 text-sm border-primary/25 bg-primary/5 focus:ring-primary/40 w-full'
+                : isEmpty
+                  ? 'h-9 text-sm border-destructive/50 bg-destructive/5 focus:ring-destructive/40 w-full'
+                  : 'h-9 text-sm w-full'
+            }
+          >
             <SelectValue placeholder={field.placeholder || 'Выберите…'} />
           </SelectTrigger>
           <SelectContent>
@@ -502,7 +633,15 @@ function FieldInput({
     }
 
     case 'ref':
-      return <RefSelect field={field} value={value} sectionKey={sectionKey} rowIndex={rowIndex} />;
+      return (
+        <RefSelect
+          field={field}
+          value={value}
+          sectionKey={sectionKey}
+          rowIndex={rowIndex}
+          isEmpty={isEmpty}
+        />
+      );
 
     default:
       return <span className="text-muted-foreground text-xs">—</span>;
@@ -518,11 +657,13 @@ function RefSelect({
   value,
   sectionKey,
   rowIndex,
+  isEmpty,
 }: {
   field: FieldDef;
   value: unknown;
   sectionKey: string;
   rowIndex: number;
+  isEmpty: boolean;
 }) {
   const updateCell = useStore((s) => s.updateCell);
   const allData = useStore((s) => s.data);
@@ -544,26 +685,29 @@ function RefSelect({
 
   const currentIdx = value as number | null;
   const currentValue =
-    currentIdx !== null && currentIdx !== undefined ? String(currentIdx) : '';
+    currentIdx !== null && currentIdx !== undefined
+      ? String(currentIdx)
+      : '';
   const currentLabel =
     currentIdx !== null && currentIdx !== undefined
       ? options.find((o) => o.idx === currentIdx)?.label || ''
       : '';
 
   const isVirtual = field.virtual;
+  const triggerClass = isEmpty
+    ? 'h-9 text-sm w-full border-destructive/50 bg-destructive/5 focus:ring-destructive/40'
+    : isVirtual
+      ? 'h-9 text-sm w-full border-primary/30 bg-primary/5 focus:ring-1 focus:ring-primary'
+      : 'h-9 text-sm w-full';
 
   return (
     <Select
       value={currentValue}
-      onValueChange={(v) => updateCell(sectionKey, rowIndex, field.key, Number(v))}
+      onValueChange={(v) =>
+        updateCell(sectionKey, rowIndex, field.key, Number(v))
+      }
     >
-      <SelectTrigger
-        className={`h-9 text-sm w-full ${
-          isVirtual
-            ? 'border-primary/30 bg-primary/5 focus:ring-1 focus:ring-primary'
-            : ''
-        }`}
-      >
+      <SelectTrigger className={triggerClass}>
         <SelectValue placeholder={field.placeholder || 'Выберите…'}>
           {currentLabel || (field.placeholder || 'Выберите…')}
         </SelectValue>
@@ -601,9 +745,25 @@ function NestedFieldBlock({
   value: unknown;
   sectionKey: string;
   rowIndex: number;
-  updateNestedCell: (sectionKey: string, rowIndex: number, fieldKey: string, nestedIndex: number, nestedFieldKey: string, value: unknown) => void;
-  addNestedRow: (sectionKey: string, rowIndex: number, fieldKey: string) => void;
-  removeNestedRow: (sectionKey: string, rowIndex: number, fieldKey: string, nestedIndex: number) => void;
+  updateNestedCell: (
+    sectionKey: string,
+    rowIndex: number,
+    fieldKey: string,
+    nestedIndex: number,
+    nestedFieldKey: string,
+    value: unknown,
+  ) => void;
+  addNestedRow: (
+    sectionKey: string,
+    rowIndex: number,
+    fieldKey: string,
+  ) => void;
+  removeNestedRow: (
+    sectionKey: string,
+    rowIndex: number,
+    fieldKey: string,
+    nestedIndex: number,
+  ) => void;
 }) {
   const [open, setOpen] = useState(false);
   const editableNestedFields = (field.nestedFields || []).filter(
@@ -640,10 +800,7 @@ function NestedFieldBlock({
               <div className="flex gap-4">
                 <span className="w-8 text-center">#</span>
                 {editableNestedFields.map((nf) => (
-                  <span
-                    key={nf.key}
-                    className="min-w-[120px]"
-                  >
+                  <span key={nf.key} className="min-w-[120px]">
                     {nf.label}
                   </span>
                 ))}
@@ -684,7 +841,12 @@ function NestedFieldBlock({
                       size="icon"
                       className="size-6 text-muted-foreground hover:text-destructive"
                       onClick={() =>
-                        removeNestedRow(sectionKey, rowIndex, field.key, ni)
+                        removeNestedRow(
+                          sectionKey,
+                          rowIndex,
+                          field.key,
+                          ni,
+                        )
                       }
                     >
                       <Minus className="size-3" />
@@ -699,7 +861,9 @@ function NestedFieldBlock({
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs"
-                onClick={() => addNestedRow(sectionKey, rowIndex, field.key)}
+                onClick={() =>
+                  addNestedRow(sectionKey, rowIndex, field.key)
+                }
               >
                 <Plus className="mr-1 size-3" />
                 Добавить
@@ -820,13 +984,13 @@ function ReadonlyFieldsBlock({
   const [open, setOpen] = useState(false);
 
   const hasValues = fields.some(
-    (f) => row[f.key] !== '' && row[f.key] !== null && row[f.key] !== undefined,
+    (f) =>
+      row[f.key] !== '' &&
+      row[f.key] !== null &&
+      row[f.key] !== undefined,
   );
 
-  // If no values and closed, show minimal indicator
-  if (!hasValues && !open) {
-    return null;
-  }
+  if (!hasValues && !open) return null;
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -842,7 +1006,10 @@ function ReadonlyFieldsBlock({
             {fields.length} полей
           </Badge>
           {hasValues && !open && (
-            <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-primary/10 text-primary border-primary/25">
+            <Badge
+              variant="secondary"
+              className="text-[9px] px-1 py-0 h-4 bg-primary/10 text-primary border-primary/25"
+            >
               есть данные
             </Badge>
           )}
@@ -851,8 +1018,14 @@ function ReadonlyFieldsBlock({
       <CollapsibleContent>
         <div className="mt-2 grid grid-cols-3 gap-x-6 gap-y-2 p-3 rounded-lg bg-muted/30 border">
           {fields.map((f) => (
-            <div key={f.key} className="flex items-center justify-between gap-2">
-              <span className="text-xs text-muted-foreground truncate" title={f.label}>
+            <div
+              key={f.key}
+              className="flex items-center justify-between gap-2"
+            >
+              <span
+                className="text-xs text-muted-foreground truncate"
+                title={f.label}
+              >
                 {f.label}
               </span>
               <span className="text-xs font-mono text-muted-foreground/70 truncate max-w-[160px]">
