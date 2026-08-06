@@ -58,37 +58,51 @@ function detectChangedSections(oldData: DomainData, newData: DomainData): string
 }
 
 /**
- * Migrates old data format to the current schema.
- * - Merges ptb_contracts + maintenance_contracts → contracts
+ * Ensures all current schema section keys exist in the data.
+ * No more merging — each section is preserved as-is.
  */
 export function migrateData(data: DomainData): DomainData {
   const migrated = { ...data };
 
-  // Merge old contract sections into unified "contracts"
-  if (migrated['ptb_contracts'] || migrated['maintenance_contracts']) {
-    const contracts: unknown[] = [];
-    for (const row of (migrated['ptb_contracts'] || []) as Record<string, unknown>[]) {
-      contracts.push({
-        ...row,
-        contract_type: 'ПТБ',
-        oti_ref: null,
-        contract_provider: '',
-        contract_scope: '',
-        contract_is_active: true,
-      });
+  // If old "contracts" key exists from a previous version, split it back
+  if (migrated['contracts'] && !migrated['ptb_contracts']) {
+    const contracts = (migrated['contracts'] || []) as Record<string, unknown>[];
+    const ptbContracts: unknown[] = [];
+    const maintenanceContracts: unknown[] = [];
+
+    for (const row of contracts) {
+      if (row.contract_type === 'Техническое обслуживание' || row.contract_provider || row.contract_scope) {
+        // Split back to maintenance_contracts format
+        maintenanceContracts.push({
+          oti_ref: row.oti_ref ?? null,
+          ptb_ref: row.ptb_ref ?? null,
+          contract_name: row.contract_name ?? '',
+          contract_num: row.contract_num ?? '',
+          contract_date: row.contract_date ?? null,
+          contract_exp_date: row.contract_exp_date ?? null,
+          contract_provider: row.contract_provider ?? '',
+          contract_scope: row.contract_scope ?? '',
+          contract_is_active: row.contract_is_active ?? true,
+        });
+      } else {
+        // Split back to ptb_contracts format
+        ptbContracts.push({
+          ptb_ref: row.ptb_ref ?? null,
+          contract_name: row.contract_name ?? '',
+          contract_num: row.contract_num ?? '',
+          contract_date: row.contract_date ?? null,
+          contract_exp_date: row.contract_exp_date ?? null,
+          is_prolonged: row.is_prolonged ?? false,
+          prolongation_date: row.prolongation_date ?? null,
+          prolongation_new_exp_date: row.prolongation_new_exp_date ?? null,
+          contract_is_maintenance: row.contract_is_maintenance ?? false,
+        });
+      }
     }
-    for (const row of (migrated['maintenance_contracts'] || []) as Record<string, unknown>[]) {
-      contracts.push({
-        ...row,
-        contract_type: 'Техническое обслуживание',
-        is_prolonged: false,
-        prolongation_date: null,
-        prolongation_new_exp_date: null,
-      });
-    }
-    migrated['contracts'] = contracts;
-    delete migrated['ptb_contracts'];
-    delete migrated['maintenance_contracts'];
+
+    migrated['ptb_contracts'] = ptbContracts;
+    migrated['maintenance_contracts'] = maintenanceContracts;
+    delete migrated['contracts'];
   }
 
   // Ensure all current schema section keys exist
@@ -97,7 +111,8 @@ export function migrateData(data: DomainData): DomainData {
     'land', 'land_summary', 'aquatories', 'cargo', 'cargo_summary',
     'cargo_turnover', 'oti_operations', 'opo', 'infrastructure',
     'critical_elements', 'restricted_access_zones', 'zoning', 'ptb',
-    'contracts', 'ptb_supplementary_agreements', 'posts', 'post_staff',
+    'ptb_contracts', 'maintenance_contracts',
+    'ptb_supplementary_agreements', 'posts', 'post_staff',
     'post_equipment', 'tsotb_catalog', 'tsotb_instances',
     'eng_catalog', 'eng_instances', 'climate_context',
   ];
@@ -125,6 +140,8 @@ export async function loadCurrentData(): Promise<DomainData> {
   // Initialise from seed
   const seedRaw = await readFile(SEED_FILE, 'utf-8');
   const seed = JSON.parse(seedRaw) as DomainData;
+  // Strip meta section — it's not part of the data schema
+  delete (seed as Record<string, unknown>)['meta'];
   const migrated = migrateData(seed);
   await writeFile(CURRENT_FILE, JSON.stringify(migrated, null, 2), 'utf-8');
   return migrated;
@@ -208,6 +225,7 @@ export async function resetToSeed(): Promise<void> {
   await ensureDataDir();
   const seedRaw = await readFile(SEED_FILE, 'utf-8');
   const seed = JSON.parse(seedRaw) as DomainData;
+  delete (seed as Record<string, unknown>)['meta'];
   const migrated = migrateData(seed);
   await writeFile(CURRENT_FILE, JSON.stringify(migrated, null, 2), 'utf-8');
 }

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { FieldDef } from './schema';
-import { getEmptyRow, SCHEMA_SECTIONS } from './schema';
+import { getEmptyRow, SCHEMA_SECTIONS, getVirtualFieldKeys, getRefAutoFillMappings } from './schema';
 
 // =============================================================================
 // Types
@@ -59,6 +59,8 @@ export interface AppState {
   resetData: () => Promise<void>;
   isDirty: () => boolean;
   getJson: () => string;
+  /** Returns data with virtual fields stripped for saving/exporting */
+  getCleanData: () => Record<string, unknown[]>;
 }
 
 // =============================================================================
@@ -70,7 +72,7 @@ function deepClone<T>(obj: T): T {
 }
 
 // =============================================================================
-// Empty nested row based on nestedFields
+// Nested fields helpers
 // =============================================================================
 
 function getNestedFieldsDef(sectionKey: string, fieldKey: string): FieldDef[] {
@@ -136,6 +138,127 @@ function autoFillNameFromRef(
 }
 
 // =============================================================================
+// Auto-fill from virtual ref fields
+// =============================================================================
+
+/** Cached at module level, rebuilt on first use */
+let _refAutoFillCache: ReturnType<typeof getRefAutoFillMappings> | null = null;
+
+function getAutoFillMappings() {
+  if (!_refAutoFillCache) {
+    _refAutoFillCache = getRefAutoFillMappings();
+  }
+  return _refAutoFillCache;
+}
+
+function autoFillFromVirtualRef(
+  sectionKey: string,
+  rowIndex: number,
+  virtualFieldKey: string,
+  refValue: unknown
+) {
+  const mappings = getAutoFillMappings();
+  const sectionMappings = mappings[sectionKey];
+  if (!sectionMappings) return;
+
+  const fillMap = sectionMappings[virtualFieldKey];
+  if (!fillMap) return;
+
+  // Find the ref field def to get the refSection
+  const section = SCHEMA_SECTIONS.find((s) => s.key === sectionKey);
+  const fieldDef = section?.fields.find((f) => f.key === virtualFieldKey);
+  if (!fieldDef?.refSection) return;
+
+  const state = useStore.getState();
+  const refRows = (state.data[fieldDef.refSection] || []) as Record<string, unknown>[];
+  const idx = refValue as number | null;
+
+  console.log('[DEBUG autoFill]', { sectionKey, virtualFieldKey, refValue: idx, refSection: fieldDef.refSection, refRowsCount: refRows.length, sourceRow: idx !== null && refRows[idx] ? refRows[idx] : 'N/A' });
+
+  if (idx === null || idx === undefined || !refRows[idx]) {
+    // Clear auto-filled fields when ref is cleared
+    set((s) => {
+      const sectionRows = (s.data[sectionKey] || []) as Record<string, unknown>[];
+      const updates: Record<string, unknown> = {};
+      for (const targetKey of Object.keys(fillMap)) {
+        // Determine default based on target field type
+        const targetField = section?.fields.find((f) => f.key === targetKey);
+        if (targetField?.type === 'boolean') {
+          updates[targetKey] = targetField.defaultValue ?? false;
+        } else if (targetField?.type === 'number' || targetField?.type === 'date') {
+          updates[targetKey] = targetField.defaultValue ?? null;
+        } else {
+          updates[targetKey] = targetField?.defaultValue ?? '';
+        }
+      }
+      const rows = sectionRows.map((r, i) =>
+        i === rowIndex ? { ...r, ...updates } : r
+      );
+      return { data: { ...s.data, [sectionKey]: rows } };
+    });
+    return;
+  }
+
+  const sourceRow = refRows[idx];
+
+  // Build the updates
+  const updates: Record<string, unknown> = {};
+  for (const [targetKey, sourceKey] of Object.entries(fillMap)) {
+    updates[targetKey] = sourceRow[sourceKey] ?? '';
+  }
+  console.log('[DEBUG autoFill] applying updates:', JSON.stringify(updates));
+
+  // Apply updates
+  set((s) => {
+    const sectionRows = (s.data[sectionKey] || []) as Record<string, unknown>[];
+    const rows = sectionRows.map((r, i) =>
+      i === rowIndex ? { ...r, ...updates } : r
+    );
+    return { data: { ...s.data, [sectionKey]: rows } };
+  });
+}
+
+// =============================================================================
+// Virtual field stripping
+// =============================================================================
+
+let _virtualKeysCache: ReturnType<typeof getVirtualFieldKeys> | null = null;
+
+function getVirtualKeys() {
+  if (!_virtualKeysCache) {
+    _virtualKeysCache = getVirtualFieldKeys();
+  }
+  return _virtualKeysCache;
+}
+
+/** Strips all virtual fields from data, returning a clean copy for saving/exporting. */
+function stripVirtualFields(data: Record<string, unknown[]>): Record<string, unknown[]> {
+  const virtualKeys = getVirtualKeys();
+  const clean: Record<string, unknown[]> = {};
+
+  for (const [sectionKey, rows] of Object.entries(data)) {
+ const sectionVirtualKeys = virtualKeys[sectionKey];
+    if (!sectionVirtualKeys || sectionVirtualKeys.size === 0) {
+      clean[sectionKey] = rows;
+      continue;
+    }
+
+    clean[sectionKey] = rows.map((row) => {
+      const r = row as Record<string, unknown>;
+      const stripped: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(r)) {
+        if (!sectionVirtualKeys.has(k)) {
+          stripped[k] = v;
+        }
+      }
+      return stripped;
+    });
+  }
+
+  return clean;
+}
+
+// =============================================================================
 // Store
 // =============================================================================
 
@@ -179,25 +302,24 @@ export const useStore = create<AppState>((set, get) => ({
       });
     } catch {
       set({ isLoading: false });
-      // Keep whatever was loaded before (or empty)
     }
   },
 
   saveData: async () => {
-    const { data, author } = get();
+    const { author } = get();
+    const cleanData = get().getCleanData();
     set({ isSaving: true });
     try {
       const res = await fetch('/api/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data, author }),
+        body: JSON.stringify({ data: cleanData, author }),
       });
       if (!res.ok) {
         const body = await res.json();
         return { success: false, error: body.error || 'Ошибка сохранения' };
       }
       const body = await res.json();
-      // Reload data and versions after save
       await get().loadData();
       await get().loadVersions();
       set({ isSaving: false });
@@ -213,7 +335,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateCell: (sectionKey, rowIndex, fieldKey, value) => {
-    set((state) => {
+ set((state) => {
       const sectionRows = (state.data[sectionKey] || []) as Record<string, unknown>[];
       const rows = sectionRows.map((r, i) =>
         i === rowIndex ? { ...r, [fieldKey]: value } : r
@@ -221,9 +343,15 @@ export const useStore = create<AppState>((set, get) => ({
       return { data: { ...state.data, [sectionKey]: rows } };
     });
 
-    // Auto-fill companion *_name fields when a ref changes
+    // Auto-fill companion *_name fields when an infra ref changes
     if (fieldKey.endsWith('_infra_ref')) {
       autoFillNameFromRef(sectionKey, rowIndex, fieldKey, value);
+    }
+
+    // Auto-fill from virtual ref fields
+    const mappings = getAutoFillMappings();
+    if (mappings[sectionKey]?.[fieldKey]) {
+      autoFillFromVirtualRef(sectionKey, rowIndex, fieldKey, value);
     }
   },
 
@@ -370,12 +498,18 @@ export const useStore = create<AppState>((set, get) => ({
 
   isDirty: () => {
     const { data, initialData } = get();
-    return JSON.stringify(data) !== JSON.stringify(initialData);
+    // Compare only non-virtual fields
+    const cleanData = stripVirtualFields(data);
+    return JSON.stringify(cleanData) !== JSON.stringify(initialData);
   },
 
-  // ── JSON Export ────────────────────────────────────────────────────────────
+  // ── JSON Export (with virtual fields stripped) ──────────────────────────
+
+  getCleanData: () => {
+    return stripVirtualFields(get().data);
+  },
 
   getJson: () => {
-    return JSON.stringify(get().data, null, 2);
+    return JSON.stringify(get().getCleanData(), null, 2);
   },
 }));

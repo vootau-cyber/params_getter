@@ -1,0 +1,1359 @@
+  3039→  // ──────────────────────────────────────────────────────────────────────────
+  3040→  // 25. Оборудование постов
+  3041→  // ──────────────────────────────────────────────────────────────────────────
+  3042→  {
+  3043→    key: "post_equipment",
+  3044→    label: "Оборудование постов",
+  3045→    description:
+  3046→      "Технические средства и оборудование, установленные на постах транспортной безопасности",
+  3047→    icon: "Camera",
+  3048→    fields: [
+  3049→      {
+  3050→        key: "post_ref",
+  3051→        label: "Ссылка на пост",
+  3052→        type: "ref",
+  3053→        refSection: "posts",
+  3054→        refLabelField: "post_name",
+  3055→        hint: "Бизнес-ссылка на пост транспортной безопасности",
+  3056→        defaultValue: null,
+  3057→      },
+  3058→      {
+  3059→        key: "equipment_category",
+  3060→        label: "Категория оборудования",
+  3061→        type: "text",
+  3062→        placeholder: "Инспекторские комплексы, досмотровое оборудование",
+  3063→        defaultValue: "",
+  3064→      },
+  3065→      {
+  3066→        key: "equipment_name",
+  3067→        label: "Наименование оборудования",
+  3068→        type: "text",
+  3069→        defaultValue: "",
+  3070→      },
+  3071→      {
+  3072→        key: "equipment_brand_model",
+  3073→        label: "Марка / модель",
+  3074→        type: "text",
+  3075→        defaultValue: "",
+  3076→      },
+  3077→      {
+  3078→        key: "equipment_qty",
+  3079→        label: "Количество",
+  3080→        type: "number",
+  3081→        defaultValue: 1,
+  3082→      },
+  3083→      {
+  3084→        key: "equipment_is_certified_pp969",
+  3085→        label: "Сертифицировано (Пост. №969)",
+  3086→        type: "boolean",
+  3087→        hint: "Прошло ли оборудование сертификацию по Постановлению Правительства №969",
+  3088→        defaultValue: false,
+  3089→      },
+  3090→      {
+  3091→        key: "equipment_certification_num",
+  3092→        label: "Номер сертификата",
+  3093→        type: "text",
+  3094→        defaultValue: "",
+  3095→      },
+  3096→      {
+  3097→        key: "equipment_certification_date",
+  3098→        label: "Дата сертификации",
+  3099→        type: "date",
+  3100→        defaultValue: null,
+  3101→      },
+  3102→      {
+  3103→        key: "equipment_certification_exp_date",
+  3104→        label: "Дата окончания сертификации",
+  3105→        type: "date",
+  3106→        defaultValue: null,
+  3107→      },
+  3108→      {
+  3109→        key: "equipment_certification_doc_scan",
+  3110→        label: "Скан документа сертификации",
+  3111→        type: "text",
+  3112→        hint: "Путь к файлу скана сертификата",
+  3113→        defaultValue: "",
+  3114→      },
+  3115→      {
+  3116→        key: "equipment_service_exp_date",
+  3117→        label: "Дата окончания обслуживания",
+  3118→        type: "date",
+  3119→        defaultValue: null,
+  3120→      },
+  3121→      {
+  3122→        key: "equipment_narrative_context",
+  3123→        label: "Описание / контекст",
+  3124→        type: "textarea",
+  3125→        defaultValue: "",
+  3126→      },
+  3127→      {
+  3128→        key: "qdrant_gbr_exists_tag",
+  3129→        readOnly: true,
+  3130→        label: "Тег наличия ГБР",
+  3131→        type: "text",
+  3132→        hint: "Тег для поиска и кластеризации",
+  3133→        defaultValue: "",
+  3134→      },
+  3135→    ],
+  3136→  },
+  3137→
+  3138→  // ──────────────────────────────────────────────────────────────────────────
+  3139→  // 26. Каталог ТСОТБ
+  3140→  // ──────────────────────────────────────────────────────────────────────────
+  3141→  {
+  3142→    key: "tsotb_catalog",
+  3143→    label: "Каталог ТСОТБ",
+  3144→    description:
+  3145→      "Каталог технических средств обеспечения транспортной безопасности",
+  3146→    icon: "Cctv",
+  3147→    fields: [
+  3148→      {
+  3149→        key: "catalog_display_name",
+  3150→        label: "Наименование ТСОТБ",
+  3151→        type: "text",
+  3152→        defaultValue: "",
+  3153→      },
+  3154→      {
+  3155→        key: "catalog_manufacturer",
+  3156→        label: "Производитель",
+  3157→        type: "text",
+  3158→        defaultValue: "",
+  3159→      },
+  3160→      {
+  3161→        key: "catalog_model",
+  3162→        label: "Модель",
+  3163→        type: "text",
+  3164→        defaultValue: "",
+  3165→      },
+  3166→      {
+  3167→        key: "catalog_category_tsotb",
+  3168→        label: "Категория ТСОТБ",
+  3169→        type: "text",
+  3170→        hint: "Категория средства по номенклатуре ТСОТБ",
+  3171→        defaultValue: "",
+  3172→      },
+  3173→      {
+  3174→        key: "catalog_functions_tags",
+  3175→        label: "Функциональные теги",
+  3176→        type: "array",
+  3177→        hint: "Введите значения через запятую",
+  3178→        defaultValue: [],
+  3179→      },
+  3180→      {
+  3181→        key: "catalog_pp969_required",
+  3182→        label: "Требуется сертификация (ПП №969)",
+  3183→        type: "boolean",
+  3184→        hint: "Подлежит ли обязательной сертификации по ПП №969",
+  3185→        defaultValue: true,
+  3186→      },
+  3187→      {
+  3188→        key: "catalog_default_detection_range_m",
+  3189→        label: "Дальность обнаружения по умолчанию, м",
+  3190→        type: "number",
+  3191→        defaultValue: null,
+  3192→      },
+  3193→      {
+  3194→        key: "catalog_default_identification_range_m",
+  3195→        label: "Дальность опознавания по умолчанию, м",
+  3196→        type: "number",
+  3197→        defaultValue: null,
+  3198→      },
+  3199→      {
+  3200→        key: "catalog_operating_temp_min_c",
+  3201→        label: "Мин. рабочая температура, °C",
+  3202→        type: "number",
+  3203→        defaultValue: null,
+  3204→      },
+  3205→      {
+  3206→        key: "catalog_operating_temp_max_c",
+  3207→        label: "Макс. рабочая температура, °C",
+  3208→        type: "number",
+  3209→        defaultValue: null,
+  3210→      },
+  3211→      {
+  3212→        key: "catalog_power_consumption_w",
+  3213→        label: "Потребляемая мощность, Вт",
+  3214→        type: "number",
+  3215→        defaultValue: null,
+  3216→      },
+  3217→      {
+  3218→        key: "catalog_climate_tag",
+  3219→        label: "Климатический тег",
+  3220→        type: "text",
+  3221→        hint: "Тег климатического исполнения",
+  3222→        defaultValue: "",
+  3223→      },
+  3224→      {
+  3225→        key: "catalog_narrative_template",
+  3226→        label: "Шаблон описания ТСОТБ",
+  3227→        type: "textarea",
+  3228→        hint: "Шаблон текстового описания для использования в документах",
+  3229→        defaultValue: "",
+  3230→      },
+  3231→      {
+  3232→        key: "catalog_target_doc_sections",
+  3233→        readOnly: true,
+  3234→        label: "Разделы целевого документа",
+  3235→        type: "array",
+  3236→        hint: "Введите значения через запятую",
+  3237→        defaultValue: [],
+  3238→      },
+  3239→      {
+  3240→        key: "catalog_regulatory_triggers",
+  3241→        readOnly: true,
+  3242→        label: "Нормативные триггеры",
+  3243→        type: "array",
+  3244→        hint: "Введите значения через запятую",
+  3245→        defaultValue: [],
+  3246→      },
+  3247→    ],
+  3248→  },
+  3249→
+  3250→  // ──────────────────────────────────────────────────────────────────────────
+  3251→  // 27. Экземпляры ТСОТБ
+  3252→  // ──────────────────────────────────────────────────────────────────────────
+  3253→  {
+  3254→    key: "tsotb_instances",
+  3255→    label: "Экземпляры ТСОТБ",
+  3256→    description:
+  3257→      "Развернутые экземпляры технических средств обеспечения транспортной безопасности",
+  3258→    icon: "Camera",
+  3259→    fields: [
+  3260→      {
+  3261→        key: "oti_ref",
+  3262→        label: "Ссылка на ОТИ",
+  3263→        type: "ref",
+  3264→        refSection: "oti",
+  3265→        refLabelField: "oti_full_name",
+  3266→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+  3267→        defaultValue: null,
+  3268→      },
+  3269→      {
+  3270→        key: "catalog_tsotb_ref",
+  3271→        label: "Ссылка на каталог ТСОТБ",
+  3272→        type: "ref",
+  3273→        refSection: "tsotb_catalog",
+  3274→        refLabelField: "catalog_tsotb_name",
+  3275→        hint: "Бизнес-ссылка на запись в каталоге ТСОТБ",
+  3276→        defaultValue: null,
+  3277→      },
+  3278→      {
+  3279→        key: "tsotb_serial_num",
+  3280→        label: "Серийный номер",
+  3281→        type: "text",
+  3282→        defaultValue: "",
+  3283→      },
+  3284→      {
+  3285→        key: "tsotb_quantity",
+  3286→        label: "Количество",
+  3287→        type: "number",
+  3288→        defaultValue: 1,
+  3289→      },
+  3290→      {
+  3291→        key: "tsotb_location_name",
+  3292→        label: "Местоположение (наименование)",
+  3293→        type: "text",
+  3294→        readOnly: true,
+  3295→        defaultValue: "",
+  3296→      },
+  3297→      {
+  3298→        key: "tsotb_location_infra_ref",
+  3299→        label: "Ссылка на инфраструктуру местоположения",
+  3300→        type: "ref",
+  3301→        refSection: "infrastructure",
+  3302→        refLabelField: "obj_name",
+  3303→        hint: "Бизнес-ссылка на инфраструктурный объект местоположения",
+  3304→        defaultValue: null,
+  3305→      },
+  3306→      {
+  3307→        key: "tsotb_monitors_object_name",
+  3308→        label: "Контролируемый объект (наименование)",
+  3309→        type: "text",
+  3310→        readOnly: true,
+  3311→        defaultValue: "",
+  3312→      },
+  3313→      {
+  3314→        key: "tsotb_monitors_infra_ref",
+  3315→        label: "Ссылка на контролируемую инфраструктуру",
+  3316→        type: "ref",
+  3317→        refSection: "infrastructure",
+  3318→        refLabelField: "obj_name",
+  3319→        hint: "Бизнес-ссылка на контролируемый инфраструктурный объект",
+  3320→        defaultValue: null,
+  3321→      },
+  3322→      {
+  3323→        key: "tsotb_powered_from_name",
+  3324→        label: "Источник питания (наименование)",
+  3325→        type: "text",
+  3326→        readOnly: true,
+  3327→        defaultValue: "",
+  3328→      },
+  3329→      {
+  3330→        key: "tsotb_powered_from_infra_ref",
+  3331→        label: "Ссылка на источник питания",
+  3332→        type: "ref",
+  3333→        refSection: "infrastructure",
+  3334→        refLabelField: "obj_name",
+  3335→        hint: "Бизнес-ссылка на инфраструктурный объект — источник питания",
+  3336→        defaultValue: null,
+  3337→      },
+  3338→      {
+  3339→        key: "tsotb_post_ref",
+  3340→        label: "Ссылка на пост",
+  3341→        type: "ref",
+  3342→        refSection: "posts",
+  3343→        refLabelField: "post_name",
+  3344→        hint: "Бизнес-ссылка на пост транспортной безопасности",
+  3345→        defaultValue: null,
+  3346→      },
+  3347→      {
+  3348→        key: "tsotb_is_certified_pp969",
+  3349→        label: "Сертифицировано (ПП №969)",
+  3350→        type: "boolean",
+  3351→        defaultValue: false,
+  3352→      },
+  3353→      {
+  3354→        key: "tsotb_certification_num",
+  3355→        label: "Номер сертификата",
+  3356→        type: "text",
+  3357→        defaultValue: "",
+  3358→      },
+  3359→      {
+  3360→        key: "tsotb_certification_date",
+  3361→        label: "Дата сертификации",
+  3362→        type: "date",
+  3363→        defaultValue: null,
+  3364→      },
+  3365→      {
+  3366→        key: "tsotb_certification_exp_date",
+  3367→        label: "Дата окончания сертификации",
+  3368→        type: "date",
+  3369→        defaultValue: null,
+  3370→      },
+  3371→      {
+  3372→        key: "tsotb_certification_scope",
+  3373→        label: "Область сертификации",
+  3374→        type: "text",
+  3375→        defaultValue: "",
+  3376→      },
+  3377→      {
+  3378→        key: "tsotb_certification_issuing_body",
+  3379→        label: "Орган, выдавший сертификат",
+  3380→        type: "text",
+  3381→        defaultValue: "",
+  3382→      },
+  3383→      {
+  3384→        key: "tsotb_certification_doc_scan",
+  3385→        label: "Скан документа сертификации",
+  3386→        type: "text",
+  3387→        hint: "Путь к файлу скана сертификата",
+  3388→        defaultValue: "",
+  3389→      },
+  3390→      {
+  3391→        key: "tsotb_certification_doc_hash",
+  3392→        label: "Хэш документа сертификации",
+  3393→        type: "text",
+  3394→        hint: "Хэш-сумма файла сертификата для верификации",
+  3395→        defaultValue: "",
+  3396→      },
+  3397→      {
+  3398→        key: "tsotb_installation_date",
+  3399→        label: "Дата установки",
+  3400→        type: "date",
+  3401→        defaultValue: null,
+  3402→      },
+  3403→      {
+  3404→        key: "tsotb_service_exp_date",
+  3405→        label: "Дата окончания обслуживания",
+  3406→        type: "date",
+  3407→        defaultValue: null,
+  3408→      },
+  3409→      {
+  3410→        key: "tsotb_last_maintenance_date",
+  3411→        label: "Дата последнего ТО",
+  3412→        type: "date",
+  3413→        defaultValue: null,
+  3414→      },
+  3415→      {
+  3416→        key: "tsotb_operational_status",
+  3417→        label: "Эксплуатационный статус",
+  3418→        type: "select",
+  3419→        hint: "Текущий статус эксплуатации ТСОТБ",
+  3420→        options: ["in_service", "in_storage", "decommissioned"],
+  3421→        defaultValue: "in_service",
+  3422→      },
+  3423→      {
+  3424→        key: "tsotb_maintenance_contract_ref",
+  3425→        label: "Ссылка на договор ТО",
+  3426→        type: "ref",
+  3427→        refSection: "contracts",
+  3428→        refLabelField: "contract_name",
+  3429→        hint: "Бизнес-ссылка на договор технического обслуживания",
+  3430→        defaultValue: null,
+  3431→      },
+  3432→      {
+  3433→        key: "tsotb_narrative_description",
+  3434→        readOnly: true,
+  3435→        label: "Описание экземпляра ТСОТБ",
+  3436→        type: "textarea",
+  3437→        defaultValue: "",
+  3438→      },
+  3439→      {
+  3440→        key: "tsotb_operational_context",
+  3441→        readOnly: true,
+  3442→        label: "Операционный контекст",
+  3443→        type: "textarea",
+  3444→        hint: "Особенности эксплуатации конкретного экземпляра",
+  3445→        defaultValue: "",
+  3446→      },
+  3447→      {
+  3448→        key: "tsotb_security_implication",
+  3449→        readOnly: true,
+  3450→        label: "Последствия для безопасности",
+  3451→        type: "textarea",
+  3452→        hint: "Последствия вывода из строя данного ТСОТБ",
+  3453→        defaultValue: "",
+  3454→      },
+  3455→      {
+  3456→        key: "qdrant_tsotb_category_tag",
+  3457→        readOnly: true,
+  3458→        label: "Тег категории ТСОТБ",
+  3459→        type: "text",
+  3460→        hint: "Тег для поиска и кластеризации",
+  3461→        defaultValue: "",
+  3462→      },
+  3463→      {
+  3464→        key: "qdrant_certified_pp969_tag",
+  3465→        readOnly: true,
+  3466→        label: "Тег сертификации ПП №969",
+  3467→        type: "text",
+  3468→        hint: "Тег для поиска и кластеризации",
+  3469→        defaultValue: "",
+  3470→      },
+  3471→      {
+  3472→        key: "qdrant_tsotb_function_tag",
+  3473→        readOnly: true,
+  3474→        label: "Тег функции ТСОТБ",
+  3475→        type: "text",
+  3476→        hint: "Тег для поиска и кластеризации",
+  3477→        defaultValue: "",
+  3478→      },
+  3479→      {
+  3480→        key: "qdrant_climate_resistance_tag",
+  3481→        readOnly: true,
+  3482→        label: "Тег климатической устойчивости",
+  3483→        type: "text",
+  3484→        hint: "Тег для поиска и кластеризации",
+  3485→        defaultValue: "",
+  3486→      },
+  3487→      {
+  3488→        key: "tsotb_target_doc_sections",
+  3489→        readOnly: true,
+  3490→        label: "Разделы целевого документа",
+  3491→        type: "array",
+  3492→        hint: "Введите значения через запятую",
+  3493→        defaultValue: [],
+  3494→      },
+  3495→      {
+  3496→        key: "tsotb_regulatory_triggers",
+  3497→        readOnly: true,
+  3498→        label: "Нормативные триггеры",
+  3499→        type: "array",
+  3500→        hint: "Введите значения через запятую",
+  3501→        defaultValue: [],
+  3502→      },
+  3503→      {
+  3504→        key: "tsotb_compliance_check_result",
+  3505→        readOnly: true,
+  3506→        label: "Результат проверки соответствия",
+  3507→        type: "text",
+  3508→        hint: "Результат последней проверки соответствия требованиям",
+  3509→        defaultValue: "",
+  3510→      },
+  3511→    ],
+  3512→  },
+  3513→
+  3514→  // ──────────────────────────────────────────────────────────────────────────
+  3515→  // 28. Каталог ИСО
+  3516→  // ──────────────────────────────────────────────────────────────────────────
+  3517→  {
+  3518→    key: "eng_catalog",
+  3519→    label: "Каталог инженерно-технических средств (ИСО)",
+  3520→    description:
+  3521→      "Каталог инженерно-технических средств обеспечения транспортной безопасности",
+  3522→    icon: "Fence",
+  3523→    fields: [
+  3524→      {
+  3525→        key: "eng_catalog_display_name",
+  3526→        label: "Наименование ИСО",
+  3527→        type: "text",
+  3528→        defaultValue: "",
+  3529→      },
+  3530→      {
+  3531→        key: "eng_catalog_manufacturer",
+  3532→        label: "Производитель",
+  3533→        type: "text",
+  3534→        defaultValue: "",
+  3535→      },
+  3536→      {
+  3537→        key: "eng_catalog_model",
+  3538→        label: "Модель",
+  3539→        type: "text",
+  3540→        defaultValue: "",
+  3541→      },
+  3542→      {
+  3543→        key: "eng_catalog_category",
+  3544→        label: "Категория ИСО",
+  3545→        type: "text",
+  3546→        hint: "Категория по номенклатуре ИСО",
+  3547→        defaultValue: "",
+  3548→      },
+  3549→      {
+  3550→        key: "eng_catalog_functions",
+  3551→        label: "Функциональные теги",
+  3552→        type: "array",
+  3553→        hint: "Введите значения через запятую",
+  3554→        defaultValue: [],
+  3555→      },
+  3556→      {
+  3557→        key: "eng_catalog_gost_reference",
+  3558→        label: "Ссылка на ГОСТ",
+  3559→        type: "text",
+  3560→        hint: "Нормативный документ (ГОСТ), регламентирующий ИСО",
+  3561→        defaultValue: "",
+  3562→      },
+  3563→      {
+  3564→        key: "eng_catalog_pp969_applicable",
+  3565→        label: "Подлежит сертификации (ПП №969)",
+  3566→        type: "boolean",
+  3567→        defaultValue: false,
+  3568→      },
+  3569→      {
+  3570→        key: "eng_catalog_default_material",
+  3571→        label: "Материал по умолчанию",
+  3572→        type: "text",
+  3573→        defaultValue: "",
+  3574→      },
+  3575→      {
+  3576→        key: "eng_catalog_default_height_m",
+  3577→        label: "Высота по умолчанию, м",
+  3578→        type: "number",
+  3579→        defaultValue: null,
+  3580→      },
+  3581→      {
+  3582→        key: "eng_catalog_default_thickness_mm",
+  3583→        label: "Толщина по умолчанию, мм",
+  3584→        type: "number",
+  3585→        defaultValue: null,
+  3586→      },
+  3587→      {
+  3588→        key: "eng_catalog_default_load_capacity_t",
+  3589→        label: "Нагрузочная способность по умолчанию, т",
+  3590→        type: "number",
+  3591→        defaultValue: null,
+  3592→      },
+  3593→      {
+  3594→        key: "eng_catalog_default_intrusion_delay_min",
+  3595→        label: "Задержка проникновения по умолчанию, мин",
+  3596→        type: "number",
+  3597→        hint: "Время задержки несанкционированного проникновения",
+  3598→        defaultValue: null,
+  3599→      },
+  3600→      {
+  3601→        key: "eng_catalog_default_top_height_m",
+  3602→        label: "Высота верхней козырьковой части по умолчанию, м",
+  3603→        type: "number",
+  3604→        defaultValue: null,
+  3605→      },
+  3606→      {
+  3607→        key: "eng_catalog_default_bottom_depth_m",
+  3608→        label: "Глубина заглубления по умолчанию, м",
+  3609→        type: "number",
+  3610→        defaultValue: null,
+  3611→      },
+  3612→      {
+  3613→        key: "eng_catalog_climate_tag",
+  3614→        label: "Климатический тег",
+  3615→        type: "text",
+  3616→        hint: "Тег климатического исполнения",
+  3617→        defaultValue: "",
+  3618→      },
+  3619→      {
+  3620→        key: "eng_catalog_regulatory_triggers",
+  3621→        readOnly: true,
+  3622→        label: "Нормативные триггеры",
+  3623→        type: "array",
+  3624→        hint: "Введите значения через запятую",
+  3625→        defaultValue: [],
+  3626→      },
+  3627→      {
+  3628→        key: "eng_catalog_narrative_template",
+  3629→        label: "Шаблон описания ИСО",
+  3630→        type: "textarea",
+  3631→        hint: "Шаблон текстового описания для использования в документах",
+  3632→        defaultValue: "",
+  3633→      },
+  3634→      {
+  3635→        key: "eng_catalog_target_doc_sections",
+  3636→        readOnly: true,
+  3637→        label: "Разделы целевого документа",
+  3638→        type: "array",
+  3639→        hint: "Введите значения через запятую",
+  3640→        defaultValue: [],
+  3641→      },
+  3642→      {
+  3643→        key: "qdrant_eng_category_tag",
+  3644→        readOnly: true,
+  3645→        label: "Тег категории ИСО",
+  3646→        type: "text",
+  3647→        hint: "Тег для поиска и кластеризации",
+  3648→        defaultValue: "",
+  3649→      },
+  3650→      {
+  3651→        key: "qdrant_eng_function_tag",
+  3652→        readOnly: true,
+  3653→        label: "Тег функции ИСО",
+  3654→        type: "text",
+  3655→        hint: "Тег для поиска и кластеризации",
+  3656→        defaultValue: "",
+  3657→      },
+  3658→    ],
+  3659→  },
+  3660→
+  3661→  // ──────────────────────────────────────────────────────────────────────────
+  3662→  // 29. Экземпляры ИСО
+  3663→  // ──────────────────────────────────────────────────────────────────────────
+  3664→  {
+  3665→    key: "eng_instances",
+  3666→    label: "Экземпляры ИСО",
+  3667→    description:
+  3668→      "Развернутые экземпляры инженерно-технических средств обеспечения транспортной безопасности",
+  3669→    icon: "Lock",
+  3670→    fields: [
+  3671→      {
+  3672→        key: "oti_ref",
+  3673→        label: "Ссылка на ОТИ",
+  3674→        type: "ref",
+  3675→        refSection: "oti",
+  3676→        refLabelField: "oti_full_name",
+  3677→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+  3678→        defaultValue: null,
+  3679→      },
+  3680→      {
+  3681→        key: "catalog_eng_ref",
+  3682→        label: "Ссылка на каталог ИСО",
+  3683→        type: "ref",
+  3684→        refSection: "eng_catalog",
+  3685→        refLabelField: "eng_catalog_name",
+  3686→        hint: "Бизнес-ссылка на запись в каталоге ИСО",
+  3687→        defaultValue: null,
+  3688→      },
+  3689→      {
+  3690→        key: "eng_instance_name",
+  3691→        label: "Наименование экземпляра ИСО",
+  3692→        type: "text",
+  3693→        defaultValue: "",
+  3694→      },
+  3695→      {
+  3696→        key: "eng_instance_serial_num",
+  3697→        label: "Серийный номер",
+  3698→        type: "text",
+  3699→        defaultValue: "",
+  3700→      },
+  3701→      {
+  3702→        key: "eng_instance_quantity",
+  3703→        label: "Количество",
+  3704→        type: "number",
+  3705→        defaultValue: 1,
+  3706→      },
+  3707→      {
+  3708→        key: "eng_instance_segment_number",
+  3709→        label: "Номер сегмента (участка)",
+  3710→        type: "number",
+  3711→        hint: "Номер участка периметра, на котором установлен экземпляр ИСО",
+  3712→        defaultValue: null,
+  3713→      },
+  3714→      {
+  3715→        key: "eng_instance_location_name",
+  3716→        label: "Местоположение (наименование)",
+  3717→        type: "text",
+  3718→        readOnly: true,
+  3719→        defaultValue: "",
+  3720→      },
+  3721→      {
+  3722→        key: "eng_instance_location_infra_ref",
+  3723→        label: "Ссылка на инфраструктуру местоположения",
+  3724→        type: "ref",
+  3725→        refSection: "infrastructure",
+  3726→        refLabelField: "obj_name",
+  3727→        hint: "Бизнес-ссылка на инфраструктурный объект местоположения",
+  3728→        defaultValue: null,
+  3729→      },
+  3730→      {
+  3731→        key: "eng_instance_protects_ce",
+  3732→        label: "Защищает критический элемент",
+  3733→        type: "boolean",
+  3734→        defaultValue: false,
+  3735→      },
+  3736→      {
+  3737→        key: "eng_instance_protects_ce_infra_ref",
+  3738→        label: "Ссылка на защищаемый КЭ",
+  3739→        type: "ref",
+  3740→        refSection: "critical_elements",
+  3741→        refLabelField: "critical_element",
+  3742→        hint: "Бизнес-ссылка на защищаемый критический элемент",
+  3743→        defaultValue: null,
+  3744→      },
+  3745→      {
+  3746→        key: "eng_instance_protects_rod",
+  3747→        label: "Защищает зону РОД",
+  3748→        type: "boolean",
+  3749→        defaultValue: false,
+  3750→      },
+  3751→      {
+  3752→        key: "eng_instance_protects_rod_infra_ref",
+  3753→        label: "Ссылка на защищаемую зону РОД",
+  3754→        type: "ref",
+  3755→        refSection: "restricted_access_zones",
+  3756→        refLabelField: "rod_name",
+  3757→        hint: "Бизнес-ссылка на защищаемую зону ограниченного доступа",
+  3758→        defaultValue: null,
+  3759→      },
+  3760→      {
+  3761→        key: "eng_instance_length_m",
+  3762→        label: "Длина, м",
+  3763→        type: "number",
+  3764→        defaultValue: null,
+  3765→      },
+  3766→      {
+  3767→        key: "eng_instance_main_material",
+  3768→        label: "Основной материал",
+  3769→        type: "text",
+  3770→        defaultValue: "",
+  3771→      },
+  3772→      {
+  3773→        key: "eng_instance_main_type",
+  3774→        label: "Основной тип",
+  3775→        type: "text",
+  3776→        defaultValue: "",
+  3777→      },
+  3778→      {
+  3779→        key: "eng_instance_main_height_m",
+  3780→        label: "Высота основной части, м",
+  3781→        type: "number",
+  3782→        defaultValue: null,
+  3783→      },
+  3784→      {
+  3785→        key: "eng_instance_main_thickness_mm",
+  3786→        label: "Толщина основной части, мм",
+  3787→        type: "number",
+  3788→        defaultValue: null,
+  3789→      },
+  3790→      {
+  3791→        key: "eng_instance_main_is_removable",
+  3792→        label: "Съёмная основная часть",
+  3793→        type: "boolean",
+  3794→        defaultValue: false,
+  3795→      },
+  3796→      {
+  3797→        key: "eng_instance_main_gost_compliance",
+  3798→        label: "Соответствие ГОСТ (основная часть)",
+  3799→        type: "text",
+  3800→        defaultValue: "",
+  3801→      },
+  3802→      {
+  3803→        key: "eng_instance_top_exists",
+  3804→        label: "Наличие верхней (козырьковой) части",
+  3805→        type: "boolean",
+  3806→        defaultValue: false,
+  3807→      },
+  3808→      {
+  3809→        key: "eng_instance_top_type",
+  3810→        label: "Тип верхней части",
+  3811→        type: "text",
+  3812→        defaultValue: "",
+  3813→      },
+  3814→      {
+  3815→        key: "eng_instance_top_material",
+  3816→        label: "Материал верхней части",
+  3817→        type: "text",
+  3818→        defaultValue: "",
+  3819→      },
+  3820→      {
+  3821→        key: "eng_instance_top_height_m",
+  3822→        label: "Высота верхней части, м",
+  3823→        type: "number",
+  3824→        defaultValue: null,
+  3825→      },
+  3826→      {
+  3827→        key: "eng_instance_top_angle_deg",
+  3828→        label: "Угол наклона верхней части, град.",
+  3829→        type: "number",
+  3830→        defaultValue: null,
+  3831→      },
+  3832→      {
+  3833→        key: "eng_instance_top_gost_compliance",
+  3834→        label: "Соответствие ГОСТ (верхняя часть)",
+  3835→        type: "text",
+  3836→        defaultValue: "",
+  3837→      },
+  3838→      {
+  3839→        key: "eng_instance_bottom_exists",
+  3840→        label: "Наличие нижней (заглублённой) части",
+  3841→        type: "boolean",
+  3842→        defaultValue: false,
+  3843→      },
+  3844→      {
+  3845→        key: "eng_instance_bottom_type",
+  3846→        label: "Тип нижней части",
+  3847→        type: "text",
+  3848→        defaultValue: "",
+  3849→      },
+  3850→      {
+  3851→        key: "eng_instance_bottom_material",
+  3852→        label: "Материал нижней части",
+  3853→        type: "text",
+  3854→        defaultValue: "",
+  3855→      },
+  3856→      {
+  3857→        key: "eng_instance_bottom_depth_m",
+  3858→        label: "Глубина заглубления, м",
+  3859→        type: "number",
+  3860→        defaultValue: null,
+  3861→      },
+  3862→      {
+  3863→        key: "eng_instance_bottom_width_m",
+  3864→        label: "Ширина нижней части, м",
+  3865→        type: "number",
+  3866→        defaultValue: null,
+  3867→      },
+  3868→      {
+  3869→        key: "eng_instance_bottom_gost_compliance",
+  3870→        label: "Соответствие ГОСТ (нижняя часть)",
+  3871→        type: "text",
+  3872→        defaultValue: "",
+  3873→      },
+  3874→      {
+  3875→        key: "eng_instance_total_height_m",
+  3876→        label: "Общая высота, м",
+  3877→        type: "number",
+  3878→        defaultValue: null,
+  3879→      },
+  3880→      {
+  3881→        key: "eng_instance_protection_level",
+  3882→        label: "Уровень защиты",
+  3883→        type: "text",
+  3884→        hint: "Класс защитной устойчивости ИСО",
+  3885→        defaultValue: "",
+  3886→      },
+  3887→      {
+  3888→        key: "eng_instance_intrusion_delay_min",
+  3889→        label: "Задержка проникновения, мин",
+  3890→        type: "number",
+  3891→        hint: "Время задержки несанкционированного проникновения",
+  3892→        defaultValue: null,
+  3893→      },
+  3894→      {
+  3895→        key: "eng_instance_load_capacity_t",
+  3896→        label: "Нагрузочная способность, т",
+  3897→        type: "number",
+  3898→        defaultValue: null,
+  3899→      },
+  3900→      {
+  3901→        key: "eng_instance_locking_type",
+  3902→        label: "Тип запирающего устройства",
+  3903→        type: "text",
+  3904→        defaultValue: "",
+  3905→      },
+  3906→      {
+  3907→        key: "eng_instance_has_access_control",
+  3908→        label: "Наличие системы контроля доступа",
+  3909→        type: "boolean",
+  3910→        defaultValue: false,
+  3911→      },
+  3912→      {
+  3913→        key: "eng_instance_has_barbed_wire",
+  3914→        label: "Наличие армированной ленты / колючей проволоки",
+  3915→        type: "boolean",
+  3916→        defaultValue: false,
+  3917→      },
+  3918→      {
+  3919→        key: "eng_instance_has_top_obstacle",
+  3920→        label: "Наличие верхнего инженерного препятствия",
+  3921→        type: "boolean",
+  3922→        defaultValue: false,
+  3923→      },
+  3924→      {
+  3925→        key: "eng_instance_window_protection_type",
+  3926→        label: "Тип защиты окон",
+  3927→        type: "text",
+  3928→        defaultValue: "",
+  3929→      },
+  3930→      {
+  3931→        key: "eng_instance_airlock_capacity",
+  3932→        label: "Вместимость шлюза (тамбура)",
+  3933→        type: "number",
+  3934→        hint: "Количество людей, проходящих через шлюз одновременно",
+  3935→        defaultValue: null,
+  3936→      },
+  3937→      {
+  3938→        key: "eng_instance_platform_vehicle_capacity",
+  3939→        label: "Вместимость платформы (транспорт)",
+  3940→        type: "number",
+  3941→        hint: "Вместимость в транспортных единицах",
+  3942→        defaultValue: null,
+  3943→      },
+  3944→      {
+  3945→        key: "eng_instance_operational_status",
+  3946→        label: "Эксплуатационный статус",
+  3947→        type: "select",
+  3948→        hint: "Текущий статус эксплуатации ИСО",
+  3949→        options: ["in_service", "in_storage", "decommissioned"],
+  3950→        defaultValue: "in_service",
+  3951→      },
+  3952→      {
+  3953→        key: "eng_instance_is_seasonal",
+  3954→        label: "Сезонная установка",
+  3955→        type: "boolean",
+  3956→        hint: "Является ли ИСО сезонно демонтируемым",
+  3957→        defaultValue: false,
+  3958→      },
+  3959→      {
+  3960→        key: "eng_instance_seasonal_removal_period",
+  3961→        label: "Период демонтажа",
+  3962→        type: "text",
+  3963→        hint: "Период, в который ИСО демонтируется (например, «июнь—август»)",
+  3964→        defaultValue: "",
+  3965→      },
+  3966→      {
+  3967→        key: "eng_instance_installation_date",
+  3968→        label: "Дата установки",
+  3969→        type: "date",
+  3970→        defaultValue: null,
+  3971→      },
+  3972→      {
+  3973→        key: "eng_instance_last_inspection_date",
+  3974→        label: "Дата последней проверки",
+  3975→        type: "date",
+  3976→        defaultValue: null,
+  3977→      },
+  3978→      {
+  3979→        key: "eng_instance_next_inspection_date",
+  3980→        label: "Дата следующей проверки",
+  3981→        type: "date",
+  3982→        defaultValue: null,
+  3983→      },
+  3984→      {
+  3985→        key: "eng_instance_defects_description",
+  3986→        label: "Описание дефектов",
+  3987→        type: "textarea",
+  3988→        hint: "Описание выявленных дефектов и повреждений",
+  3989→        defaultValue: "",
+  3990→      },
+  3991→      {
+  3992→        key: "eng_instance_maintenance_contract_ref",
+  3993→        label: "Ссылка на договор ТО",
+  3994→        type: "ref",
+  3995→        refSection: "contracts",
+  3996→        refLabelField: "contract_name",
+  3997→        hint: "Бизнес-ссылка на договор технического обслуживания",
+  3998→        defaultValue: null,
+  3999→      },
+  4000→      {
+  4001→        key: "eng_instance_security_implication",
+  4002→        readOnly: true,
+  4003→        label: "Последствия для безопасности",
+  4004→        type: "textarea",
+  4005→        hint: "Последствия вывода из строя данного ИСО",
+  4006→        defaultValue: "",
+  4007→      },
+  4008→      {
+  4009→        key: "eng_instance_operational_context",
+  4010→        readOnly: true,
+  4011→        label: "Операционный контекст",
+  4012→        type: "textarea",
+  4013→        hint: "Особенности эксплуатации конкретного экземпляра ИСО",
+  4014→        defaultValue: "",
+  4015→      },
+  4016→      {
+  4017→        key: "qdrant_eng_material_tag",
+  4018→        readOnly: true,
+  4019→        label: "Тег материала ИСО",
+  4020→        type: "text",
+  4021→        hint: "Тег для поиска и кластеризации",
+  4022→        defaultValue: "",
+  4023→      },
+  4024→      {
+  4025→        key: "qdrant_eng_gost_tag",
+  4026→        readOnly: true,
+  4027→        label: "Тег соответствия ГОСТ",
+  4028→        type: "text",
+  4029→        hint: "Тег для поиска и кластеризации",
+  4030→        defaultValue: "",
+  4031→      },
+  4032→      {
+  4033→        key: "qdrant_eng_seasonal_tag",
+  4034→        readOnly: true,
+  4035→        label: "Тег сезонности ИСО",
+  4036→        type: "text",
+  4037→        hint: "Тег для поиска и кластеризации",
+  4038→        defaultValue: "",
+  4039→      },
+  4040→      {
+  4041→        key: "qdrant_eng_condition_tag",
+  4042→        readOnly: true,
+  4043→        label: "Тег состояния ИСО",
+  4044→        type: "text",
+  4045→        hint: "Тег для поиска и кластеризации",
+  4046→        defaultValue: "",
+  4047→      },
+  4048→      {
+  4049→        key: "qdrant_ce_protection_tag",
+  4050→        readOnly: true,
+  4051→        label: "Тег защиты КЭ",
+  4052→        type: "text",
+  4053→        hint: "Тег для поиска и кластеризации",
+  4054→        defaultValue: "",
+  4055→      },
+  4056→      {
+  4057→        key: "eng_instance_target_doc_sections",
+  4058→        readOnly: true,
+  4059→        label: "Разделы целевого документа",
+  4060→        type: "array",
+  4061→        hint: "Введите значения через запятую",
+  4062→        defaultValue: [],
+  4063→      },
+  4064→      {
+  4065→        key: "eng_instance_regulatory_triggers",
+  4066→        readOnly: true,
+  4067→        label: "Нормативные триггеры",
+  4068→        type: "array",
+  4069→        hint: "Введите значения через запятую",
+  4070→        defaultValue: [],
+  4071→      },
+  4072→      {
+  4073→        key: "eng_instance_compliance_check_result",
+  4074→        readOnly: true,
+  4075→        label: "Результат проверки соответствия",
+  4076→        type: "text",
+  4077→        hint: "Результат последней проверки соответствия требованиям",
+  4078→        defaultValue: "",
+  4079→      },
+  4080→    ],
+  4081→  },
+  4082→
+  4083→  // ──────────────────────────────────────────────────────────────────────────
+  4084→  // 30. Климатический контекст
+  4085→  // ──────────────────────────────────────────────────────────────────────────
+  4086→  {
+  4087→    key: "climate_context",
+  4088→    label: "Климатический контекст",
+  4089→    description:
+  4090→      "Климатические условия, соседние объекты и модель нарушителя для ОТИ",
+  4091→    icon: "Thermometer",
+  4092→    fields: [
+  4093→      {
+  4094→        key: "oti_ref",
+  4095→        label: "Ссылка на ОТИ",
+  4096→        type: "ref",
+  4097→        refSection: "oti",
+  4098→        refLabelField: "oti_full_name",
+  4099→        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
+  4100→        defaultValue: null,
+  4101→      },
+  4102→      {
+  4103→        key: "climate_zone",
+  4104→        label: "Климатическая зона",
+  4105→        type: "text",
+  4106→        placeholder: "I, II, III, IV",
+  4107→        defaultValue: "",
+  4108→      },
+  4109→      {
+  4110→        key: "temp_min_c",
+  4111→        label: "Минимальная температура, °C",
+  4112→        type: "number",
+  4113→        hint: "Абсолютный минимум температуры",
+  4114→        defaultValue: null,
+  4115→      },
+  4116→      {
+  4117→        key: "wind_max_ms",
+  4118→        label: "Максимальная скорость ветра, м/с",
+  4119→        type: "number",
+  4120→        defaultValue: null,
+  4121→      },
+  4122→      {
+  4123→        key: "hydro_flood_risk",
+  4124→        label: "Риск затопления",
+  4125→        type: "boolean",
+  4126→        hint: "Существует ли риск затопления территории ОТИ",
+  4127→        defaultValue: false,
+  4128→      },
+  4129→      {
+  4130→        key: "climate_hydro_description",
+  4131→        readOnly: true,
+  4132→        label: "Гидрометеорологическое описание",
+  4133→        type: "textarea",
+  4134→        hint: "Подробное описание гидрометеорологических условий",
+  4135→        defaultValue: "",
+  4136→      },
+  4137→      {
+  4138→        key: "climate_narrative_description",
+  4139→        readOnly: true,
+  4140→        label: "Климатическое описание",
+  4141→        type: "textarea",
+  4142→        defaultValue: "",
+  4143→      },
+  4144→      {
+  4145→        key: "neighbor_objects",
+  4146→        label: "Соседние объекты",
+  4147→        type: "object",
+  4148→        hint: "Список соседних объектов, влияющих на безопасность ОТИ",
+  4149→        defaultValue: [],
+  4150→        nestedFields: [
+  4151→          {
+  4152→            key: "name",
+  4153→            label: "Наименование объекта",
+  4154→            type: "text",
+  4155→            defaultValue: "",
+  4156→          },
+  4157→          {
+  4158→            key: "dist",
+  4159→            label: "Расстояние, м",
+  4160→            type: "number",
+  4161→            hint: "Расстояние от ОТИ до соседнего объекта",
+  4162→            defaultValue: null,
+  4163→          },
+  4164→        ],
+  4165→      },
+  4166→      {
+  4167→        key: "neighbor_interaction_type",
+  4168→        label: "Тип взаимодействия с соседними объектами",
+  4169→        type: "object",
+  4170→        hint: "Характеристики взаимодействия с соседними объектами",
+  4171→        defaultValue: {},
+  4172→        nestedFields: [
+  4173→          {
+  4174→            key: "physical",
+  4175→            label: "Физическое взаимодействие",
+  4176→            type: "text",
+  4177→            hint: "Описание физического взаимодействия (общие границы, коммуникации)",
+  4178→            defaultValue: "",
+  4179→          },
+  4180→          {
+  4181→            key: "operational",
+  4182→            label: "Операционное взаимодействие",
+  4183→            type: "text",
+  4184→            hint: "Описание совместной операционной деятельности",
+  4185→            defaultValue: "",
+  4186→          },
+  4187→          {
+  4188→            key: "emergency",
+  4189→            label: "Взаимодействие при ЧС",
+  4190→            type: "text",
+  4191→            hint: "Описание взаимодействия в чрезвычайных ситуациях",
+  4192→            defaultValue: "",
+  4193→          },
+  4194→        ],
+  4195→      },
+  4196→      {
+  4197→        key: "threats_ranking",
+  4198→        label: "Рейтинг угроз",
+  4199→        type: "array",
+  4200→        hint: "Введите значения через запятую",
+  4201→        defaultValue: [],
+  4202→      },
+  4203→      {
+  4204→        key: "intruders_ranking",
+  4205→        label: "Рейтинг нарушителей",
+  4206→        type: "array",
+  4207→        hint: "Введите значения через запятую",
+  4208→        defaultValue: [],
+  4209→      },
+  4210→      {
+  4211→        key: "project_intruder_model",
+  4212→        label: "Проектная модель нарушителя",
+  4213→        type: "textarea",
+  4214→        hint: "Описание возможных типов нарушителей и их характеристик",
+  4215→        defaultValue: "",
+  4216→      },
+  4217→      {
+  4218→        key: "max_casualties",
+  4219→        label: "Максимальные возможные жертвы",
+  4220→        type: "number",
+  4221→        hint: "Максимальное расчётное число жертв при реализации угрозы",
+  4222→        defaultValue: null,
+  4223→      },
+  4224→      {
+  4225→        key: "max_damage_rub",
+  4226→        label: "Максимальный ущерб, руб.",
+  4227→        type: "number",
+  4228→        hint: "Максимальный расчётный материальный ущерб в рублях",
+  4229→        defaultValue: null,
+  4230→      },
+  4231→      {
+  4232→        key: "isps_compliance",
+  4233→        label: "Соответствие ISPS",
+  4234→        type: "boolean",
+  4235→        hint: "Соответствует ли ОТИ требованиям Кодекса ОСПС/МСПС",
+  4236→        defaultValue: false,
+  4237→      },
+  4238→      {
+  4239→        key: "compliance_result",
+  4240→        label: "Результат проверки соответствия",
+  4241→        type: "boolean",
+  4242→        hint: "Результат проверки соответствия требованиям транспортной безопасности",
+  4243→        defaultValue: false,
+  4244→      },
+  4245→      {
+  4246→        key: "qdrant_climate_zone_tag",
+  4247→        readOnly: true,
+  4248→        label: "Тег климатической зоны",
+  4249→        type: "text",
+  4250→        hint: "Тег для поиска и кластеризации",
+  4251→        defaultValue: "",
+  4252→      },
+  4253→      {
+  4254→        key: "qdrant_flood_risk_tag",
+  4255→        readOnly: true,
+  4256→        label: "Тег риска затопления",
+  4257→        type: "text",
+  4258→        hint: "Тег для поиска и кластеризации",
+  4259→        defaultValue: "",
+  4260→      },
+  4261→      {
+  4262→        key: "qdrant_compliance_tag",
+  4263→        readOnly: true,
+  4264→        label: "Тег соответствия",
+  4265→        type: "text",
+  4266→        hint: "Тег для поиска и кластеризации",
+  4267→        defaultValue: "",
+  4268→      },
+  4269→      {
+  4270→        key: "climate_target_doc_sections",
+  4271→        readOnly: true,
+  4272→        label: "Разделы целевого документа",
+  4273→        type: "array",
+  4274→        hint: "Введите значения через запятую",
+  4275→        defaultValue: [],
+  4276→      },
+  4277→    ],
+  4278→  },
+  4279→];
+  4280→
+  4281→// =============================================================================
+  4282→// Helper: get empty row for a given section
+  4283→// =============================================================================
+  4284→
+  4285→export function getEmptyRow(sectionKey: string): Record<string, unknown> {
+  4286→  const section = SCHEMA_SECTIONS.find((s) => s.key === sectionKey);
+  4287→  if (!section) return {};
+  4288→
+  4289→  const row: Record<string, unknown> = {};
+  4290→  for (const field of section.fields) {
+  4291→    if (field.type === "object" && field.nestedFields) {
+  4292→      if (Array.isArray(field.defaultValue)) {
+  4293→        row[field.key] = field.defaultValue;
+  4294→      } else {
+  4295→        row[field.key] = {};
+  4296→      }
+  4297→    } else if (field.type === "array") {
+  4298→      row[field.key] = [];
+  4299→    } else if (field.type === "boolean") {
+  4300→      row[field.key] = field.defaultValue ?? false;
+  4301→    } else if (field.type === "number") {
+  4302→      row[field.key] = field.defaultValue ?? null;
+  4303→    } else if (field.type === "date") {
+  4304→      row[field.key] = field.defaultValue ?? null;
+  4305→    } else if (field.type === "ref") {
+  4306→      row[field.key] = field.defaultValue ?? null;
+  4307→    } else {
+  4308→      row[field.key] = field.defaultValue ?? "";
+  4309→    }
+  4310→  }
+  4311→  return row;
+  4312→}
+  4313→
+  4314→// =============================================================================
+  4315→// Helper: get sections grouped for navigation
+  4316→// =============================================================================
+  4317→
+  4318→export interface SectionGroup {
+  4319→  label: string;
+  4320→  sections: SectionDef[];
+  4321→}
+  4322→
+  4323→export function getSectionGroups(): SectionGroup[] {
+  4324→  return [
+  4325→    {
+  4326→      label: "Основные сведения",
+  4327→      sections: SCHEMA_SECTIONS.filter((s) =>
+  4328→        ["sti", "sti_licenses", "oti", "persons"].includes(s.key),
+  4329→      ),
+  4330→    },
+  4331→    {
+  4332→      label: "Оценки и планы",
+  4333→      sections: SCHEMA_SECTIONS.filter((s) =>
+  4334→        ["assessments", "security_plans"].includes(s.key),
+  4335→      ),
+  4336→    },
+  4337→    {
+  4338→      label: "Территория и акватория",
+  4339→      sections: SCHEMA_SECTIONS.filter((s) =>
+  4340→        ["land", "land_summary", "aquatories", "climate_context"].includes(
+  4341→          s.key,
+  4342→        ),
+  4343→      ),
+  4344→    },
+  4345→    {
+  4346→      label: "Грузы и операции",
+  4347→      sections: SCHEMA_SECTIONS.filter((s) =>
+  4348→        [
+  4349→          "cargo",
+  4350→          "cargo_summary",
+  4351→          "cargo_turnover",
+  4352→          "oti_operations",
+  4353→        ].includes(s.key),
+  4354→      ),
+  4355→    },
+  4356→    {
+  4357→      label: "Опасные производственные объекты",
+  4358→      sections: SCHEMA_SECTIONS.filter((s) => ["opo"].includes(s.key)),
+  4359→    },
+  4360→    {
+  4361→      label: "Инфраструктура",
+  4362→      sections: SCHEMA_SECTIONS.filter((s) =>
+  4363→        [
+  4364→          "infrastructure",
+  4365→          "critical_elements",
+  4366→          "restricted_access_zones",
+  4367→          "zoning",
+  4368→        ].includes(s.key),
+  4369→      ),
+  4370→    },
+  4371→    {
+  4372→      label: "Подразделения и посты",
+  4373→      sections: SCHEMA_SECTIONS.filter((s) =>
+  4374→        [
+  4375→          "ptb",
+  4376→          "contracts",
+  4377→          "ptb_supplementary_agreements",
+  4378→          "posts",
+  4379→          "post_staff",
+  4380→          "post_equipment",
+  4381→        ].includes(s.key),
+  4382→      ),
+  4383→    },
+  4384→    {
+  4385→      label: "Технические средства",
+  4386→      sections: SCHEMA_SECTIONS.filter((s) =>
+  4387→        [
+  4388→          "tsotb_catalog",
+  4389→          "tsotb_instances",
+  4390→          "eng_catalog",
+  4391→          "eng_instances",
+  4392→        ].includes(s.key),
+  4393→      ),
+  4394→    },
+  4395→  ];
+  4396→}
+  4397→

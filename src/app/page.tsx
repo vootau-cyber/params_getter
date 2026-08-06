@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import {
   Shield,
@@ -9,7 +9,6 @@ import {
   Upload,
   History,
   RotateCcw,
-  Menu,
   ChevronDown,
   ChevronRight,
   Loader2,
@@ -46,13 +45,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
@@ -62,7 +54,6 @@ import { useStore } from '@/lib/store';
 import { SectionTable } from '@/components/section-table';
 import { VersionHistoryDialog } from '@/components/version-history-dialog';
 import { ImportDialog } from '@/components/import-dialog';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 // =============================================================================
 // Icon resolver for sidebar items
@@ -107,14 +98,9 @@ function SidebarNav() {
   const activeSection = useStore((s) => s.activeSection);
   const setActiveSection = useStore((s) => s.setActiveSection);
   const data = useStore((s) => s.data);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [collapsedGroups, setCollapsedGroups] = React.useState<Set<string>>(new Set());
 
   const groups = useMemo(() => getSectionGroups(), []);
-  const sectionMap = useMemo(() => {
-    const map = new Map<string, SectionDef>();
-    for (const s of SCHEMA_SECTIONS) map.set(s.key, s);
-    return map;
-  }, []);
 
   const toggleGroup = (groupLabel: string) => {
     setCollapsedGroups((prev) => {
@@ -167,7 +153,7 @@ function SidebarNav() {
                         {section.label}
                       </span>
                       {hasData && (
-                        <span className="size-2 rounded-full bg-blue-500 shrink-0" />
+                        <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
                       )}
                     </button>
                   );
@@ -186,8 +172,6 @@ function SidebarNav() {
 // =============================================================================
 
 export default function Home() {
-  const isMobile = useIsMobile();
-
   const loadData = useStore((s) => s.loadData);
   const loadVersions = useStore((s) => s.loadVersions);
   const saveData = useStore((s) => s.saveData);
@@ -201,14 +185,14 @@ export default function Home() {
   const author = useStore((s) => s.author);
   const setAuthor = useStore((s) => s.setAuthor);
   const isDirty = useStore((s) => s.isDirty);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const activeSectionDef = useMemo(
     () => SCHEMA_SECTIONS.find((s) => s.key === activeSection),
     [activeSection]
   );
 
-  const latestVersion = versions.length > 0 ? versions[0].version_label : '—';
+  const latestVersion =
+    versions.length > 0 ? versions[0].version_label : '—';
   const dirty = isDirty();
 
   // Load data on mount
@@ -216,12 +200,6 @@ export default function Home() {
     loadData();
     loadVersions();
   }, [loadData, loadVersions]);
-
-  // Handle section change on mobile (close sidebar)
-  const handleSectionSelect = (key: string) => {
-    useStore.getState().setActiveSection(key);
-    if (isMobile) setSidebarOpen(false);
-  };
 
   const handleSave = async () => {
     const result = await saveData();
@@ -252,7 +230,11 @@ export default function Home() {
   };
 
   const handleReset = async () => {
-    if (!window.confirm('Сбросить все данные к начальному состоянию? Это действие нельзя отменить.')) {
+    if (
+      !window.confirm(
+        'Сбросить все данные к начальному состоянию? Это действие нельзя отменить.'
+      )
+    ) {
       return;
     }
     await resetData();
@@ -273,63 +255,42 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 bg-white border-b border-border shadow-sm">
         <div className="flex items-center gap-3 px-4 py-2.5">
-          {/* Mobile menu */}
-          {isMobile && (
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-8">
-                  <Menu className="size-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-0">
-                <SheetHeader className="px-4 pt-4 pb-2">
-                  <SheetTitle className="text-sm flex items-center gap-2">
-                    <Shield className="size-4" />
-                    Навигация
-                  </SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="h-[calc(100vh-60px)] px-2">
-                  <SidebarNav />
-                </ScrollArea>
-              </SheetContent>
-            </Sheet>
-          )}
-
           {/* Title */}
-          <div className="flex items-center gap-2 mr-auto">
+          <div className="flex items-center gap-2">
             <Shield className="size-5 text-foreground" />
             <h1 className="text-base font-semibold whitespace-nowrap">
               Реестр данных ОТИ
             </h1>
             {dirty && (
-              <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 border-amber-500/50 text-amber-600">
+              <Badge
+                variant="outline"
+                className="text-xs px-1.5 py-0 h-5 border-amber-500/50 text-amber-600"
+              >
                 изменено
               </Badge>
             )}
           </div>
 
-          {/* Author inputs (hidden on mobile) */}
-          {!isMobile && (
-            <>
-              <Separator orientation="vertical" className="h-6" />
-              <Input
-                placeholder="Имя"
-                value={author.name}
-                onChange={(e) => setAuthor({ ...author, name: e.target.value })}
-                className="h-8 w-32 text-xs"
-              />
-              <Input
-                placeholder="Должность"
-                value={author.role}
-                onChange={(e) => setAuthor({ ...author, role: e.target.value })}
-                className="h-8 w-32 text-xs"
-              />
-              <Separator orientation="vertical" className="h-6" />
-            </>
-          )}
+          <Separator orientation="vertical" className="h-6" />
+
+          {/* Author inputs */}
+          <Input
+            placeholder="Имя автора"
+            value={author.name}
+            onChange={(e) => setAuthor({ ...author, name: e.target.value })}
+            className="h-8 w-36 text-xs"
+          />
+          <Input
+            placeholder="Должность автора"
+            value={author.role}
+            onChange={(e) => setAuthor({ ...author, role: e.target.value })}
+            className="h-8 w-40 text-xs"
+          />
+
+          <Separator orientation="vertical" className="h-6" />
 
           {/* Actions */}
           <div className="flex items-center gap-1.5">
@@ -345,7 +306,7 @@ export default function Home() {
                   ) : (
                     <Save className="size-3.5" />
                   )}
-                  {!isMobile && <span className="ml-1">Сохранить</span>}
+                  <span className="ml-1.5">Сохранить</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Сохранить данные</TooltipContent>
@@ -355,6 +316,7 @@ export default function Home() {
               <TooltipTrigger asChild>
                 <Button variant="outline" size="sm" onClick={handleExport}>
                   <Download className="size-3.5" />
+                  <span className="ml-1.5">Экспорт</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Экспорт JSON</TooltipContent>
@@ -362,8 +324,13 @@ export default function Home() {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={() => setImportDialogOpen(true)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setImportDialogOpen(true)}
+                >
                   <Upload className="size-3.5" />
+                  <span className="ml-1.5">Импорт</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Импорт JSON</TooltipContent>
@@ -371,8 +338,13 @@ export default function Home() {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={() => setVersionsOpen(true)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setVersionsOpen(true)}
+                >
                   <History className="size-3.5" />
+                  <span className="ml-1.5">Версии</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>История версий</TooltipContent>
@@ -387,36 +359,47 @@ export default function Home() {
               <TooltipContent>Сбросить данные</TooltipContent>
             </Tooltip>
           </div>
+
+          {/* Version badge on the right */}
+          <div className="ml-auto">
+            <span className="text-xs text-muted-foreground">
+              {latestVersion}
+            </span>
+          </div>
         </div>
       </header>
 
-      {/* ── Body ──────────────────────────────────────────────────────────── */}
+      {/* ── Body ──────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Desktop Sidebar */}
-        {!isMobile && (
-          <aside className="w-[280px] shrink-0 border-r border-border bg-muted/30 overflow-y-auto">
-            <ScrollArea className="h-full">
-              <SidebarNav />
-            </ScrollArea>
-          </aside>
-        )}
+        {/* Sidebar */}
+        <aside className="w-[280px] shrink-0 border-r border-border bg-muted/30 overflow-y-auto">
+          <ScrollArea className="h-full">
+            <SidebarNav />
+          </ScrollArea>
+        </aside>
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
           {activeSectionDef ? (
-            <div className="p-6 max-w-[1400px] mx-auto">
+            <div className="p-6 max-w-[960px]">
               {/* Section Header */}
               <div className="mb-6">
-                <div className="flex items-center gap-2 mb-1">
-                  <SectionIcon iconName={activeSectionDef.icon} />
-                  <h2 className="text-xl font-semibold">{activeSectionDef.label}</h2>
+                <div className="flex items-center gap-2.5 mb-1">
+                  <div className="flex items-center justify-center size-8 rounded-md bg-accent">
+                    <SectionIcon iconName={activeSectionDef.icon} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold">
+                      {activeSectionDef.label}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {activeSectionDef.description}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {activeSectionDef.description}
-                </p>
               </div>
 
-              {/* Data Table */}
+              {/* Data Form */}
               <SectionTable section={activeSectionDef} />
             </div>
           ) : (
@@ -427,7 +410,7 @@ export default function Home() {
         </main>
       </div>
 
-      {/* ── Footer ─────────────────────────────────────────────────────────── */}
+      {/* ── Footer ─────────────────────────────────────────────────────── */}
       <footer className="border-t border-border bg-white px-4 py-2">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>© 2025 Реестр данных ОТИ</span>
@@ -435,7 +418,7 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* ── Dialogs ─────────────────────────────────────────────────────────── */}
+      {/* ── Dialogs ─────────────────────────────────────────────────────── */}
       <VersionHistoryDialog />
       <ImportDialog />
     </div>

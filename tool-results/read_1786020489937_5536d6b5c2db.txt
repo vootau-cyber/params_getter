@@ -1,0 +1,1520 @@
+     1→# Task 1: Schema vs Seed JSON Field Comparison Report
+     2→
+     3→Generated: 2026-08-06T12:48:06.791Z
+     4→
+     5→---
+     6→
+     7→## Section: `sti` ⚠️
+     8→
+     9→### Seed JSON fields (27):
+    10→- `qdrant_ownership_tag` [qdrant_*]
+    11→- `qdrant_sti_type_tag` [qdrant_*]
+    12→- `sti_egrip_date`
+    13→- `sti_egrl_date`
+    14→- `sti_email`
+    15→- `sti_full_name`
+    16→- `sti_head_fio`
+    17→- `sti_head_position`
+    18→- `sti_inn`
+    19→- `sti_ip_address`
+    20→- `sti_ip_fio`
+    21→- `sti_ip_inn`
+    22→- `sti_ip_ogrnip`
+    23→- `sti_kpp`
+    24→- `sti_legal_address`
+    25→- `sti_narrative_description`
+    26→- `sti_ogrn`
+    27→- `sti_okpo`
+    28→- `sti_person_address`
+    29→- `sti_person_fio`
+    30→- `sti_person_inn`
+    31→- `sti_phone`
+    32→- `sti_postal_address`
+    33→- `sti_regulatory_triggers`
+    34→- `sti_short_name`
+    35→- `sti_target_doc_sections`
+    36→- `sti_website`
+    37→
+    38→### Schema non-virtual fields (0):
+    39→
+    40→### Schema virtual fields (0):
+    41→(none)
+    42→
+    43→### Discrepancies:
+    44→**In seed but NOT in schema (27):**
+    45→- `qdrant_ownership_tag`
+    46→- `qdrant_sti_type_tag`
+    47→- `sti_egrip_date`
+    48→- `sti_egrl_date`
+    49→- `sti_email`
+    50→- `sti_full_name`
+    51→- `sti_head_fio`
+    52→- `sti_head_position`
+    53→- `sti_inn`
+    54→- `sti_ip_address`
+    55→- `sti_ip_fio`
+    56→- `sti_ip_inn`
+    57→- `sti_ip_ogrnip`
+    58→- `sti_kpp`
+    59→- `sti_legal_address`
+    60→- `sti_narrative_description`
+    61→- `sti_ogrn`
+    62→- `sti_okpo`
+    63→- `sti_person_address`
+    64→- `sti_person_fio`
+    65→- `sti_person_inn`
+    66→- `sti_phone`
+    67→- `sti_postal_address`
+    68→- `sti_regulatory_triggers`
+    69→- `sti_short_name`
+    70→- `sti_target_doc_sections`
+    71→- `sti_website`
+    72→
+    73→---
+    74→
+    75→## Section: `sti_licenses` ⚠️
+    76→
+    77→### Seed JSON fields (8):
+    78→- `license_classes`
+    79→- `license_date`
+    80→- `license_is_active`
+    81→- `license_num`
+    82→- `license_objects_approval`
+    83→- `license_term`
+    84→- `license_type`
+    85→- `sti_ref` [*_ref]
+    86→
+    87→### Schema non-virtual fields (0):
+    88→
+    89→### Schema virtual fields (0):
+    90→(none)
+    91→
+    92→### Discrepancies:
+    93→**In seed but NOT in schema (8):**
+    94→- `license_classes`
+    95→- `license_date`
+    96→- `license_is_active`
+    97→- `license_num`
+    98→- `license_objects_approval`
+    99→- `license_term`
+   100→- `license_type`
+   101→- `sti_ref`
+   102→
+   103→---
+   104→
+   105→## Section: `oti` ⚠️
+   106→
+   107→### Seed JSON fields (35):
+   108→- `developer_org`
+   109→- `oti_area_ha`
+   110→- `oti_berth_front_len`
+   111→- `oti_berths_count`
+   112→- `oti_category`
+   113→- `oti_category_assign_date`
+   114→- `oti_center_lat`
+   115→- `oti_center_lon`
+   116→- `oti_change_basis`
+   117→- `oti_change_date`
+   118→- `oti_checkpoint_type`
+   119→- `oti_exclude_basis`
+   120→- `oti_exclude_date`
+   121→- `oti_full_name`
+   122→- `oti_imo_code`
+   123→- `oti_location`
+   124→- `oti_narrative_description`
+   125→- `oti_new_category`
+   126→- `oti_purpose`
+   127→- `oti_registry_basis`
+   128→- `oti_registry_entry_date`
+   129→- `oti_registry_num`
+   130→- `oti_regulatory_triggers`
+   131→- `oti_review_basis`
+   132→- `oti_review_date`
+   133→- `oti_short_name`
+   134→- `oti_target_doc_sections`
+   135→- `port_facility_name`
+   136→- `port_name`
+   137→- `qdrant_climate_zone_tag` [qdrant_*]
+   138→- `qdrant_doc_section_id` [qdrant_*]
+   139→- `qdrant_hydrology_risk_tag` [qdrant_*]
+   140→- `qdrant_oti_category_tag` [qdrant_*]
+   141→- `sti_ref` [*_ref]
+   142→- `survey_date`
+   143→
+   144→### Schema non-virtual fields (0):
+   145→
+   146→### Schema virtual fields (0):
+   147→(none)
+   148→
+   149→### Discrepancies:
+   150→**In seed but NOT in schema (35):**
+   151→- `developer_org`
+   152→- `oti_area_ha`
+   153→- `oti_berth_front_len`
+   154→- `oti_berths_count`
+   155→- `oti_category`
+   156→- `oti_category_assign_date`
+   157→- `oti_center_lat`
+   158→- `oti_center_lon`
+   159→- `oti_change_basis`
+   160→- `oti_change_date`
+   161→- `oti_checkpoint_type`
+   162→- `oti_exclude_basis`
+   163→- `oti_exclude_date`
+   164→- `oti_full_name`
+   165→- `oti_imo_code`
+   166→- `oti_location`
+   167→- `oti_narrative_description`
+   168→- `oti_new_category`
+   169→- `oti_purpose`
+   170→- `oti_registry_basis`
+   171→- `oti_registry_entry_date`
+   172→- `oti_registry_num`
+   173→- `oti_regulatory_triggers`
+   174→- `oti_review_basis`
+   175→- `oti_review_date`
+   176→- `oti_short_name`
+   177→- `oti_target_doc_sections`
+   178→- `port_facility_name`
+   179→- `port_name`
+   180→- `qdrant_climate_zone_tag`
+   181→- `qdrant_doc_section_id`
+   182→- `qdrant_hydrology_risk_tag`
+   183→- `qdrant_oti_category_tag`
+   184→- `sti_ref`
+   185→- `survey_date`
+   186→
+   187→---
+   188→
+   189→## Section: `persons` ⚠️
+   190→
+   191→### Seed JSON fields (24):
+   192→- `oti_ref` [*_ref]
+   193→- `person_attestation_category`
+   194→- `person_attestation_date`
+   195→- `person_attestation_exp_date`
+   196→- `person_attestation_issuing_body`
+   197→- `person_attestation_num`
+   198→- `person_attestation_num_date`
+   199→- `person_attestation_reestr_num`
+   200→- `person_education`
+   201→- `person_email`
+   202→- `person_fax`
+   203→- `person_fio`
+   204→- `person_is_active`
+   205→- `person_mob_phone`
+   206→- `person_narrative_description`
+   207→- `person_order`
+   208→- `person_position`
+   209→- `person_role`
+   210→- `person_target_doc_sections`
+   211→- `person_training`
+   212→- `person_work_phone`
+   213→- `persons_regulatory_triggers`
+   214→- `qdrant_person_role_tag` [qdrant_*]
+   215→- `sti_ref` [*_ref]
+   216→
+   217→### Schema non-virtual fields (0):
+   218→
+   219→### Schema virtual fields (0):
+   220→(none)
+   221→
+   222→### Discrepancies:
+   223→**In seed but NOT in schema (24):**
+   224→- `oti_ref`
+   225→- `person_attestation_category`
+   226→- `person_attestation_date`
+   227→- `person_attestation_exp_date`
+   228→- `person_attestation_issuing_body`
+   229→- `person_attestation_num`
+   230→- `person_attestation_num_date`
+   231→- `person_attestation_reestr_num`
+   232→- `person_education`
+   233→- `person_email`
+   234→- `person_fax`
+   235→- `person_fio`
+   236→- `person_is_active`
+   237→- `person_mob_phone`
+   238→- `person_narrative_description`
+   239→- `person_order`
+   240→- `person_position`
+   241→- `person_role`
+   242→- `person_target_doc_sections`
+   243→- `person_training`
+   244→- `person_work_phone`
+   245→- `persons_regulatory_triggers`
+   246→- `qdrant_person_role_tag`
+   247→- `sti_ref`
+   248→
+   249→---
+   250→
+   251→## Section: `assessments` ⚠️
+   252→
+   253→### Seed JSON fields (13):
+   254→- `assessment_authority`
+   255→- `assessment_date_approval`
+   256→- `assessment_date_conduct`
+   257→- `assessment_narrative_description`
+   258→- `assessment_number`
+   259→- `assessment_plan_ref` [*_ref]
+   260→- `assessment_regulatory_triggers`
+   261→- `assessment_status`
+   262→- `assessment_target_doc_sections`
+   263→- `assessment_type`
+   264→- `assessment_validity_period`
+   265→- `oti_ref` [*_ref]
+   266→- `qdrant_assessment_type_tag` [qdrant_*]
+   267→
+   268→### Schema non-virtual fields (0):
+   269→
+   270→### Schema virtual fields (0):
+   271→(none)
+   272→
+   273→### Discrepancies:
+   274→**In seed but NOT in schema (13):**
+   275→- `assessment_authority`
+   276→- `assessment_date_approval`
+   277→- `assessment_date_conduct`
+   278→- `assessment_narrative_description`
+   279→- `assessment_number`
+   280→- `assessment_plan_ref`
+   281→- `assessment_regulatory_triggers`
+   282→- `assessment_status`
+   283→- `assessment_target_doc_sections`
+   284→- `assessment_type`
+   285→- `assessment_validity_period`
+   286→- `oti_ref`
+   287→- `qdrant_assessment_type_tag`
+   288→
+   289→---
+   290→
+   291→## Section: `security_plans` ⚠️
+   292→
+   293→### Seed JSON fields (14):
+   294→- `oti_ref` [*_ref]
+   295→- `plan_assessment_ref` [*_ref]
+   296→- `plan_authority`
+   297→- `plan_date_approval`
+   298→- `plan_end_conduct_date`
+   299→- `plan_implementation_status`
+   300→- `plan_narrative_description`
+   301→- `plan_number`
+   302→- `plan_regulatory_triggers`
+   303→- `plan_start_conduct_date`
+   304→- `plan_status`
+   305→- `plan_target_doc_sections`
+   306→- `plan_type`
+   307→- `qdrant_plan_type_tag` [qdrant_*]
+   308→
+   309→### Schema non-virtual fields (0):
+   310→
+   311→### Schema virtual fields (0):
+   312→(none)
+   313→
+   314→### Discrepancies:
+   315→**In seed but NOT in schema (14):**
+   316→- `oti_ref`
+   317→- `plan_assessment_ref`
+   318→- `plan_authority`
+   319→- `plan_date_approval`
+   320→- `plan_end_conduct_date`
+   321→- `plan_implementation_status`
+   322→- `plan_narrative_description`
+   323→- `plan_number`
+   324→- `plan_regulatory_triggers`
+   325→- `plan_start_conduct_date`
+   326→- `plan_status`
+   327→- `plan_target_doc_sections`
+   328→- `plan_type`
+   329→- `qdrant_plan_type_tag`
+   330→
+   331→---
+   332→
+   333→## Section: `land` ⚠️
+   334→
+   335→### Seed JSON fields (16):
+   336→- `area_sqm`
+   337→- `cadastre_number`
+   338→- `encumbrances`
+   339→- `is_flood_zone`
+   340→- `land_lease_term`
+   341→- `land_narrative_description`
+   342→- `land_regulatory_triggers`
+   343→- `land_target_doc_sections`
+   344→- `lease_contract_num`
+   345→- `lease_end_date`
+   346→- `oti_ref` [*_ref]
+   347→- `owner`
+   348→- `qdrant_flood_risk_tag` [qdrant_*]
+   349→- `qdrant_soil_type_tag` [qdrant_*]
+   350→- `soil_type`
+   351→- `vegetation`
+   352→
+   353→### Schema non-virtual fields (0):
+   354→
+   355→### Schema virtual fields (0):
+   356→(none)
+   357→
+   358→### Discrepancies:
+   359→**In seed but NOT in schema (16):**
+   360→- `area_sqm`
+   361→- `cadastre_number`
+   362→- `encumbrances`
+   363→- `is_flood_zone`
+   364→- `land_lease_term`
+   365→- `land_narrative_description`
+   366→- `land_regulatory_triggers`
+   367→- `land_target_doc_sections`
+   368→- `lease_contract_num`
+   369→- `lease_end_date`
+   370→- `oti_ref`
+   371→- `owner`
+   372→- `qdrant_flood_risk_tag`
+   373→- `qdrant_soil_type_tag`
+   374→- `soil_type`
+   375→- `vegetation`
+   376→
+   377→---
+   378→
+   379→## Section: `land_summary` ⚠️
+   380→
+   381→### Seed JSON fields (7):
+   382→- `land_lease_term_summary`
+   383→- `land_narrative_description`
+   384→- `land_regulatory_triggers`
+   385→- `land_target_doc_sections`
+   386→- `oti_ref` [*_ref]
+   387→- `qdrant_flood_risk_tag` [qdrant_*]
+   388→- `qdrant_soil_type_tag` [qdrant_*]
+   389→
+   390→### Schema non-virtual fields (0):
+   391→
+   392→### Schema virtual fields (0):
+   393→(none)
+   394→
+   395→### Discrepancies:
+   396→**In seed but NOT in schema (7):**
+   397→- `land_lease_term_summary`
+   398→- `land_narrative_description`
+   399→- `land_regulatory_triggers`
+   400→- `land_target_doc_sections`
+   401→- `oti_ref`
+   402→- `qdrant_flood_risk_tag`
+   403→- `qdrant_soil_type_tag`
+   404→
+   405→---
+   406→
+   407→## Section: `aquatories` ⚠️
+   408→
+   409→### Seed JSON fields (17):
+   410→- `aquatory_area_sqm`
+   411→- `aquatory_bottom_type`
+   412→- `aquatory_current_speed_ms`
+   413→- `aquatory_depths`
+   414→- `aquatory_depths_max_m`
+   415→- `aquatory_depths_min_m`
+   416→- `aquatory_ice_regime`
+   417→- `aquatory_narrative_description`
+   418→- `aquatory_patrol_requirement`
+   419→- `aquatory_regulatory_triggers`
+   420→- `aquatory_security_implication`
+   421→- `aquatory_target_doc_sections`
+   422→- `fairways_anchorages`
+   423→- `fairways_anchorages_details`
+   424→- `oti_ref` [*_ref]
+   425→- `points`
+   426→- `qdrant_ice_regime_tag` [qdrant_*]
+   427→
+   428→### Schema non-virtual fields (0):
+   429→
+   430→### Schema virtual fields (0):
+   431→(none)
+   432→
+   433→### Discrepancies:
+   434→**In seed but NOT in schema (17):**
+   435→- `aquatory_area_sqm`
+   436→- `aquatory_bottom_type`
+   437→- `aquatory_current_speed_ms`
+   438→- `aquatory_depths`
+   439→- `aquatory_depths_max_m`
+   440→- `aquatory_depths_min_m`
+   441→- `aquatory_ice_regime`
+   442→- `aquatory_narrative_description`
+   443→- `aquatory_patrol_requirement`
+   444→- `aquatory_regulatory_triggers`
+   445→- `aquatory_security_implication`
+   446→- `aquatory_target_doc_sections`
+   447→- `fairways_anchorages`
+   448→- `fairways_anchorages_details`
+   449→- `oti_ref`
+   450→- `points`
+   451→- `qdrant_ice_regime_tag`
+   452→
+   453→---
+   454→
+   455→## Section: `cargo` ⚠️
+   456→
+   457→### Seed JSON fields (18):
+   458→- `berth_infra_ref` [*_ref]
+   459→- `berth_name`
+   460→- `cargo_name`
+   461→- `cargo_narrative_description`
+   462→- `cargo_regulatory_triggers`
+   463→- `cargo_target_doc_sections`
+   464→- `features`
+   465→- `imo_class`
+   466→- `is_dangerous`
+   467→- `max_weight_per_ship_t`
+   468→- `oti_ref` [*_ref]
+   469→- `packaging_type`
+   470→- `qdrant_cargo_type_tag` [qdrant_*]
+   471→- `qdrant_dangerous_cargo_tag` [qdrant_*]
+   472→- `qdrant_imo_class_tag` [qdrant_*]
+   473→- `season_end`
+   474→- `season_start`
+   475→- `un_number`
+   476→
+   477→### Schema non-virtual fields (0):
+   478→
+   479→### Schema virtual fields (0):
+   480→(none)
+   481→
+   482→### Discrepancies:
+   483→**In seed but NOT in schema (18):**
+   484→- `berth_infra_ref`
+   485→- `berth_name`
+   486→- `cargo_name`
+   487→- `cargo_narrative_description`
+   488→- `cargo_regulatory_triggers`
+   489→- `cargo_target_doc_sections`
+   490→- `features`
+   491→- `imo_class`
+   492→- `is_dangerous`
+   493→- `max_weight_per_ship_t`
+   494→- `oti_ref`
+   495→- `packaging_type`
+   496→- `qdrant_cargo_type_tag`
+   497→- `qdrant_dangerous_cargo_tag`
+   498→- `qdrant_imo_class_tag`
+   499→- `season_end`
+   500→- `season_start`
+   501→- `un_number`
+   502→
+   503→---
+   504→
+   505→## Section: `cargo_summary` ⚠️
+   506→
+   507→### Seed JSON fields (12):
+   508→- `cargo_dangerous_list`
+   509→- `cargo_general`
+   510→- `cargo_general_list`
+   511→- `cargo_narrative_description`
+   512→- `cargo_regulatory_triggers`
+   513→- `cargo_target_doc_sections`
+   514→- `dangerous_cargo_context`
+   515→- `dangerous_cargo_regulatory`
+   516→- `oti_ref` [*_ref]
+   517→- `qdrant_cargo_type_tag` [qdrant_*]
+   518→- `qdrant_dangerous_cargo_tag` [qdrant_*]
+   519→- `qdrant_imo_class_tag` [qdrant_*]
+   520→
+   521→### Schema non-virtual fields (0):
+   522→
+   523→### Schema virtual fields (0):
+   524→(none)
+   525→
+   526→### Discrepancies:
+   527→**In seed but NOT in schema (12):**
+   528→- `cargo_dangerous_list`
+   529→- `cargo_general`
+   530→- `cargo_general_list`
+   531→- `cargo_narrative_description`
+   532→- `cargo_regulatory_triggers`
+   533→- `cargo_target_doc_sections`
+   534→- `dangerous_cargo_context`
+   535→- `dangerous_cargo_regulatory`
+   536→- `oti_ref`
+   537→- `qdrant_cargo_type_tag`
+   538→- `qdrant_dangerous_cargo_tag`
+   539→- `qdrant_imo_class_tag`
+   540→
+   541→---
+   542→
+   543→## Section: `cargo_turnover` ⚠️
+   544→
+   545→### Seed JSON fields (9):
+   546→- `coasting_ships`
+   547→- `foreign_ships`
+   548→- `is_current_period`
+   549→- `oti_ref` [*_ref]
+   550→- `period_date`
+   551→- `river_ships`
+   552→- `ships`
+   553→- `tons`
+   554→- `year`
+   555→
+   556→### Schema non-virtual fields (0):
+   557→
+   558→### Schema virtual fields (0):
+   559→(none)
+   560→
+   561→### Discrepancies:
+   562→**In seed but NOT in schema (9):**
+   563→- `coasting_ships`
+   564→- `foreign_ships`
+   565→- `is_current_period`
+   566→- `oti_ref`
+   567→- `period_date`
+   568→- `river_ships`
+   569→- `ships`
+   570→- `tons`
+   571→- `year`
+   572→
+   573→---
+   574→
+   575→## Section: `oti_operations` ⚠️
+   576→
+   577→### Seed JSON fields (11):
+   578→- `brigade_size`
+   579→- `brigade_size_day`
+   580→- `brigade_size_night`
+   581→- `is_bunkering`
+   582→- `is_passenger_ops`
+   583→- `is_unaccompanied_baggage`
+   584→- `max_people_on_oti`
+   585→- `max_people_on_oti_includes`
+   586→- `operation_mode`
+   587→- `operation_mode_shift_type`
+   588→- `oti_ref` [*_ref]
+   589→
+   590→### Schema non-virtual fields (0):
+   591→
+   592→### Schema virtual fields (0):
+   593→(none)
+   594→
+   595→### Discrepancies:
+   596→**In seed but NOT in schema (11):**
+   597→- `brigade_size`
+   598→- `brigade_size_day`
+   599→- `brigade_size_night`
+   600→- `is_bunkering`
+   601→- `is_passenger_ops`
+   602→- `is_unaccompanied_baggage`
+   603→- `max_people_on_oti`
+   604→- `max_people_on_oti_includes`
+   605→- `operation_mode`
+   606→- `operation_mode_shift_type`
+   607→- `oti_ref`
+   608→
+   609→---
+   610→
+   611→## Section: `opo` ⚠️
+   612→
+   613→### Seed JSON fields (10):
+   614→- `opo_accident_scenarios`
+   615→- `opo_basis`
+   616→- `opo_hazard_class`
+   617→- `opo_name`
+   618→- `opo_narrative_description`
+   619→- `opo_pmla_exists`
+   620→- `opo_registry_num`
+   621→- `opo_regulatory_triggers`
+   622→- `opo_target_doc_sections`
+   623→- `oti_ref` [*_ref]
+   624→
+   625→### Schema non-virtual fields (0):
+   626→
+   627→### Schema virtual fields (0):
+   628→(none)
+   629→
+   630→### Discrepancies:
+   631→**In seed but NOT in schema (10):**
+   632→- `opo_accident_scenarios`
+   633→- `opo_basis`
+   634→- `opo_hazard_class`
+   635→- `opo_name`
+   636→- `opo_narrative_description`
+   637→- `opo_pmla_exists`
+   638→- `opo_registry_num`
+   639→- `opo_regulatory_triggers`
+   640→- `opo_target_doc_sections`
+   641→- `oti_ref`
+   642→
+   643→---
+   644→
+   645→## Section: `infrastructure` ⚠️
+   646→
+   647→### Seed JSON fields (44):
+   648→- `area_sqm`
+   649→- `berth_fender_type`
+   650→- `building_fire_resistance`
+   651→- `building_floors`
+   652→- `building_foundation`
+   653→- `building_purpose`
+   654→- `capacity_unit`
+   655→- `capacity_value`
+   656→- `cargo_packaging_type`
+   657→- `cargo_type`
+   658→- `connected_to_infra_ref` [*_ref]
+   659→- `connected_to_name`
+   660→- `depth_m`
+   661→- `equipment_brand_model`
+   662→- `equipment_installation_type`
+   663→- `equipment_operational_status`
+   664→- `fence_type`
+   665→- `has_access_control`
+   666→- `height_m`
+   667→- `ice_regime`
+   668→- `is_backup`
+   669→- `is_critical_element`
+   670→- `is_restricted_area`
+   671→- `length_m`
+   672→- `located_on_infra_ref` [*_ref]
+   673→- `located_on_name`
+   674→- `material`
+   675→- `max_vessel_draft_m`
+   676→- `narrative_description`
+   677→- `obj_name`
+   678→- `obj_type`
+   679→- `operational_context`
+   680→- `oti_ref` [*_ref]
+   681→- `perimeter_m`
+   682→- `quantity`
+   683→- `soil_type`
+   684→- `source_doc_ref` [*_ref]
+   685→- `surface_type`
+   686→- `throughput_summer`
+   687→- `throughput_winter`
+   688→- `vessel_ice_class`
+   689→- `vessel_type`
+   690→- `voltage_kw`
+   691→- `width_m`
+   692→
+   693→### Schema non-virtual fields (0):
+   694→
+   695→### Schema virtual fields (0):
+   696→(none)
+   697→
+   698→### Discrepancies:
+   699→**In seed but NOT in schema (44):**
+   700→- `area_sqm`
+   701→- `berth_fender_type`
+   702→- `building_fire_resistance`
+   703→- `building_floors`
+   704→- `building_foundation`
+   705→- `building_purpose`
+   706→- `capacity_unit`
+   707→- `capacity_value`
+   708→- `cargo_packaging_type`
+   709→- `cargo_type`
+   710→- `connected_to_infra_ref`
+   711→- `connected_to_name`
+   712→- `depth_m`
+   713→- `equipment_brand_model`
+   714→- `equipment_installation_type`
+   715→- `equipment_operational_status`
+   716→- `fence_type`
+   717→- `has_access_control`
+   718→- `height_m`
+   719→- `ice_regime`
+   720→- `is_backup`
+   721→- `is_critical_element`
+   722→- `is_restricted_area`
+   723→- `length_m`
+   724→- `located_on_infra_ref`
+   725→- `located_on_name`
+   726→- `material`
+   727→- `max_vessel_draft_m`
+   728→- `narrative_description`
+   729→- `obj_name`
+   730→- `obj_type`
+   731→- `operational_context`
+   732→- `oti_ref`
+   733→- `perimeter_m`
+   734→- `quantity`
+   735→- `soil_type`
+   736→- `source_doc_ref`
+   737→- `surface_type`
+   738→- `throughput_summer`
+   739→- `throughput_winter`
+   740→- `vessel_ice_class`
+   741→- `vessel_type`
+   742→- `voltage_kw`
+   743→- `width_m`
+   744→
+   745→---
+   746→
+   747→## Section: `critical_elements` ⚠️
+   748→
+   749→### Seed JSON fields (6):
+   750→- `ce_protection`
+   751→- `ce_security_implication`
+   752→- `critical_element`
+   753→- `critical_element_ce_infra_ref` [*_ref]
+   754→- `oti_ref` [*_ref]
+   755→- `qdrant_ce_protection_tag` [qdrant_*]
+   756→
+   757→### Schema non-virtual fields (0):
+   758→
+   759→### Schema virtual fields (0):
+   760→(none)
+   761→
+   762→### Discrepancies:
+   763→**In seed but NOT in schema (6):**
+   764→- `ce_protection`
+   765→- `ce_security_implication`
+   766→- `critical_element`
+   767→- `critical_element_ce_infra_ref`
+   768→- `oti_ref`
+   769→- `qdrant_ce_protection_tag`
+   770→
+   771→---
+   772→
+   773→## Section: `restricted_access_zones` ⚠️
+   774→
+   775→### Seed JSON fields (5):
+   776→- `oti_ref` [*_ref]
+   777→- `rod_isps_compliance`
+   778→- `rod_name`
+   779→- `rod_name_rod_infra_ref` [*_ref]
+   780→- `rod_regime`
+   781→
+   782→### Schema non-virtual fields (0):
+   783→
+   784→### Schema virtual fields (0):
+   785→(none)
+   786→
+   787→### Discrepancies:
+   788→**In seed but NOT in schema (5):**
+   789→- `oti_ref`
+   790→- `rod_isps_compliance`
+   791→- `rod_name`
+   792→- `rod_name_rod_infra_ref`
+   793→- `rod_regime`
+   794→
+   795→---
+   796→
+   797→## Section: `zoning` ⚠️
+   798→
+   799→### Seed JSON fields (21):
+   800→- `ce_protection`
+   801→- `ce_security_implication`
+   802→- `critical_element`
+   803→- `critical_element_ce_infra_ref` [*_ref]
+   804→- `is_zop_established`
+   805→- `oti_ref` [*_ref]
+   806→- `qdrant_security_zone_tag` [qdrant_*]
+   807→- `rod_isps_compliance`
+   808→- `rod_name`
+   809→- `rod_name_rod_infra_ref` [*_ref]
+   810→- `rod_regime`
+   811→- `sector_free_access`
+   812→- `sector_technological`
+   813→- `sector_transit`
+   814→- `security_zone_air`
+   815→- `security_zone_ground`
+   816→- `security_zone_status`
+   817→- `security_zone_water`
+   818→- `ztb_boundaries`
+   819→- `ztb_regulatory_triggers`
+   820→- `ztb_target_doc_sections`
+   821→
+   822→### Schema non-virtual fields (0):
+   823→
+   824→### Schema virtual fields (0):
+   825→(none)
+   826→
+   827→### Discrepancies:
+   828→**In seed but NOT in schema (21):**
+   829→- `ce_protection`
+   830→- `ce_security_implication`
+   831→- `critical_element`
+   832→- `critical_element_ce_infra_ref`
+   833→- `is_zop_established`
+   834→- `oti_ref`
+   835→- `qdrant_security_zone_tag`
+   836→- `rod_isps_compliance`
+   837→- `rod_name`
+   838→- `rod_name_rod_infra_ref`
+   839→- `rod_regime`
+   840→- `sector_free_access`
+   841→- `sector_technological`
+   842→- `sector_transit`
+   843→- `security_zone_air`
+   844→- `security_zone_ground`
+   845→- `security_zone_status`
+   846→- `security_zone_water`
+   847→- `ztb_boundaries`
+   848→- `ztb_regulatory_triggers`
+   849→- `ztb_target_doc_sections`
+   850→
+   851→---
+   852→
+   853→## Section: `ptb` ⚠️
+   854→
+   855→### Seed JSON fields (11):
+   856→- `ptb_accreditation_date`
+   857→- `ptb_accreditation_exp_date`
+   858→- `ptb_accreditation_num`
+   859→- `ptb_name`
+   860→- `ptb_narrative_description`
+   861→- `ptb_oti_ref` [*_ref]
+   862→- `ptb_regulatory_triggers`
+   863→- `ptb_target_doc_sections`
+   864→- `qdrant_gbr_exists_tag` [qdrant_*]
+   865→- `qdrant_ptb_accreditation_tag` [qdrant_*]
+   866→- `sti_ref` [*_ref]
+   867→
+   868→### Schema non-virtual fields (0):
+   869→
+   870→### Schema virtual fields (0):
+   871→(none)
+   872→
+   873→### Discrepancies:
+   874→**In seed but NOT in schema (11):**
+   875→- `ptb_accreditation_date`
+   876→- `ptb_accreditation_exp_date`
+   877→- `ptb_accreditation_num`
+   878→- `ptb_name`
+   879→- `ptb_narrative_description`
+   880→- `ptb_oti_ref`
+   881→- `ptb_regulatory_triggers`
+   882→- `ptb_target_doc_sections`
+   883→- `qdrant_gbr_exists_tag`
+   884→- `qdrant_ptb_accreditation_tag`
+   885→- `sti_ref`
+   886→
+   887→---
+   888→
+   889→## Section: `ptb_contracts` ⚠️
+   890→
+   891→### Seed JSON fields (9):
+   892→- `contract_date`
+   893→- `contract_exp_date`
+   894→- `contract_is_maintenance`
+   895→- `contract_name`
+   896→- `contract_num`
+   897→- `is_prolonged`
+   898→- `prolongation_date`
+   899→- `prolongation_new_exp_date`
+   900→- `ptb_ref` [*_ref]
+   901→
+   902→### Schema non-virtual fields (0):
+   903→
+   904→### Schema virtual fields (0):
+   905→(none)
+   906→
+   907→### Discrepancies:
+   908→**In seed but NOT in schema (9):**
+   909→- `contract_date`
+   910→- `contract_exp_date`
+   911→- `contract_is_maintenance`
+   912→- `contract_name`
+   913→- `contract_num`
+   914→- `is_prolonged`
+   915→- `prolongation_date`
+   916→- `prolongation_new_exp_date`
+   917→- `ptb_ref`
+   918→
+   919→---
+   920→
+   921→## Section: `ptb_supplementary_agreements` ⚠️
+   922→
+   923→### Seed JSON fields (7):
+   924→- `agreement_date`
+   925→- `agreement_description`
+   926→- `agreement_exp_date`
+   927→- `agreement_name`
+   928→- `agreement_num`
+   929→- `agreement_type`
+   930→- `contract_ref` [*_ref]
+   931→
+   932→### Schema non-virtual fields (0):
+   933→
+   934→### Schema virtual fields (0):
+   935→(none)
+   936→
+   937→### Discrepancies:
+   938→**In seed but NOT in schema (7):**
+   939→- `agreement_date`
+   940→- `agreement_description`
+   941→- `agreement_exp_date`
+   942→- `agreement_name`
+   943→- `agreement_num`
+   944→- `agreement_type`
+   945→- `contract_ref`
+   946→
+   947→---
+   948→
+   949→## Section: `maintenance_contracts` ⚠️
+   950→
+   951→### Seed JSON fields (9):
+   952→- `contract_date`
+   953→- `contract_exp_date`
+   954→- `contract_is_active`
+   955→- `contract_name`
+   956→- `contract_num`
+   957→- `contract_provider`
+   958→- `contract_scope`
+   959→- `oti_ref` [*_ref]
+   960→- `ptb_ref` [*_ref]
+   961→
+   962→### Schema non-virtual fields (0):
+   963→
+   964→### Schema virtual fields (0):
+   965→(none)
+   966→
+   967→### Discrepancies:
+   968→**In seed but NOT in schema (9):**
+   969→- `contract_date`
+   970→- `contract_exp_date`
+   971→- `contract_is_active`
+   972→- `contract_name`
+   973→- `contract_num`
+   974→- `contract_provider`
+   975→- `contract_scope`
+   976→- `oti_ref`
+   977→- `ptb_ref`
+   978→
+   979→---
+   980→
+   981→## Section: `posts` ⚠️
+   982→
+   983→### Seed JSON fields (13):
+   984→- `post_is_additional`
+   985→- `post_is_temporary`
+   986→- `post_is_uav_counter`
+   987→- `post_location`
+   988→- `post_location_infra_ref` [*_ref]
+   989→- `post_name`
+   990→- `post_regime`
+   991→- `post_special_conditions`
+   992→- `post_staff_count`
+   993→- `post_tasks`
+   994→- `post_type`
+   995→- `ptb_ref` [*_ref]
+   996→- `qdrant_gbr_exists_tag` [qdrant_*]
+   997→
+   998→### Schema non-virtual fields (0):
+   999→
+  1000→### Schema virtual fields (0):
+  1001→(none)
+  1002→
+  1003→### Discrepancies:
+  1004→**In seed but NOT in schema (13):**
+  1005→- `post_is_additional`
+  1006→- `post_is_temporary`
+  1007→- `post_is_uav_counter`
+  1008→- `post_location`
+  1009→- `post_location_infra_ref`
+  1010→- `post_name`
+  1011→- `post_regime`
+  1012→- `post_special_conditions`
+  1013→- `post_staff_count`
+  1014→- `post_tasks`
+  1015→- `post_type`
+  1016→- `ptb_ref`
+  1017→- `qdrant_gbr_exists_tag`
+  1018→
+  1019→---
+  1020→
+  1021→## Section: `post_staff` ⚠️
+  1022→
+  1023→### Seed JSON fields (12):
+  1024→- `post_ref` [*_ref]
+  1025→- `staff_attestation_category`
+  1026→- `staff_attestation_date`
+  1027→- `staff_attestation_exp_date`
+  1028→- `staff_attestation_num`
+  1029→- `staff_fio`
+  1030→- `staff_has_uav_authority`
+  1031→- `staff_is_active`
+  1032→- `staff_position`
+  1033→- `staff_security_level_1`
+  1034→- `staff_security_level_2`
+  1035→- `staff_security_level_3`
+  1036→
+  1037→### Schema non-virtual fields (0):
+  1038→
+  1039→### Schema virtual fields (0):
+  1040→(none)
+  1041→
+  1042→### Discrepancies:
+  1043→**In seed but NOT in schema (12):**
+  1044→- `post_ref`
+  1045→- `staff_attestation_category`
+  1046→- `staff_attestation_date`
+  1047→- `staff_attestation_exp_date`
+  1048→- `staff_attestation_num`
+  1049→- `staff_fio`
+  1050→- `staff_has_uav_authority`
+  1051→- `staff_is_active`
+  1052→- `staff_position`
+  1053→- `staff_security_level_1`
+  1054→- `staff_security_level_2`
+  1055→- `staff_security_level_3`
+  1056→
+  1057→---
+  1058→
+  1059→## Section: `post_equipment` ⚠️
+  1060→
+  1061→### Seed JSON fields (13):
+  1062→- `equipment_brand_model`
+  1063→- `equipment_category`
+  1064→- `equipment_certification_date`
+  1065→- `equipment_certification_doc_scan`
+  1066→- `equipment_certification_exp_date`
+  1067→- `equipment_certification_num`
+  1068→- `equipment_is_certified_pp969`
+  1069→- `equipment_name`
+  1070→- `equipment_narrative_context`
+  1071→- `equipment_qty`
+  1072→- `equipment_service_exp_date`
+  1073→- `post_ref` [*_ref]
+  1074→- `qdrant_gbr_exists_tag` [qdrant_*]
+  1075→
+  1076→### Schema non-virtual fields (0):
+  1077→
+  1078→### Schema virtual fields (0):
+  1079→(none)
+  1080→
+  1081→### Discrepancies:
+  1082→**In seed but NOT in schema (13):**
+  1083→- `equipment_brand_model`
+  1084→- `equipment_category`
+  1085→- `equipment_certification_date`
+  1086→- `equipment_certification_doc_scan`
+  1087→- `equipment_certification_exp_date`
+  1088→- `equipment_certification_num`
+  1089→- `equipment_is_certified_pp969`
+  1090→- `equipment_name`
+  1091→- `equipment_narrative_context`
+  1092→- `equipment_qty`
+  1093→- `equipment_service_exp_date`
+  1094→- `post_ref`
+  1095→- `qdrant_gbr_exists_tag`
+  1096→
+  1097→---
+  1098→
+  1099→## Section: `tsotb_catalog` ⚠️
+  1100→
+  1101→### Seed JSON fields (15):
+  1102→- `catalog_category_tsotb`
+  1103→- `catalog_climate_tag`
+  1104→- `catalog_default_detection_range_m`
+  1105→- `catalog_default_identification_range_m`
+  1106→- `catalog_display_name`
+  1107→- `catalog_functions_tags`
+  1108→- `catalog_manufacturer`
+  1109→- `catalog_model`
+  1110→- `catalog_narrative_template`
+  1111→- `catalog_operating_temp_max_c`
+  1112→- `catalog_operating_temp_min_c`
+  1113→- `catalog_power_consumption_w`
+  1114→- `catalog_pp969_required`
+  1115→- `catalog_regulatory_triggers`
+  1116→- `catalog_target_doc_sections`
+  1117→
+  1118→### Schema non-virtual fields (0):
+  1119→
+  1120→### Schema virtual fields (0):
+  1121→(none)
+  1122→
+  1123→### Discrepancies:
+  1124→**In seed but NOT in schema (15):**
+  1125→- `catalog_category_tsotb`
+  1126→- `catalog_climate_tag`
+  1127→- `catalog_default_detection_range_m`
+  1128→- `catalog_default_identification_range_m`
+  1129→- `catalog_display_name`
+  1130→- `catalog_functions_tags`
+  1131→- `catalog_manufacturer`
+  1132→- `catalog_model`
+  1133→- `catalog_narrative_template`
+  1134→- `catalog_operating_temp_max_c`
+  1135→- `catalog_operating_temp_min_c`
+  1136→- `catalog_power_consumption_w`
+  1137→- `catalog_pp969_required`
+  1138→- `catalog_regulatory_triggers`
+  1139→- `catalog_target_doc_sections`
+  1140→
+  1141→---
+  1142→
+  1143→## Section: `tsotb_instances` ⚠️
+  1144→
+  1145→### Seed JSON fields (34):
+  1146→- `catalog_tsotb_ref` [*_ref]
+  1147→- `oti_ref` [*_ref]
+  1148→- `qdrant_certified_pp969_tag` [qdrant_*]
+  1149→- `qdrant_climate_resistance_tag` [qdrant_*]
+  1150→- `qdrant_tsotb_category_tag` [qdrant_*]
+  1151→- `qdrant_tsotb_function_tag` [qdrant_*]
+  1152→- `tsotb_certification_date`
+  1153→- `tsotb_certification_doc_hash`
+  1154→- `tsotb_certification_doc_scan`
+  1155→- `tsotb_certification_exp_date`
+  1156→- `tsotb_certification_issuing_body`
+  1157→- `tsotb_certification_num`
+  1158→- `tsotb_certification_scope`
+  1159→- `tsotb_compliance_check_result`
+  1160→- `tsotb_installation_date`
+  1161→- `tsotb_is_certified_pp969`
+  1162→- `tsotb_last_maintenance_date`
+  1163→- `tsotb_location_infra_ref` [*_ref]
+  1164→- `tsotb_location_name`
+  1165→- `tsotb_maintenance_contract_ref` [*_ref]
+  1166→- `tsotb_monitors_infra_ref` [*_ref]
+  1167→- `tsotb_monitors_object_name`
+  1168→- `tsotb_narrative_description`
+  1169→- `tsotb_operational_context`
+  1170→- `tsotb_operational_status`
+  1171→- `tsotb_post_ref` [*_ref]
+  1172→- `tsotb_powered_from_infra_ref` [*_ref]
+  1173→- `tsotb_powered_from_name`
+  1174→- `tsotb_quantity`
+  1175→- `tsotb_regulatory_triggers`
+  1176→- `tsotb_security_implication`
+  1177→- `tsotb_serial_num`
+  1178→- `tsotb_service_exp_date`
+  1179→- `tsotb_target_doc_sections`
+  1180→
+  1181→### Schema non-virtual fields (0):
+  1182→
+  1183→### Schema virtual fields (0):
+  1184→(none)
+  1185→
+  1186→### Discrepancies:
+  1187→**In seed but NOT in schema (34):**
+  1188→- `catalog_tsotb_ref`
+  1189→- `oti_ref`
+  1190→- `qdrant_certified_pp969_tag`
+  1191→- `qdrant_climate_resistance_tag`
+  1192→- `qdrant_tsotb_category_tag`
+  1193→- `qdrant_tsotb_function_tag`
+  1194→- `tsotb_certification_date`
+  1195→- `tsotb_certification_doc_hash`
+  1196→- `tsotb_certification_doc_scan`
+  1197→- `tsotb_certification_exp_date`
+  1198→- `tsotb_certification_issuing_body`
+  1199→- `tsotb_certification_num`
+  1200→- `tsotb_certification_scope`
+  1201→- `tsotb_compliance_check_result`
+  1202→- `tsotb_installation_date`
+  1203→- `tsotb_is_certified_pp969`
+  1204→- `tsotb_last_maintenance_date`
+  1205→- `tsotb_location_infra_ref`
+  1206→- `tsotb_location_name`
+  1207→- `tsotb_maintenance_contract_ref`
+  1208→- `tsotb_monitors_infra_ref`
+  1209→- `tsotb_monitors_object_name`
+  1210→- `tsotb_narrative_description`
+  1211→- `tsotb_operational_context`
+  1212→- `tsotb_operational_status`
+  1213→- `tsotb_post_ref`
+  1214→- `tsotb_powered_from_infra_ref`
+  1215→- `tsotb_powered_from_name`
+  1216→- `tsotb_quantity`
+  1217→- `tsotb_regulatory_triggers`
+  1218→- `tsotb_security_implication`
+  1219→- `tsotb_serial_num`
+  1220→- `tsotb_service_exp_date`
+  1221→- `tsotb_target_doc_sections`
+  1222→
+  1223→---
+  1224→
+  1225→## Section: `eng_catalog` ⚠️
+  1226→
+  1227→### Seed JSON fields (20):
+  1228→- `eng_catalog_category`
+  1229→- `eng_catalog_climate_tag`
+  1230→- `eng_catalog_default_bottom_depth_m`
+  1231→- `eng_catalog_default_height_m`
+  1232→- `eng_catalog_default_intrusion_delay_min`
+  1233→- `eng_catalog_default_load_capacity_t`
+  1234→- `eng_catalog_default_material`
+  1235→- `eng_catalog_default_thickness_mm`
+  1236→- `eng_catalog_default_top_height_m`
+  1237→- `eng_catalog_display_name`
+  1238→- `eng_catalog_functions`
+  1239→- `eng_catalog_gost_reference`
+  1240→- `eng_catalog_manufacturer`
+  1241→- `eng_catalog_model`
+  1242→- `eng_catalog_narrative_template`
+  1243→- `eng_catalog_pp969_applicable`
+  1244→- `eng_catalog_regulatory_triggers`
+  1245→- `eng_catalog_target_doc_sections`
+  1246→- `qdrant_eng_category_tag` [qdrant_*]
+  1247→- `qdrant_eng_function_tag` [qdrant_*]
+  1248→
+  1249→### Schema non-virtual fields (0):
+  1250→
+  1251→### Schema virtual fields (0):
+  1252→(none)
+  1253→
+  1254→### Discrepancies:
+  1255→**In seed but NOT in schema (20):**
+  1256→- `eng_catalog_category`
+  1257→- `eng_catalog_climate_tag`
+  1258→- `eng_catalog_default_bottom_depth_m`
+  1259→- `eng_catalog_default_height_m`
+  1260→- `eng_catalog_default_intrusion_delay_min`
+  1261→- `eng_catalog_default_load_capacity_t`
+  1262→- `eng_catalog_default_material`
+  1263→- `eng_catalog_default_thickness_mm`
+  1264→- `eng_catalog_default_top_height_m`
+  1265→- `eng_catalog_display_name`
+  1266→- `eng_catalog_functions`
+  1267→- `eng_catalog_gost_reference`
+  1268→- `eng_catalog_manufacturer`
+  1269→- `eng_catalog_model`
+  1270→- `eng_catalog_narrative_template`
+  1271→- `eng_catalog_pp969_applicable`
+  1272→- `eng_catalog_regulatory_triggers`
+  1273→- `eng_catalog_target_doc_sections`
+  1274→- `qdrant_eng_category_tag`
+  1275→- `qdrant_eng_function_tag`
+  1276→
+  1277→---
+  1278→
+  1279→## Section: `eng_instances` ⚠️
+  1280→
+  1281→### Seed JSON fields (60):
+  1282→- `catalog_eng_ref` [*_ref]
+  1283→- `eng_instance_airlock_capacity`
+  1284→- `eng_instance_bottom_depth_m`
+  1285→- `eng_instance_bottom_exists`
+  1286→- `eng_instance_bottom_gost_compliance`
+  1287→- `eng_instance_bottom_material`
+  1288→- `eng_instance_bottom_type`
+  1289→- `eng_instance_bottom_width_m`
+  1290→- `eng_instance_compliance_check_result`
+  1291→- `eng_instance_defects_description`
+  1292→- `eng_instance_has_access_control`
+  1293→- `eng_instance_has_barbed_wire`
+  1294→- `eng_instance_has_top_obstacle`
+  1295→- `eng_instance_installation_date`
+  1296→- `eng_instance_intrusion_delay_min`
+  1297→- `eng_instance_is_seasonal`
+  1298→- `eng_instance_last_inspection_date`
+  1299→- `eng_instance_length_m`
+  1300→- `eng_instance_load_capacity_t`
+  1301→- `eng_instance_location_infra_ref` [*_ref]
+  1302→- `eng_instance_location_name`
+  1303→- `eng_instance_locking_type`
+  1304→- `eng_instance_main_gost_compliance`
+  1305→- `eng_instance_main_height_m`
+  1306→- `eng_instance_main_is_removable`
+  1307→- `eng_instance_main_material`
+  1308→- `eng_instance_main_thickness_mm`
+  1309→- `eng_instance_main_type`
+  1310→- `eng_instance_maintenance_contract_ref` [*_ref]
+  1311→- `eng_instance_name`
+  1312→- `eng_instance_next_inspection_date`
+  1313→- `eng_instance_operational_context`
+  1314→- `eng_instance_operational_status`
+  1315→- `eng_instance_platform_vehicle_capacity`
+  1316→- `eng_instance_protection_level`
+  1317→- `eng_instance_protects_ce`
+  1318→- `eng_instance_protects_ce_infra_ref` [*_ref]
+  1319→- `eng_instance_protects_rod`
+  1320→- `eng_instance_protects_rod_infra_ref` [*_ref]
+  1321→- `eng_instance_quantity`
+  1322→- `eng_instance_regulatory_triggers`
+  1323→- `eng_instance_seasonal_removal_period`
+  1324→- `eng_instance_security_implication`
+  1325→- `eng_instance_segment_number`
+  1326→- `eng_instance_serial_num`
+  1327→- `eng_instance_target_doc_sections`
+  1328→- `eng_instance_top_angle_deg`
+  1329→- `eng_instance_top_exists`
+  1330→- `eng_instance_top_gost_compliance`
+  1331→- `eng_instance_top_height_m`
+  1332→- `eng_instance_top_material`
+  1333→- `eng_instance_top_type`
+  1334→- `eng_instance_total_height_m`
+  1335→- `eng_instance_window_protection_type`
+  1336→- `oti_ref` [*_ref]
+  1337→- `qdrant_ce_protection_tag` [qdrant_*]
+  1338→- `qdrant_eng_condition_tag` [qdrant_*]
+  1339→- `qdrant_eng_gost_tag` [qdrant_*]
+  1340→- `qdrant_eng_material_tag` [qdrant_*]
+  1341→- `qdrant_eng_seasonal_tag` [qdrant_*]
+  1342→
+  1343→### Schema non-virtual fields (0):
+  1344→
+  1345→### Schema virtual fields (0):
+  1346→(none)
+  1347→
+  1348→### Discrepancies:
+  1349→**In seed but NOT in schema (60):**
+  1350→- `catalog_eng_ref`
+  1351→- `eng_instance_airlock_capacity`
+  1352→- `eng_instance_bottom_depth_m`
+  1353→- `eng_instance_bottom_exists`
+  1354→- `eng_instance_bottom_gost_compliance`
+  1355→- `eng_instance_bottom_material`
+  1356→- `eng_instance_bottom_type`
+  1357→- `eng_instance_bottom_width_m`
+  1358→- `eng_instance_compliance_check_result`
+  1359→- `eng_instance_defects_description`
+  1360→- `eng_instance_has_access_control`
+  1361→- `eng_instance_has_barbed_wire`
+  1362→- `eng_instance_has_top_obstacle`
+  1363→- `eng_instance_installation_date`
+  1364→- `eng_instance_intrusion_delay_min`
+  1365→- `eng_instance_is_seasonal`
+  1366→- `eng_instance_last_inspection_date`
+  1367→- `eng_instance_length_m`
+  1368→- `eng_instance_load_capacity_t`
+  1369→- `eng_instance_location_infra_ref`
+  1370→- `eng_instance_location_name`
+  1371→- `eng_instance_locking_type`
+  1372→- `eng_instance_main_gost_compliance`
+  1373→- `eng_instance_main_height_m`
+  1374→- `eng_instance_main_is_removable`
+  1375→- `eng_instance_main_material`
+  1376→- `eng_instance_main_thickness_mm`
+  1377→- `eng_instance_main_type`
+  1378→- `eng_instance_maintenance_contract_ref`
+  1379→- `eng_instance_name`
+  1380→- `eng_instance_next_inspection_date`
+  1381→- `eng_instance_operational_context`
+  1382→- `eng_instance_operational_status`
+  1383→- `eng_instance_platform_vehicle_capacity`
+  1384→- `eng_instance_protection_level`
+  1385→- `eng_instance_protects_ce`
+  1386→- `eng_instance_protects_ce_infra_ref`
+  1387→- `eng_instance_protects_rod`
+  1388→- `eng_instance_protects_rod_infra_ref`
+  1389→- `eng_instance_quantity`
+  1390→- `eng_instance_regulatory_triggers`
+  1391→- `eng_instance_seasonal_removal_period`
+  1392→- `eng_instance_security_implication`
+  1393→- `eng_instance_segment_number`
+  1394→- `eng_instance_serial_num`
+  1395→- `eng_instance_target_doc_sections`
+  1396→- `eng_instance_top_angle_deg`
+  1397→- `eng_instance_top_exists`
+  1398→- `eng_instance_top_gost_compliance`
+  1399→- `eng_instance_top_height_m`
+  1400→- `eng_instance_top_material`
+  1401→- `eng_instance_top_type`
+  1402→- `eng_instance_total_height_m`
+  1403→- `eng_instance_window_protection_type`
+  1404→- `oti_ref`
+  1405→- `qdrant_ce_protection_tag`
+  1406→- `qdrant_eng_condition_tag`
+  1407→- `qdrant_eng_gost_tag`
+  1408→- `qdrant_eng_material_tag`
+  1409→- `qdrant_eng_seasonal_tag`
+  1410→
+  1411→---
+  1412→
+  1413→## Section: `climate_context` ⚠️
+  1414→
+  1415→### Seed JSON fields (20):
+  1416→- `climate_hydro_description`
+  1417→- `climate_narrative_description`
+  1418→- `climate_target_doc_sections`
+  1419→- `climate_zone`
+  1420→- `compliance_result`
+  1421→- `hydro_flood_risk`
+  1422→- `intruders_ranking`
+  1423→- `isps_compliance`
+  1424→- `max_casualties`
+  1425→- `max_damage_rub`
+  1426→- `neighbor_interaction_type`
+  1427→- `neighbor_objects`
+  1428→- `oti_ref` [*_ref]
+  1429→- `project_intruder_model`
+  1430→- `qdrant_climate_zone_tag` [qdrant_*]
+  1431→- `qdrant_compliance_tag` [qdrant_*]
+  1432→- `qdrant_flood_risk_tag` [qdrant_*]
+  1433→- `temp_min_c`
+  1434→- `threats_ranking`
+  1435→- `wind_max_ms`
+  1436→
+  1437→### Schema non-virtual fields (0):
+  1438→
+  1439→### Schema virtual fields (0):
+  1440→(none)
+  1441→
+  1442→### Discrepancies:
+  1443→**In seed but NOT in schema (20):**
+  1444→- `climate_hydro_description`
+  1445→- `climate_narrative_description`
+  1446→- `climate_target_doc_sections`
+  1447→- `climate_zone`
+  1448→- `compliance_result`
+  1449→- `hydro_flood_risk`
+  1450→- `intruders_ranking`
+  1451→- `isps_compliance`
+  1452→- `max_casualties`
+  1453→- `max_damage_rub`
+  1454→- `neighbor_interaction_type`
+  1455→- `neighbor_objects`
+  1456→- `oti_ref`
+  1457→- `project_intruder_model`
+  1458→- `qdrant_climate_zone_tag`
+  1459→- `qdrant_compliance_tag`
+  1460→- `qdrant_flood_risk_tag`
+  1461→- `temp_min_c`
+  1462→- `threats_ranking`
+  1463→- `wind_max_ms`
+  1464→
+  1465→---
+  1466→
+  1467→## Summary
+  1468→
+  1469→- Total sections checked: 30
+  1470→- Total discrepancies found: 520
+  1471→
+  1472→### All `qdrant_*` fields (by section):
+  1473→- **sti**: `qdrant_sti_type_tag`, `qdrant_ownership_tag`
+  1474→- **oti**: `qdrant_doc_section_id`, `qdrant_climate_zone_tag`, `qdrant_hydrology_risk_tag`, `qdrant_oti_category_tag`
+  1475→- **persons**: `qdrant_person_role_tag`
+  1476→- **assessments**: `qdrant_assessment_type_tag`
+  1477→- **security_plans**: `qdrant_plan_type_tag`
+  1478→- **land**: `qdrant_flood_risk_tag`, `qdrant_soil_type_tag`
+  1479→- **land_summary**: `qdrant_flood_risk_tag`, `qdrant_soil_type_tag`
+  1480→- **aquatories**: `qdrant_ice_regime_tag`
+  1481→- **cargo**: `qdrant_cargo_type_tag`, `qdrant_dangerous_cargo_tag`, `qdrant_imo_class_tag`
+  1482→- **cargo_summary**: `qdrant_cargo_type_tag`, `qdrant_dangerous_cargo_tag`, `qdrant_imo_class_tag`
+  1483→- **critical_elements**: `qdrant_ce_protection_tag`
+  1484→- **zoning**: `qdrant_security_zone_tag`
+  1485→- **ptb**: `qdrant_ptb_accreditation_tag`, `qdrant_gbr_exists_tag`
+  1486→- **posts**: `qdrant_gbr_exists_tag`
+  1487→- **post_equipment**: `qdrant_gbr_exists_tag`
+  1488→- **tsotb_instances**: `qdrant_tsotb_category_tag`, `qdrant_certified_pp969_tag`, `qdrant_tsotb_function_tag`, `qdrant_climate_resistance_tag`
+  1489→- **eng_catalog**: `qdrant_eng_category_tag`, `qdrant_eng_function_tag`
+  1490→- **eng_instances**: `qdrant_eng_material_tag`, `qdrant_eng_gost_tag`, `qdrant_eng_seasonal_tag`, `qdrant_eng_condition_tag`, `qdrant_ce_protection_tag`
+  1491→- **climate_context**: `qdrant_climate_zone_tag`, `qdrant_flood_risk_tag`, `qdrant_compliance_tag`
+  1492→
+  1493→### All `*_ref` fields (by section):
+  1494→- **sti_licenses**: `sti_ref`
+  1495→- **oti**: `sti_ref`
+  1496→- **persons**: `sti_ref`, `oti_ref`
+  1497→- **assessments**: `oti_ref`, `assessment_plan_ref`
+  1498→- **security_plans**: `oti_ref`, `plan_assessment_ref`
+  1499→- **land**: `oti_ref`
+  1500→- **land_summary**: `oti_ref`
+  1501→- **aquatories**: `oti_ref`
+  1502→- **cargo**: `oti_ref`, `berth_infra_ref`
+  1503→- **cargo_summary**: `oti_ref`
+  1504→- **cargo_turnover**: `oti_ref`
+  1505→- **oti_operations**: `oti_ref`
+  1506→- **opo**: `oti_ref`
+  1507→- **infrastructure**: `oti_ref`, `located_on_infra_ref`, `connected_to_infra_ref`, `source_doc_ref`
+  1508→- **critical_elements**: `oti_ref`, `critical_element_ce_infra_ref`
+  1509→- **restricted_access_zones**: `oti_ref`, `rod_name_rod_infra_ref`
+  1510→- **zoning**: `oti_ref`, `critical_element_ce_infra_ref`, `rod_name_rod_infra_ref`
+  1511→- **ptb**: `sti_ref`, `ptb_oti_ref`
+  1512→- **ptb_contracts**: `ptb_ref`
+  1513→- **ptb_supplementary_agreements**: `contract_ref`
+  1514→- **maintenance_contracts**: `oti_ref`, `ptb_ref`
+  1515→- **posts**: `ptb_ref`, `post_location_infra_ref`
+  1516→- **post_staff**: `post_ref`
+  1517→- **post_equipment**: `post_ref`
+  1518→- **tsotb_instances**: `oti_ref`, `catalog_tsotb_ref`, `tsotb_location_infra_ref`, `tsotb_monitors_infra_ref`, `tsotb_powered_from_infra_ref`, `tsotb_post_ref`, `tsotb_maintenance_contract_ref`
+  1519→- **eng_instances**: `oti_ref`, `catalog_eng_ref`, `eng_instance_location_infra_ref`, `eng_instance_protects_ce_infra_ref`, `eng_instance_protects_rod_infra_ref`, `eng_instance_maintenance_contract_ref`
+  1520→- **climate_context**: `oti_ref`

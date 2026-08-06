@@ -1,0 +1,1146 @@
+10: - `qdrant_ownership_tag` [qdrant_*]
+11: - `qdrant_sti_type_tag` [qdrant_*]
+12: - `sti_egrip_date`
+13: - `sti_egrl_date`
+14: - `sti_email`
+15: - `sti_full_name`
+16: - `sti_head_fio`
+17: - `sti_head_position`
+18: - `sti_inn`
+19: - `sti_ip_address`
+20: - `sti_ip_fio`
+21: - `sti_ip_inn`
+22: - `sti_ip_ogrnip`
+23: - `sti_kpp`
+24: - `sti_legal_address`
+25: - `sti_narrative_description`
+26: - `sti_ogrn`
+27: - `sti_okpo`
+28: - `sti_person_address`
+29: - `sti_person_fio`
+30: - `sti_person_inn`
+31: - `sti_phone`
+32: - `sti_postal_address`
+33: - `sti_regulatory_triggers`
+34: - `sti_short_name`
+35: - `sti_target_doc_sections`
+36: - `sti_website`
+39: - `qdrant_ownership_tag` [qdrant_*]
+40: - `qdrant_sti_type_tag` [qdrant_*]
+41: - `sti_egrip_date`
+42: - `sti_egrl_date`
+43: - `sti_email`
+44: - `sti_full_name`
+45: - `sti_head_fio`
+46: - `sti_head_position`
+47: - `sti_inn`
+48: - `sti_ip_address`
+49: - `sti_ip_fio`
+50: - `sti_ip_inn`
+51: - `sti_ip_ogrnip`
+52: - `sti_kpp`
+53: - `sti_legal_address`
+54: - `sti_narrative_description`
+55: - `sti_ogrn`
+56: - `sti_okpo`
+57: - `sti_person_address`
+58: - `sti_person_fio`
+59: - `sti_person_inn`
+60: - `sti_phone`
+61: - `sti_postal_address`
+62: - `sti_regulatory_triggers`
+63: - `sti_short_name`
+64: - `sti_target_doc_sections`
+65: - `sti_website`
+70: ### Discrepancies: None ✅
+77: - `license_classes`
+78: - `license_date`
+79: - `license_is_active`
+80: - `license_num`
+81: - `license_objects_approval`
+82: - `license_term`
+83: - `license_type`
+84: - `sti_ref` [*_ref]
+87: - `license_classes`
+88: - `license_date`
+89: - `license_is_active`
+90: - `license_num`
+91: - `license_objects_approval`
+92: - `license_term`
+93: - `license_type`
+94: - `sti_ref` [*_ref]
+99: ### Discrepancies: None ✅
+106: - `developer_org`
+107: - `oti_area_ha`
+108: - `oti_berth_front_len`
+109: - `oti_berths_count`
+110: - `oti_category`
+111: - `oti_category_assign_date`
+112: - `oti_center_lat`
+113: - `oti_center_lon`
+114: - `oti_change_basis`
+115: - `oti_change_date`
+116: - `oti_checkpoint_type`
+117: - `oti_exclude_basis`
+118: - `oti_exclude_date`
+119: - `oti_full_name`
+120: - `oti_imo_code`
+121: - `oti_location`
+122: - `oti_narrative_description`
+123: - `oti_new_category`
+124: - `oti_purpose`
+125: - `oti_registry_basis`
+126: - `oti_registry_entry_date`
+127: - `oti_registry_num`
+128: - `oti_regulatory_triggers`
+129: - `oti_review_basis`
+130: - `oti_review_date`
+131: - `oti_short_name`
+132: - `oti_target_doc_sections`
+133: - `port_facility_name`
+134: - `port_name`
+135: - `qdrant_climate_zone_tag` [qdrant_*]
+136: - `qdrant_doc_section_id` [qdrant_*]
+137: - `qdrant_hydrology_risk_tag` [qdrant_*]
+138: - `qdrant_oti_category_tag` [qdrant_*]
+139: - `sti_ref` [*_ref]
+140: - `survey_date`
+143: - `developer_org`
+144: - `oti_area_ha`
+145: - `oti_berth_front_len`
+146: - `oti_berths_count`
+147: - `oti_category`
+148: - `oti_category_assign_date`
+149: - `oti_center_lat`
+150: - `oti_center_lon`
+151: - `oti_change_basis`
+152: - `oti_change_date`
+153: - `oti_checkpoint_type`
+154: - `oti_exclude_basis`
+155: - `oti_exclude_date`
+156: - `oti_full_name`
+157: - `oti_imo_code`
+158: - `oti_location`
+159: - `oti_narrative_description`
+160: - `oti_new_category`
+161: - `oti_purpose`
+162: - `oti_registry_basis`
+163: - `oti_registry_entry_date`
+164: - `oti_registry_num`
+165: - `oti_regulatory_triggers`
+166: - `oti_review_basis`
+167: - `oti_review_date`
+168: - `oti_short_name`
+169: - `oti_target_doc_sections`
+170: - `port_facility_name`
+171: - `port_name`
+172: - `qdrant_climate_zone_tag` [qdrant_*]
+173: - `qdrant_doc_section_id` [qdrant_*]
+174: - `qdrant_hydrology_risk_tag` [qdrant_*]
+175: - `qdrant_oti_category_tag` [qdrant_*]
+176: - `sti_ref` [*_ref]
+177: - `survey_date`
+182: ### Discrepancies: None ✅
+189: - `oti_ref` [*_ref]
+190: - `person_attestation_category`
+191: - `person_attestation_date`
+192: - `person_attestation_exp_date`
+193: - `person_attestation_issuing_body`
+194: - `person_attestation_num`
+195: - `person_attestation_num_date`
+196: - `person_attestation_reestr_num`
+197: - `person_education`
+198: - `person_email`
+199: - `person_fax`
+200: - `person_fio`
+201: - `person_is_active`
+202: - `person_mob_phone`
+203: - `person_narrative_description`
+204: - `person_order`
+205: - `person_position`
+206: - `person_role`
+207: - `person_target_doc_sections`
+208: - `person_training`
+209: - `person_work_phone`
+210: - `persons_regulatory_triggers`
+211: - `qdrant_person_role_tag` [qdrant_*]
+212: - `sti_ref` [*_ref]
+215: - `oti_ref` [*_ref]
+216: - `person_attestation_category`
+217: - `person_attestation_date`
+218: - `person_attestation_exp_date`
+219: - `person_attestation_issuing_body`
+220: - `person_attestation_num`
+221: - `person_attestation_num_date`
+222: - `person_attestation_reestr_num`
+223: - `person_education`
+224: - `person_email`
+225: - `person_fax`
+226: - `person_fio`
+227: - `person_is_active`
+228: - `person_mob_phone`
+229: - `person_narrative_description`
+230: - `person_order`
+231: - `person_position`
+232: - `person_role`
+233: - `person_target_doc_sections`
+234: - `person_training`
+235: - `person_work_phone`
+236: - `persons_regulatory_triggers`
+237: - `qdrant_person_role_tag` [qdrant_*]
+238: - `sti_ref` [*_ref]
+243: ### Discrepancies: None ✅
+250: - `assessment_authority`
+251: - `assessment_date_approval`
+252: - `assessment_date_conduct`
+253: - `assessment_narrative_description`
+254: - `assessment_number`
+255: - `assessment_plan_ref` [*_ref]
+256: - `assessment_regulatory_triggers`
+257: - `assessment_status`
+258: - `assessment_target_doc_sections`
+259: - `assessment_type`
+260: - `assessment_validity_period`
+261: - `oti_ref` [*_ref]
+262: - `qdrant_assessment_type_tag` [qdrant_*]
+265: - `assessment_authority`
+266: - `assessment_date_approval`
+267: - `assessment_date_conduct`
+268: - `assessment_narrative_description`
+269: - `assessment_number`
+270: - `assessment_plan_ref` [*_ref]
+271: - `assessment_regulatory_triggers`
+272: - `assessment_status`
+273: - `assessment_target_doc_sections`
+274: - `assessment_type`
+275: - `assessment_validity_period`
+276: - `oti_ref` [*_ref]
+277: - `qdrant_assessment_type_tag` [qdrant_*]
+282: ### Discrepancies: None ✅
+289: - `oti_ref` [*_ref]
+290: - `plan_assessment_ref` [*_ref]
+291: - `plan_authority`
+292: - `plan_date_approval`
+293: - `plan_end_conduct_date`
+294: - `plan_implementation_status`
+295: - `plan_narrative_description`
+296: - `plan_number`
+297: - `plan_regulatory_triggers`
+298: - `plan_start_conduct_date`
+299: - `plan_status`
+300: - `plan_target_doc_sections`
+301: - `plan_type`
+302: - `qdrant_plan_type_tag` [qdrant_*]
+305: - `oti_ref` [*_ref]
+306: - `plan_assessment_ref` [*_ref]
+307: - `plan_authority`
+308: - `plan_date_approval`
+309: - `plan_end_conduct_date`
+310: - `plan_implementation_status`
+311: - `plan_narrative_description`
+312: - `plan_number`
+313: - `plan_regulatory_triggers`
+314: - `plan_start_conduct_date`
+315: - `plan_status`
+316: - `plan_target_doc_sections`
+317: - `plan_type`
+318: - `qdrant_plan_type_tag` [qdrant_*]
+323: ### Discrepancies: None ✅
+330: - `area_sqm`
+331: - `cadastre_number`
+332: - `encumbrances`
+333: - `is_flood_zone`
+334: - `land_lease_term`
+335: - `land_narrative_description`
+336: - `land_regulatory_triggers`
+337: - `land_target_doc_sections`
+338: - `lease_contract_num`
+339: - `lease_end_date`
+340: - `oti_ref` [*_ref]
+341: - `owner`
+342: - `qdrant_flood_risk_tag` [qdrant_*]
+343: - `qdrant_soil_type_tag` [qdrant_*]
+344: - `soil_type`
+345: - `vegetation`
+348: - `area_sqm`
+349: - `cadastre_number`
+350: - `encumbrances`
+351: - `is_flood_zone`
+352: - `land_lease_term`
+353: - `land_narrative_description`
+354: - `land_regulatory_triggers`
+355: - `land_target_doc_sections`
+356: - `lease_contract_num`
+357: - `lease_end_date`
+358: - `oti_ref` [*_ref]
+359: - `owner`
+360: - `qdrant_flood_risk_tag` [qdrant_*]
+361: - `qdrant_soil_type_tag` [qdrant_*]
+362: - `soil_type`
+363: - `vegetation`
+368: ### Discrepancies: None ✅
+375: - `land_lease_term_summary`
+376: - `land_narrative_description`
+377: - `land_regulatory_triggers`
+378: - `land_target_doc_sections`
+379: - `oti_ref` [*_ref]
+380: - `qdrant_flood_risk_tag` [qdrant_*]
+381: - `qdrant_soil_type_tag` [qdrant_*]
+384: - `land_lease_term_summary`
+385: - `land_narrative_description`
+386: - `land_regulatory_triggers`
+387: - `land_target_doc_sections`
+388: - `oti_ref` [*_ref]
+389: - `qdrant_flood_risk_tag` [qdrant_*]
+390: - `qdrant_soil_type_tag` [qdrant_*]
+395: ### Discrepancies: None ✅
+399: ## Section: `aquatories` ⚠️
+402: - `aquatory_area_sqm`
+403: - `aquatory_bottom_type`
+404: - `aquatory_current_speed_ms`
+405: - `aquatory_depths`
+406: - `aquatory_depths_max_m`
+407: - `aquatory_depths_min_m`
+408: - `aquatory_ice_regime`
+409: - `aquatory_narrative_description`
+410: - `aquatory_patrol_requirement`
+411: - `aquatory_regulatory_triggers`
+412: - `aquatory_security_implication`
+413: - `aquatory_target_doc_sections`
+414: - `fairways_anchorages`
+415: - `fairways_anchorages_details`
+416: - `oti_ref` [*_ref]
+417: - `points`
+418: - `qdrant_ice_regime_tag` [qdrant_*]
+421: - `aquatory_area_sqm`
+422: - `aquatory_bottom_type`
+423: - `aquatory_current_speed_ms`
+424: - `aquatory_depths`
+425: - `aquatory_depths_max_m`
+426: - `aquatory_depths_min_m`
+427: - `aquatory_ice_regime`
+428: - `aquatory_narrative_description`
+429: - `aquatory_patrol_requirement`
+430: - `aquatory_regulatory_triggers`
+431: - `aquatory_security_implication`
+432: - `aquatory_target_doc_sections`
+433: - `fairways_anchorages`
+434: - `fairways_anchorages_details`
+435: - `lat`
+436: - `lat_decimal`
+437: - `lon`
+438: - `lon_decimal`
+439: - `oti_ref` [*_ref]
+440: - `p`
+441: - `point_number`
+442: - `points`
+443: - `qdrant_ice_regime_tag` [qdrant_*]
+448: ### Discrepancies:
+449: **In schema (non-virtual) but NOT in seed (6):**
+450: - `lat`
+451: - `lat_decimal`
+452: - `lon`
+453: - `lon_decimal`
+454: - `p`
+455: - `point_number`
+462: - `berth_infra_ref` [*_ref]
+463: - `berth_name`
+464: - `cargo_name`
+465: - `cargo_narrative_description`
+466: - `cargo_regulatory_triggers`
+467: - `cargo_target_doc_sections`
+468: - `features`
+469: - `imo_class`
+470: - `is_dangerous`
+471: - `max_weight_per_ship_t`
+472: - `oti_ref` [*_ref]
+473: - `packaging_type`
+474: - `qdrant_cargo_type_tag` [qdrant_*]
+475: - `qdrant_dangerous_cargo_tag` [qdrant_*]
+476: - `qdrant_imo_class_tag` [qdrant_*]
+477: - `season_end`
+478: - `season_start`
+479: - `un_number`
+482: - `berth_infra_ref` [*_ref]
+483: - `berth_name`
+484: - `cargo_name`
+485: - `cargo_narrative_description`
+486: - `cargo_regulatory_triggers`
+487: - `cargo_target_doc_sections`
+488: - `features`
+489: - `imo_class`
+490: - `is_dangerous`
+491: - `max_weight_per_ship_t`
+492: - `oti_ref` [*_ref]
+493: - `packaging_type`
+494: - `qdrant_cargo_type_tag` [qdrant_*]
+495: - `qdrant_dangerous_cargo_tag` [qdrant_*]
+496: - `qdrant_imo_class_tag` [qdrant_*]
+497: - `season_end`
+498: - `season_start`
+499: - `un_number`
+504: ### Discrepancies: None ✅
+508: ## Section: `cargo_summary` ⚠️
+511: - `cargo_dangerous_list`
+512: - `cargo_general`
+513: - `cargo_general_list`
+514: - `cargo_narrative_description`
+515: - `cargo_regulatory_triggers`
+516: - `cargo_target_doc_sections`
+517: - `dangerous_cargo_context`
+518: - `dangerous_cargo_regulatory`
+519: - `oti_ref` [*_ref]
+520: - `qdrant_cargo_type_tag` [qdrant_*]
+521: - `qdrant_dangerous_cargo_tag` [qdrant_*]
+522: - `qdrant_imo_class_tag` [qdrant_*]
+525: - `berth_name`
+526: - `cargo_dangerous_list`
+527: - `cargo_general`
+528: - `cargo_general_list`
+529: - `cargo_narrative_description`
+530: - `cargo_regulatory_triggers`
+531: - `cargo_target_doc_sections`
+532: - `dangerous_cargo_context`
+533: - `dangerous_cargo_regulatory`
+534: - `features`
+535: - `imo_class`
+536: - `max_weight_per_ship_t`
+537: - `name`
+538: - `oti_ref` [*_ref]
+539: - `packaging_type`
+540: - `qdrant_cargo_type_tag` [qdrant_*]
+541: - `qdrant_dangerous_cargo_tag` [qdrant_*]
+542: - `qdrant_imo_class_tag` [qdrant_*]
+543: - `season_end`
+544: - `season_start`
+545: - `un_number`
+550: ### Discrepancies:
+551: **In schema (non-virtual) but NOT in seed (9):**
+552: - `berth_name`
+553: - `features`
+554: - `imo_class`
+555: - `max_weight_per_ship_t`
+556: - `name`
+557: - `packaging_type`
+558: - `season_end`
+559: - `season_start`
+560: - `un_number`
+567: - `coasting_ships`
+568: - `foreign_ships`
+569: - `is_current_period`
+570: - `oti_ref` [*_ref]
+571: - `period_date`
+572: - `river_ships`
+573: - `ships`
+574: - `tons`
+575: - `year`
+578: - `coasting_ships`
+579: - `foreign_ships`
+580: - `is_current_period`
+581: - `oti_ref` [*_ref]
+582: - `period_date`
+583: - `river_ships`
+584: - `ships`
+585: - `tons`
+586: - `year`
+591: ### Discrepancies: None ✅
+598: - `brigade_size`
+599: - `brigade_size_day`
+600: - `brigade_size_night`
+601: - `is_bunkering`
+602: - `is_passenger_ops`
+603: - `is_unaccompanied_baggage`
+604: - `max_people_on_oti`
+605: - `max_people_on_oti_includes`
+606: - `operation_mode`
+607: - `operation_mode_shift_type`
+608: - `oti_ref` [*_ref]
+611: - `brigade_size`
+612: - `brigade_size_day`
+613: - `brigade_size_night`
+614: - `is_bunkering`
+615: - `is_passenger_ops`
+616: - `is_unaccompanied_baggage`
+617: - `max_people_on_oti`
+618: - `max_people_on_oti_includes`
+619: - `operation_mode`
+620: - `operation_mode_shift_type`
+621: - `oti_ref` [*_ref]
+626: ### Discrepancies: None ✅
+630: ## Section: `opo` ⚠️
+633: - `opo_accident_scenarios`
+634: - `opo_basis`
+635: - `opo_hazard_class`
+636: - `opo_name`
+637: - `opo_narrative_description`
+638: - `opo_pmla_exists`
+639: - `opo_registry_num`
+640: - `opo_regulatory_triggers`
+641: - `opo_target_doc_sections`
+642: - `oti_ref` [*_ref]
+645: - `description`
+646: - `max_explosion_weight_t`
+647: - `opo_accident_scenarios`
+648: - `opo_basis`
+649: - `opo_hazard_class`
+650: - `opo_name`
+651: - `opo_narrative_description`
+652: - `opo_pmla_exists`
+653: - `opo_registry_num`
+654: - `opo_regulatory_triggers`
+655: - `opo_target_doc_sections`
+656: - `oti_ref` [*_ref]
+657: - `scenario_id`
+662: ### Discrepancies:
+663: **In schema (non-virtual) but NOT in seed (3):**
+664: - `description`
+665: - `max_explosion_weight_t`
+666: - `scenario_id`
+673: - `area_sqm`
+674: - `berth_fender_type`
+675: - `building_fire_resistance`
+676: - `building_floors`
+677: - `building_foundation`
+678: - `building_purpose`
+679: - `capacity_unit`
+680: - `capacity_value`
+681: - `cargo_packaging_type`
+682: - `cargo_type`
+683: - `connected_to_infra_ref` [*_ref]
+684: - `connected_to_name`
+685: - `depth_m`
+686: - `equipment_brand_model`
+687: - `equipment_installation_type`
+688: - `equipment_operational_status`
+689: - `fence_type`
+690: - `has_access_control`
+691: - `height_m`
+692: - `ice_regime`
+693: - `is_backup`
+694: - `is_critical_element`
+695: - `is_restricted_area`
+696: - `length_m`
+697: - `located_on_infra_ref` [*_ref]
+698: - `located_on_name`
+699: - `material`
+700: - `max_vessel_draft_m`
+701: - `narrative_description`
+702: - `obj_name`
+703: - `obj_type`
+704: - `operational_context`
+705: - `oti_ref` [*_ref]
+706: - `perimeter_m`
+707: - `quantity`
+708: - `soil_type`
+709: - `source_doc_ref` [*_ref]
+710: - `surface_type`
+711: - `throughput_summer`
+712: - `throughput_winter`
+713: - `vessel_ice_class`
+714: - `vessel_type`
+715: - `voltage_kw`
+716: - `width_m`
+719: - `area_sqm`
+720: - `berth_fender_type`
+721: - `building_fire_resistance`
+722: - `building_floors`
+723: - `building_foundation`
+724: - `building_purpose`
+725: - `capacity_unit`
+726: - `capacity_value`
+727: - `cargo_packaging_type`
+728: - `cargo_type`
+729: - `connected_to_infra_ref` [*_ref]
+730: - `connected_to_name`
+731: - `depth_m`
+732: - `equipment_brand_model`
+733: - `equipment_installation_type`
+734: - `equipment_operational_status`
+735: - `fence_type`
+736: - `has_access_control`
+737: - `height_m`
+738: - `ice_regime`
+739: - `is_backup`
+740: - `is_critical_element`
+741: - `is_restricted_area`
+742: - `length_m`
+743: - `located_on_infra_ref` [*_ref]
+744: - `located_on_name`
+745: - `material`
+746: - `max_vessel_draft_m`
+747: - `narrative_description`
+748: - `obj_name`
+749: - `obj_type`
+750: - `operational_context`
+751: - `oti_ref` [*_ref]
+752: - `perimeter_m`
+753: - `quantity`
+754: - `soil_type`
+755: - `source_doc_ref` [*_ref]
+756: - `surface_type`
+757: - `throughput_summer`
+758: - `throughput_winter`
+759: - `vessel_ice_class`
+760: - `vessel_type`
+761: - `voltage_kw`
+762: - `width_m`
+767: ### Discrepancies: None ✅
+774: - `ce_protection`
+775: - `ce_security_implication`
+776: - `critical_element`
+777: - `critical_element_ce_infra_ref` [*_ref]
+778: - `oti_ref` [*_ref]
+779: - `qdrant_ce_protection_tag` [qdrant_*]
+782: - `ce_protection`
+783: - `ce_security_implication`
+784: - `critical_element`
+785: - `critical_element_ce_infra_ref` [*_ref]
+786: - `oti_ref` [*_ref]
+787: - `qdrant_ce_protection_tag` [qdrant_*]
+792: ### Discrepancies: None ✅
+799: - `oti_ref` [*_ref]
+800: - `rod_isps_compliance`
+801: - `rod_name`
+802: - `rod_name_rod_infra_ref` [*_ref]
+803: - `rod_regime`
+806: - `oti_ref` [*_ref]
+807: - `rod_isps_compliance`
+808: - `rod_name`
+809: - `rod_name_rod_infra_ref` [*_ref]
+810: - `rod_regime`
+815: ### Discrepancies: None ✅
+819: ## Section: `zoning` ⚠️
+822: - `ce_protection`
+823: - `ce_security_implication`
+824: - `critical_element`
+825: - `critical_element_ce_infra_ref` [*_ref]
+826: - `is_zop_established`
+827: - `oti_ref` [*_ref]
+828: - `qdrant_security_zone_tag` [qdrant_*]
+829: - `rod_isps_compliance`
+830: - `rod_name`
+831: - `rod_name_rod_infra_ref` [*_ref]
+832: - `rod_regime`
+833: - `sector_free_access`
+834: - `sector_technological`
+835: - `sector_transit`
+836: - `security_zone_air`
+837: - `security_zone_ground`
+838: - `security_zone_status`
+839: - `security_zone_water`
+840: - `ztb_boundaries`
+841: - `ztb_regulatory_triggers`
+842: - `ztb_target_doc_sections`
+845: - `E`
+846: - `NE`
+847: - `SW`
+848: - `W`
+849: - `critical_element_ref` [*_ref]
+850: - `is_zop_established`
+851: - `oti_ref` [*_ref]
+852: - `qdrant_security_zone_tag` [qdrant_*]
+853: - `rod_ref` [*_ref]
+854: - `sector_free_access`
+855: - `sector_technological`
+856: - `sector_transit`
+857: - `security_zone_air`
+858: - `security_zone_ground`
+859: - `security_zone_status`
+860: - `security_zone_water`
+861: - `ztb_boundaries`
+862: - `ztb_regulatory_triggers`
+863: - `ztb_target_doc_sections`
+868: ### Discrepancies:
+869: **In seed but NOT in schema (8):**
+870: - `ce_protection`
+871: - `ce_security_implication`
+872: - `critical_element`
+873: - `critical_element_ce_infra_ref`
+874: - `rod_isps_compliance`
+875: - `rod_name`
+876: - `rod_name_rod_infra_ref`
+877: - `rod_regime`
+879: **In schema (non-virtual) but NOT in seed (6):**
+880: - `E`
+881: - `NE`
+882: - `SW`
+883: - `W`
+884: - `critical_element_ref`
+885: - `rod_ref`
+892: - `ptb_accreditation_date`
+893: - `ptb_accreditation_exp_date`
+894: - `ptb_accreditation_num`
+895: - `ptb_name`
+896: - `ptb_narrative_description`
+897: - `ptb_oti_ref` [*_ref]
+898: - `ptb_regulatory_triggers`
+899: - `ptb_target_doc_sections`
+900: - `qdrant_gbr_exists_tag` [qdrant_*]
+901: - `qdrant_ptb_accreditation_tag` [qdrant_*]
+902: - `sti_ref` [*_ref]
+905: - `ptb_accreditation_date`
+906: - `ptb_accreditation_exp_date`
+907: - `ptb_accreditation_num`
+908: - `ptb_name`
+909: - `ptb_narrative_description`
+910: - `ptb_oti_ref` [*_ref]
+911: - `ptb_regulatory_triggers`
+912: - `ptb_target_doc_sections`
+913: - `qdrant_gbr_exists_tag` [qdrant_*]
+914: - `qdrant_ptb_accreditation_tag` [qdrant_*]
+915: - `sti_ref` [*_ref]
+920: ### Discrepancies: None ✅
+927: - `contract_date`
+928: - `contract_exp_date`
+929: - `contract_is_maintenance`
+930: - `contract_name`
+931: - `contract_num`
+932: - `is_prolonged`
+933: - `prolongation_date`
+934: - `prolongation_new_exp_date`
+935: - `ptb_ref` [*_ref]
+938: - `contract_date`
+939: - `contract_exp_date`
+940: - `contract_is_maintenance`
+941: - `contract_name`
+942: - `contract_num`
+943: - `is_prolonged`
+944: - `prolongation_date`
+945: - `prolongation_new_exp_date`
+946: - `ptb_ref` [*_ref]
+951: ### Discrepancies: None ✅
+958: - `agreement_date`
+959: - `agreement_description`
+960: - `agreement_exp_date`
+961: - `agreement_name`
+962: - `agreement_num`
+963: - `agreement_type`
+964: - `contract_ref` [*_ref]
+967: - `agreement_date`
+968: - `agreement_description`
+969: - `agreement_exp_date`
+970: - `agreement_name`
+971: - `agreement_num`
+972: - `agreement_type`
+973: - `contract_ref` [*_ref]
+978: ### Discrepancies: None ✅
+985: - `contract_date`
+986: - `contract_exp_date`
+987: - `contract_is_active`
+988: - `contract_name`
+989: - `contract_num`
+990: - `contract_provider`
+991: - `contract_scope`
+992: - `oti_ref` [*_ref]
+993: - `ptb_ref` [*_ref]
+996: - `contract_date`
+997: - `contract_exp_date`
+998: - `contract_is_active`
+999: - `contract_name`
+1000: - `contract_num`
+1001: - `contract_provider`
+1002: - `contract_scope`
+1003: - `oti_ref` [*_ref]
+1004: - `ptb_ref` [*_ref]
+1009: ### Discrepancies: None ✅
+1016: - `post_is_additional`
+1017: - `post_is_temporary`
+1018: - `post_is_uav_counter`
+1019: - `post_location`
+1020: - `post_location_infra_ref` [*_ref]
+1021: - `post_name`
+1022: - `post_regime`
+1023: - `post_special_conditions`
+1024: - `post_staff_count`
+1025: - `post_tasks`
+1026: - `post_type`
+1027: - `ptb_ref` [*_ref]
+1028: - `qdrant_gbr_exists_tag` [qdrant_*]
+1031: - `post_is_additional`
+1032: - `post_is_temporary`
+1033: - `post_is_uav_counter`
+1034: - `post_location`
+1035: - `post_location_infra_ref` [*_ref]
+1036: - `post_name`
+1037: - `post_regime`
+1038: - `post_special_conditions`
+1039: - `post_staff_count`
+1040: - `post_tasks`
+1041: - `post_type`
+1042: - `ptb_ref` [*_ref]
+1043: - `qdrant_gbr_exists_tag` [qdrant_*]
+1048: ### Discrepancies: None ✅
+1055: - `post_ref` [*_ref]
+1056: - `staff_attestation_category`
+1057: - `staff_attestation_date`
+1058: - `staff_attestation_exp_date`
+1059: - `staff_attestation_num`
+1060: - `staff_fio`
+1061: - `staff_has_uav_authority`
+1062: - `staff_is_active`
+1063: - `staff_position`
+1064: - `staff_security_level_1`
+1065: - `staff_security_level_2`
+1066: - `staff_security_level_3`
+1069: - `post_ref` [*_ref]
+1070: - `staff_attestation_category`
+1071: - `staff_attestation_date`
+1072: - `staff_attestation_exp_date`
+1073: - `staff_attestation_num`
+1074: - `staff_fio`
+1075: - `staff_has_uav_authority`
+1076: - `staff_is_active`
+1077: - `staff_position`
+1078: - `staff_security_level_1`
+1079: - `staff_security_level_2`
+1080: - `staff_security_level_3`
+1083: - `_v_person_ref`
+1085: ### Discrepancies: None ✅
+1092: - `equipment_brand_model`
+1093: - `equipment_category`
+1094: - `equipment_certification_date`
+1095: - `equipment_certification_doc_scan`
+1096: - `equipment_certification_exp_date`
+1097: - `equipment_certification_num`
+1098: - `equipment_is_certified_pp969`
+1099: - `equipment_name`
+1100: - `equipment_narrative_context`
+1101: - `equipment_qty`
+1102: - `equipment_service_exp_date`
+1103: - `post_ref` [*_ref]
+1104: - `qdrant_gbr_exists_tag` [qdrant_*]
+1107: - `equipment_brand_model`
+1108: - `equipment_category`
+1109: - `equipment_certification_date`
+1110: - `equipment_certification_doc_scan`
+1111: - `equipment_certification_exp_date`
+1112: - `equipment_certification_num`
+1113: - `equipment_is_certified_pp969`
+1114: - `equipment_name`
+1115: - `equipment_narrative_context`
+1116: - `equipment_qty`
+1117: - `equipment_service_exp_date`
+1118: - `post_ref` [*_ref]
+1119: - `qdrant_gbr_exists_tag` [qdrant_*]
+1122: - `_v_catalog_tsotb_ref`
+1124: ### Discrepancies: None ✅
+1131: - `catalog_category_tsotb`
+1132: - `catalog_climate_tag`
+1133: - `catalog_default_detection_range_m`
+1134: - `catalog_default_identification_range_m`
+1135: - `catalog_display_name`
+1136: - `catalog_functions_tags`
+1137: - `catalog_manufacturer`
+1138: - `catalog_model`
+1139: - `catalog_narrative_template`
+1140: - `catalog_operating_temp_max_c`
+1141: - `catalog_operating_temp_min_c`
+1142: - `catalog_power_consumption_w`
+1143: - `catalog_pp969_required`
+1144: - `catalog_regulatory_triggers`
+1145: - `catalog_target_doc_sections`
+1148: - `catalog_category_tsotb`
+1149: - `catalog_climate_tag`
+1150: - `catalog_default_detection_range_m`
+1151: - `catalog_default_identification_range_m`
+1152: - `catalog_display_name`
+1153: - `catalog_functions_tags`
+1154: - `catalog_manufacturer`
+1155: - `catalog_model`
+1156: - `catalog_narrative_template`
+1157: - `catalog_operating_temp_max_c`
+1158: - `catalog_operating_temp_min_c`
+1159: - `catalog_power_consumption_w`
+1160: - `catalog_pp969_required`
+1161: - `catalog_regulatory_triggers`
+1162: - `catalog_target_doc_sections`
+1167: ### Discrepancies: None ✅
+1174: - `catalog_tsotb_ref` [*_ref]
+1175: - `oti_ref` [*_ref]
+1176: - `qdrant_certified_pp969_tag` [qdrant_*]
+1177: - `qdrant_climate_resistance_tag` [qdrant_*]
+1178: - `qdrant_tsotb_category_tag` [qdrant_*]
+1179: - `qdrant_tsotb_function_tag` [qdrant_*]
+1180: - `tsotb_certification_date`
+1181: - `tsotb_certification_doc_hash`
+1182: - `tsotb_certification_doc_scan`
+1183: - `tsotb_certification_exp_date`
+1184: - `tsotb_certification_issuing_body`
+1185: - `tsotb_certification_num`
+1186: - `tsotb_certification_scope`
+1187: - `tsotb_compliance_check_result`
+1188: - `tsotb_installation_date`
+1189: - `tsotb_is_certified_pp969`
+1190: - `tsotb_last_maintenance_date`
+1191: - `tsotb_location_infra_ref` [*_ref]
+1192: - `tsotb_location_name`
+1193: - `tsotb_maintenance_contract_ref` [*_ref]
+1194: - `tsotb_monitors_infra_ref` [*_ref]
+1195: - `tsotb_monitors_object_name`
+1196: - `tsotb_narrative_description`
+1197: - `tsotb_operational_context`
+1198: - `tsotb_operational_status`
+1199: - `tsotb_post_ref` [*_ref]
+1200: - `tsotb_powered_from_infra_ref` [*_ref]
+1201: - `tsotb_powered_from_name`
+1202: - `tsotb_quantity`
+1203: - `tsotb_regulatory_triggers`
+1204: - `tsotb_security_implication`
+1205: - `tsotb_serial_num`
+1206: - `tsotb_service_exp_date`
+1207: - `tsotb_target_doc_sections`
+1210: - `catalog_tsotb_ref` [*_ref]
+1211: - `oti_ref` [*_ref]
+1212: - `qdrant_certified_pp969_tag` [qdrant_*]
+1213: - `qdrant_climate_resistance_tag` [qdrant_*]
+1214: - `qdrant_tsotb_category_tag` [qdrant_*]
+1215: - `qdrant_tsotb_function_tag` [qdrant_*]
+1216: - `tsotb_certification_date`
+1217: - `tsotb_certification_doc_hash`
+1218: - `tsotb_certification_doc_scan`
+1219: - `tsotb_certification_exp_date`
+1220: - `tsotb_certification_issuing_body`
+1221: - `tsotb_certification_num`
+1222: - `tsotb_certification_scope`
+1223: - `tsotb_compliance_check_result`
+1224: - `tsotb_installation_date`
+1225: - `tsotb_is_certified_pp969`
+1226: - `tsotb_last_maintenance_date`
+1227: - `tsotb_location_infra_ref` [*_ref]
+1228: - `tsotb_location_name`
+1229: - `tsotb_maintenance_contract_ref` [*_ref]
+1230: - `tsotb_monitors_infra_ref` [*_ref]
+1231: - `tsotb_monitors_object_name`
+1232: - `tsotb_narrative_description`
+1233: - `tsotb_operational_context`
+1234: - `tsotb_operational_status`
+1235: - `tsotb_post_ref` [*_ref]
+1236: - `tsotb_powered_from_infra_ref` [*_ref]
+1237: - `tsotb_powered_from_name`
+1238: - `tsotb_quantity`
+1239: - `tsotb_regulatory_triggers`
+1240: - `tsotb_security_implication`
+1241: - `tsotb_serial_num`
+1242: - `tsotb_service_exp_date`
+1243: - `tsotb_target_doc_sections`
+1248: ### Discrepancies: None ✅
+1255: - `eng_catalog_category`
+1256: - `eng_catalog_climate_tag`
+1257: - `eng_catalog_default_bottom_depth_m`
+1258: - `eng_catalog_default_height_m`
+1259: - `eng_catalog_default_intrusion_delay_min`
+1260: - `eng_catalog_default_load_capacity_t`
+1261: - `eng_catalog_default_material`
+1262: - `eng_catalog_default_thickness_mm`
+1263: - `eng_catalog_default_top_height_m`
+1264: - `eng_catalog_display_name`
+1265: - `eng_catalog_functions`
+1266: - `eng_catalog_gost_reference`
+1267: - `eng_catalog_manufacturer`
+1268: - `eng_catalog_model`
+1269: - `eng_catalog_narrative_template`
+1270: - `eng_catalog_pp969_applicable`
+1271: - `eng_catalog_regulatory_triggers`
+1272: - `eng_catalog_target_doc_sections`
+1273: - `qdrant_eng_category_tag` [qdrant_*]
+1274: - `qdrant_eng_function_tag` [qdrant_*]
+1277: - `eng_catalog_category`
+1278: - `eng_catalog_climate_tag`
+1279: - `eng_catalog_default_bottom_depth_m`
+1280: - `eng_catalog_default_height_m`
+1281: - `eng_catalog_default_intrusion_delay_min`
+1282: - `eng_catalog_default_load_capacity_t`
+1283: - `eng_catalog_default_material`
+1284: - `eng_catalog_default_thickness_mm`
+1285: - `eng_catalog_default_top_height_m`
+1286: - `eng_catalog_display_name`
+1287: - `eng_catalog_functions`
+1288: - `eng_catalog_gost_reference`
+1289: - `eng_catalog_manufacturer`
+1290: - `eng_catalog_model`
+1291: - `eng_catalog_narrative_template`
+1292: - `eng_catalog_pp969_applicable`
+1293: - `eng_catalog_regulatory_triggers`
+1294: - `eng_catalog_target_doc_sections`
+1295: - `qdrant_eng_category_tag` [qdrant_*]
+1296: - `qdrant_eng_function_tag` [qdrant_*]
+1301: ### Discrepancies: None ✅
+1308: - `catalog_eng_ref` [*_ref]
+1309: - `eng_instance_airlock_capacity`
+1310: - `eng_instance_bottom_depth_m`
+1311: - `eng_instance_bottom_exists`
+1312: - `eng_instance_bottom_gost_compliance`
+1313: - `eng_instance_bottom_material`
+1314: - `eng_instance_bottom_type`
+1315: - `eng_instance_bottom_width_m`
+1316: - `eng_instance_compliance_check_result`
+1317: - `eng_instance_defects_description`
+1318: - `eng_instance_has_access_control`
+1319: - `eng_instance_has_barbed_wire`
+1320: - `eng_instance_has_top_obstacle`
+1321: - `eng_instance_installation_date`
+1322: - `eng_instance_intrusion_delay_min`
+1323: - `eng_instance_is_seasonal`
+1324: - `eng_instance_last_inspection_date`
+1325: - `eng_instance_length_m`
+1326: - `eng_instance_load_capacity_t`
+1327: - `eng_instance_location_infra_ref` [*_ref]
+1328: - `eng_instance_location_name`
+1329: - `eng_instance_locking_type`
+1330: - `eng_instance_main_gost_compliance`
+1331: - `eng_instance_main_height_m`
+1332: - `eng_instance_main_is_removable`
+1333: - `eng_instance_main_material`
+1334: - `eng_instance_main_thickness_mm`
+1335: - `eng_instance_main_type`
+1336: - `eng_instance_maintenance_contract_ref` [*_ref]
+1337: - `eng_instance_name`
+1338: - `eng_instance_next_inspection_date`
+1339: - `eng_instance_operational_context`
+1340: - `eng_instance_operational_status`
+1341: - `eng_instance_platform_vehicle_capacity`
+1342: - `eng_instance_protection_level`
+1343: - `eng_instance_protects_ce`
+1344: - `eng_instance_protects_ce_infra_ref` [*_ref]
+1345: - `eng_instance_protects_rod`
+1346: - `eng_instance_protects_rod_infra_ref` [*_ref]
+1347: - `eng_instance_quantity`
+1348: - `eng_instance_regulatory_triggers`
+1349: - `eng_instance_seasonal_removal_period`
+1350: - `eng_instance_security_implication`
+1351: - `eng_instance_segment_number`
+1352: - `eng_instance_serial_num`
+1353: - `eng_instance_target_doc_sections`
+1354: - `eng_instance_top_angle_deg`
+1355: - `eng_instance_top_exists`
+1356: - `eng_instance_top_gost_compliance`
+1357: - `eng_instance_top_height_m`
+1358: - `eng_instance_top_material`
+1359: - `eng_instance_top_type`
+1360: - `eng_instance_total_height_m`
+1361: - `eng_instance_window_protection_type`
+1362: - `oti_ref` [*_ref]
+1363: - `qdrant_ce_protection_tag` [qdrant_*]
+1364: - `qdrant_eng_condition_tag` [qdrant_*]
+1365: - `qdrant_eng_gost_tag` [qdrant_*]
+1366: - `qdrant_eng_material_tag` [qdrant_*]
+1367: - `qdrant_eng_seasonal_tag` [qdrant_*]
+1370: - `catalog_eng_ref` [*_ref]
+1371: - `eng_instance_airlock_capacity`
+1372: - `eng_instance_bottom_depth_m`
+1373: - `eng_instance_bottom_exists`
+1374: - `eng_instance_bottom_gost_compliance`
+1375: - `eng_instance_bottom_material`
+1376: - `eng_instance_bottom_type`
+1377: - `eng_instance_bottom_width_m`
+1378: - `eng_instance_compliance_check_result`
+1379: - `eng_instance_defects_description`
+1380: - `eng_instance_has_access_control`
+1381: - `eng_instance_has_barbed_wire`
+1382: - `eng_instance_has_top_obstacle`
+1383: - `eng_instance_installation_date`
+1384: - `eng_instance_intrusion_delay_min`
+1385: - `eng_instance_is_seasonal`
+1386: - `eng_instance_last_inspection_date`
+1387: - `eng_instance_length_m`
+1388: - `eng_instance_load_capacity_t`
+1389: - `eng_instance_location_infra_ref` [*_ref]
+1390: - `eng_instance_location_name`
+1391: - `eng_instance_locking_type`
+1392: - `eng_instance_main_gost_compliance`
+1393: - `eng_instance_main_height_m`
+1394: - `eng_instance_main_is_removable`
+1395: - `eng_instance_main_material`
+1396: - `eng_instance_main_thickness_mm`
+1397: - `eng_instance_main_type`
+1398: - `eng_instance_maintenance_contract_ref` [*_ref]
+1399: - `eng_instance_name`
+1400: - `eng_instance_next_inspection_date`
+1401: - `eng_instance_operational_context`
+1402: - `eng_instance_operational_status`
+1403: - `eng_instance_platform_vehicle_capacity`
+1404: - `eng_instance_protection_level`
+1405: - `eng_instance_protects_ce`
+1406: - `eng_instance_protects_ce_infra_ref` [*_ref]
+1407: - `eng_instance_protects_rod`
+1408: - `eng_instance_protects_rod_infra_ref` [*_ref]
+1409: - `eng_instance_quantity`
+1410: - `eng_instance_regulatory_triggers`
+1411: - `eng_instance_seasonal_removal_period`
+1412: - `eng_instance_security_implication`
+1413: - `eng_instance_segment_number`
+1414: - `eng_instance_serial_num`
+1415: - `eng_instance_target_doc_sections`
+1416: - `eng_instance_top_angle_deg`
+1417: - `eng_instance_top_exists`
+1418: - `eng_instance_top_gost_compliance`
+1419: - `eng_instance_top_height_m`
+1420: - `eng_instance_top_material`
+1421: - `eng_instance_top_type`
+1422: - `eng_instance_total_height_m`
+1423: - `eng_instance_window_protection_type`
+1424: - `oti_ref` [*_ref]
+1425: - `qdrant_ce_protection_tag` [qdrant_*]
+1426: - `qdrant_eng_condition_tag` [qdrant_*]
+1427: - `qdrant_eng_gost_tag` [qdrant_*]
+1428: - `qdrant_eng_material_tag` [qdrant_*]
+1429: - `qdrant_eng_seasonal_tag` [qdrant_*]
+1434: ### Discrepancies: None ✅
+1438: ## Section: `climate_context` ⚠️
+1441: - `climate_hydro_description`
+1442: - `climate_narrative_description`
+1443: - `climate_target_doc_sections`
+1444: - `climate_zone`
+1445: - `compliance_result`
+1446: - `hydro_flood_risk`
+1447: - `intruders_ranking`
+1448: - `isps_compliance`
+1449: - `max_casualties`
+1450: - `max_damage_rub`
+1451: - `neighbor_interaction_type`
+1452: - `neighbor_objects`
+1453: - `oti_ref` [*_ref]
+1454: - `project_intruder_model`
+1455: - `qdrant_climate_zone_tag` [qdrant_*]
+1456: - `qdrant_compliance_tag` [qdrant_*]
+1457: - `qdrant_flood_risk_tag` [qdrant_*]
+1458: - `temp_min_c`
+1459: - `threats_ranking`
+1460: - `wind_max_ms`
+1463: - `climate_hydro_description`
+1464: - `climate_narrative_description`
+1465: - `climate_target_doc_sections`
+1466: - `climate_zone`
+1467: - `compliance_result`
+1468: - `dist`
+1469: - `emergency`
+1470: - `hydro_flood_risk`
+1471: - `intruders_ranking`
+1472: - `isps_compliance`
+1473: - `max_casualties`
+1474: - `max_damage_rub`
+1475: - `name`
+1476: - `neighbor_interaction_type`
+1477: - `neighbor_objects`
+1478: - `operational`
+1479: - `oti_ref` [*_ref]
+1480: - `physical`
+1481: - `project_intruder_model`
+1482: - `qdrant_climate_zone_tag` [qdrant_*]
+1483: - `qdrant_compliance_tag` [qdrant_*]
+1484: - `qdrant_flood_risk_tag` [qdrant_*]
+1485: - `temp_min_c`
+1486: - `threats_ranking`
+1487: - `wind_max_ms`
+1492: ### Discrepancies:
+1493: **In schema (non-virtual) but NOT in seed (5):**
+1494: - `dist`
+1495: - `emergency`
+1496: - `name`
+1497: - `operational`
+1498: - `physical`
+1502: ## Summary
+1504: - Total sections checked: 30
+1505: - Total discrepancies found: 37
+1507: ### All `qdrant_*` fields (by section):
+1528: ### All `*_ref` fields (by section):

@@ -28,6 +28,22 @@ export interface FieldDef {
   refSection?: string;
   /** For type="ref": which field in the referenced section to display as label */
   refLabelField?: string;
+  /**
+   * UI-only field: not saved to output JSON.
+   * Used for reference selection with auto-fill.
+   */
+  virtual?: boolean;
+  /**
+   * For virtual ref fields: maps target field key (in this section)
+   * → source field key (in the referenced section).
+   * When the ref is selected, source values are copied to target fields.
+   */
+  refAutoFill?: Record<string, string>;
+  /**
+   * Marks this field as auto-filled by a virtual ref.
+   * Shows a visual indicator in the UI.
+   */
+  autoFilled?: boolean;
 }
 
 export interface SectionDef {
@@ -2631,31 +2647,14 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
   },
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 20. Договоры (объединённый справочник)
+  // 20. Договоры ПТБ
   // ──────────────────────────────────────────────────────────────────────────
   {
-    key: "contracts",
-    label: "Договоры",
-    description: "Единый справочник договоров: ПТБ, техобслуживание, аренда и прочие",
+    key: "ptb_contracts",
+    label: "Договоры ПТБ",
+    description: "Договоры подразделений транспортной безопасности",
     icon: "FileSignature",
     fields: [
-      {
-        key: "contract_type",
-        label: "Тип договора",
-        type: "select",
-        hint: "Тип договора определяет его назначение",
-        options: ["ПТБ", "Техническое обслуживание", "Аренда", "Прочее"],
-        defaultValue: "",
-      },
-      {
-        key: "oti_ref",
-        label: "Ссылка на ОТИ",
-        type: "ref",
-        refSection: "oti",
-        refLabelField: "oti_full_name",
-        hint: "Выберите объект транспортной инфраструктуры",
-        defaultValue: null,
-      },
       {
         key: "ptb_ref",
         label: "Ссылка на ПТБ",
@@ -2691,27 +2690,6 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
         defaultValue: null,
       },
       {
-        key: "contract_provider",
-        label: "Исполнитель (организация)",
-        type: "text",
-        hint: "Организация-исполнитель по договору",
-        defaultValue: "",
-      },
-      {
-        key: "contract_scope",
-        label: "Предмет договора",
-        type: "textarea",
-        hint: "Описание предмета и объёма работ по договору",
-        defaultValue: "",
-      },
-      {
-        key: "contract_is_active",
-        label: "Договор активен",
-        type: "boolean",
-        hint: "Действует ли договор на данный момент",
-        defaultValue: true,
-      },
-      {
         key: "is_prolonged",
         label: "Пролонгирован",
         type: "boolean",
@@ -2730,11 +2708,94 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
         type: "date",
         defaultValue: null,
       },
+      {
+        key: "contract_is_maintenance",
+        label: "Договор на ТО",
+        type: "boolean",
+        hint: "Является ли договор договором на техническое обслуживание",
+        defaultValue: false,
+      },
     ],
   },
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 21. Дополнительные соглашения
+  // 21. Договоры на техническое обслуживание
+  // ──────────────────────────────────────────────────────────────────────────
+  {
+    key: "maintenance_contracts",
+    label: "Договоры на ТО",
+    description: "Договоры на техническое обслуживание инженерных сооружений и ТСО",
+    icon: "FileSignature",
+    fields: [
+      {
+        key: "oti_ref",
+        label: "Ссылка на ОТИ",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
+        hint: "Выберите объект транспортной инфраструктуры",
+        defaultValue: null,
+      },
+      {
+        key: "ptb_ref",
+        label: "Ссылка на ПТБ",
+        type: "ref",
+        refSection: "ptb",
+        refLabelField: "ptb_name",
+        hint: "Выберите подразделение транспортной безопасности",
+        defaultValue: null,
+      },
+      {
+        key: "contract_name",
+        label: "Наименование договора",
+        type: "text",
+        defaultValue: "",
+      },
+      {
+        key: "contract_num",
+        label: "Номер договора",
+        type: "text",
+        placeholder: "ТО-2024-001",
+        defaultValue: "",
+      },
+      {
+        key: "contract_date",
+        label: "Дата договора",
+        type: "date",
+        defaultValue: null,
+      },
+      {
+        key: "contract_exp_date",
+        label: "Дата окончания договора",
+        type: "date",
+        defaultValue: null,
+      },
+      {
+        key: "contract_provider",
+        label: "Исполнитель",
+        type: "text",
+        hint: "Организация-исполнитель по договору",
+        defaultValue: "",
+      },
+      {
+        key: "contract_scope",
+        label: "Предмет договора",
+        type: "textarea",
+        hint: "Описание предмета и объёма работ",
+        defaultValue: "",
+      },
+      {
+        key: "contract_is_active",
+        label: "Договор активен",
+        type: "boolean",
+        hint: "Действует ли договор на данный момент",
+        defaultValue: true,
+      },
+    ],
+  },
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 22. Дополнительные соглашения
   // ──────────────────────────────────────────────────────────────────────────
   {
     key: "ptb_supplementary_agreements",
@@ -2901,7 +2962,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
   {
     key: "post_staff",
     label: "Сотрудники постов",
-    description: "Назначение сотрудников из справочника лиц на посты транспортной безопасности",
+    description: "Назначение сотрудников из справочника лиц на посты транспортной безопасности. Выберите лицо из справочника — данные автозаполнятся.",
     icon: "UserCheck",
     fields: [
       {
@@ -2914,21 +2975,73 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
         defaultValue: null,
       },
       {
-        key: "person_ref",
-        label: "Ответственное лицо",
+        key: "_v_person_ref",
+        label: "Выбрать из справочника лиц",
         type: "ref",
         refSection: "persons",
         refLabelField: "person_fio",
-        hint: "Выберите лицо из справочника ответственных лиц",
+        hint: "Выберите лицо — ФИО, должность и данные об аттестации заполнятся автоматически",
         defaultValue: null,
+        virtual: true,
+        refAutoFill: {
+          staff_fio: "person_fio",
+          staff_position: "person_position",
+          staff_attestation_category: "person_attestation_category",
+          staff_attestation_num: "person_attestation_num",
+          staff_attestation_date: "person_attestation_date",
+          staff_attestation_exp_date: "person_attestation_exp_date",
+        },
       },
       {
-        key: "staff_role_at_post",
-        label: "Роль на посту",
+        key: "staff_fio",
+        label: "ФИО",
         type: "text",
-        placeholder: "Старший смены, оператор досмотра",
-        hint: "Роль сотрудника конкретно на данном посту",
+        placeholder: "Иванов Иван Иванович",
+        hint: "Автозаполняется при выборе из справочника; можно изменить вручную",
         defaultValue: "",
+        autoFilled: true,
+      },
+      {
+        key: "staff_position",
+        label: "Должность",
+        type: "text",
+        placeholder: "Сотрудник ПТБ",
+        hint: "Автозаполняется при выборе из справочника; можно изменить вручную",
+        defaultValue: "",
+        autoFilled: true,
+      },
+      {
+        key: "staff_attestation_category",
+        label: "Категория аттестации",
+        type: "select",
+        options: ["I", "II", "III", "IV"],
+        hint: "Автозаполняется из справочника лиц",
+        defaultValue: null,
+        autoFilled: true,
+      },
+      {
+        key: "staff_attestation_num",
+        label: "Номер аттестации",
+        type: "text",
+        hint: "Автозаполняется из справочника лиц",
+        defaultValue: "",
+        autoFilled: true,
+      },
+      {
+        key: "staff_attestation_date",
+        label: "Дата аттестации",
+        type: "date",
+        hint: "Автозаполняется из справочника лиц",
+        defaultValue: null,
+        autoFilled: true,
+      },
+      {
+        key: "staff_attestation_exp_date",
+        label: "Срок действия аттестации",
+        type: "date",
+        hint: "Автозаполняется из справочника лиц",
+        defaultValue: null,
+        autoFilled: true,
       },
       {
         key: "staff_is_active",
@@ -2975,7 +3088,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
     key: "post_equipment",
     label: "Оборудование постов",
     description:
-      "Технические средства и оборудование, установленные на постах транспортной безопасности",
+      "Технические средства и оборудование, установленные на постах транспортной безопасности. Можно выбрать из каталога ТСО — данные заполнятся автоматически.",
     icon: "Camera",
     fields: [
       {
@@ -2988,23 +3101,41 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
         defaultValue: null,
       },
       {
+        key: "_v_catalog_tsotb_ref",
+        label: "Выбрать из каталога ТСО",
+        type: "ref",
+        refSection: "tsotb_catalog",
+        refLabelField: "catalog_display_name",
+        hint: "Выберите ТСО из каталога — категория, наименование и модель заполнятся автоматически",
+        defaultValue: null,
+        virtual: true,
+        refAutoFill: {
+          equipment_category: "catalog_category_tsotb",
+          equipment_name: "catalog_display_name",
+          equipment_brand_model: "catalog_model",
+        },
+      },
+      {
         key: "equipment_category",
         label: "Категория оборудования",
         type: "text",
         placeholder: "Инспекторские комплексы, досмотровое оборудование",
         defaultValue: "",
+        autoFilled: true,
       },
       {
         key: "equipment_name",
         label: "Наименование оборудования",
         type: "text",
         defaultValue: "",
+        autoFilled: true,
       },
       {
         key: "equipment_brand_model",
         label: "Марка / модель",
         type: "text",
         defaultValue: "",
+        autoFilled: true,
       },
       {
         key: "equipment_qty",
@@ -4220,6 +4351,9 @@ export function getEmptyRow(sectionKey: string): Record<string, unknown> {
 
   const row: Record<string, unknown> = {};
   for (const field of section.fields) {
+    // Skip virtual fields — they are UI-only and not saved
+    if (field.virtual) continue;
+
     if (field.type === "object" && field.nestedFields) {
       if (Array.isArray(field.defaultValue)) {
         row[field.key] = field.defaultValue;
@@ -4243,6 +4377,44 @@ export function getEmptyRow(sectionKey: string): Record<string, unknown> {
   return row;
 }
 
+/**
+ * Returns the set of virtual field keys for each section.
+ * Used to strip UI-only fields before saving/exporting.
+ */
+export function getVirtualFieldKeys(): Record<string, Set<string>> {
+  const map: Record<string, Set<string>> = {};
+  for (const section of SCHEMA_SECTIONS) {
+    const virtualKeys = new Set<string>();
+    for (const field of section.fields) {
+      if (field.virtual) virtualKeys.add(field.key);
+    }
+    if (virtualKeys.size > 0) {
+      map[section.key] = virtualKeys;
+    }
+  }
+  return map;
+}
+
+/**
+ * Returns refAutoFill mappings for virtual fields, keyed by section.
+ * { sectionKey: { virtualFieldKey: { targetKey: sourceKey } } }
+ */
+export function getRefAutoFillMappings(): Record<string, Record<string, Record<string, string>>> {
+  const map: Record<string, Record<string, Record<string, string>>> = {};
+  for (const section of SCHEMA_SECTIONS) {
+    const sectionMappings: Record<string, Record<string, string>> = {};
+    for (const field of section.fields) {
+      if (field.virtual && field.refAutoFill) {
+        sectionMappings[field.key] = field.refAutoFill;
+      }
+    }
+    if (Object.keys(sectionMappings).length > 0) {
+      map[section.key] = sectionMappings;
+    }
+  }
+  return map;
+}
+
 // =============================================================================
 // Helper: get sections grouped for navigation
 // =============================================================================
@@ -4255,9 +4427,15 @@ export interface SectionGroup {
 export function getSectionGroups(): SectionGroup[] {
   return [
     {
-      label: "Основные сведения",
+      label: "Организация и регистрация",
       sections: SCHEMA_SECTIONS.filter((s) =>
-        ["sti", "sti_licenses", "oti", "persons"].includes(s.key),
+        ["sti", "sti_licenses", "oti"].includes(s.key),
+      ),
+    },
+    {
+      label: "Ответственные лица",
+      sections: SCHEMA_SECTIONS.filter((s) =>
+        ["persons", "post_staff"].includes(s.key),
       ),
     },
     {
@@ -4282,15 +4460,12 @@ export function getSectionGroups(): SectionGroup[] {
           "cargo_summary",
           "cargo_turnover",
           "oti_operations",
+          "opo",
         ].includes(s.key),
       ),
     },
     {
-      label: "Опасные производственные объекты",
-      sections: SCHEMA_SECTIONS.filter((s) => ["opo"].includes(s.key)),
-    },
-    {
-      label: "Инфраструктура",
+      label: "Инфраструктура и зоны",
       sections: SCHEMA_SECTIONS.filter((s) =>
         [
           "infrastructure",
@@ -4305,20 +4480,27 @@ export function getSectionGroups(): SectionGroup[] {
       sections: SCHEMA_SECTIONS.filter((s) =>
         [
           "ptb",
-          "contracts",
+          "ptb_contracts",
+          "maintenance_contracts",
           "ptb_supplementary_agreements",
           "posts",
-          "post_staff",
           "post_equipment",
         ].includes(s.key),
       ),
     },
     {
-      label: "Технические средства",
+      label: "Каталог ТСО и экземпляры",
       sections: SCHEMA_SECTIONS.filter((s) =>
         [
           "tsotb_catalog",
           "tsotb_instances",
+        ].includes(s.key),
+      ),
+    },
+    {
+      label: "Каталог ИТС и экземпляры",
+      sections: SCHEMA_SECTIONS.filter((s) =>
+        [
           "eng_catalog",
           "eng_instances",
         ].includes(s.key),
