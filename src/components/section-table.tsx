@@ -39,14 +39,184 @@ import {
 } from 'lucide-react';
 
 // =============================================================================
+// Format validation rules
+// =============================================================================
+
+interface FormatRule {
+  /** Regex to match against field key */
+  keyPattern: RegExp;
+  /** Validation function — returns true if the value is valid */
+  validate: (v: string) => boolean;
+  /** Human-readable (Russian) description of the expected format */
+  formatHint: string;
+}
+
+/**
+ * Format rules ordered from most specific to least specific.
+ * First matching rule wins.
+ */
+const FORMAT_RULES: FormatRule[] = [
+  // ── Russian business identifiers ──────────────────────────────────
+  {
+    keyPattern: /(?:^|_)ip_ogrn$/, // sti_ip_ogrn
+    validate: (v) => /^\d{15}$/.test(v),
+    formatHint: '15 цифр (ОГРНИП)',
+  },
+  {
+    keyPattern: /ogrn$/,
+    validate: (v) => /^\d{13}$/.test(v),
+    formatHint: '13 цифр (ОГРН)',
+  },
+  {
+    keyPattern: /(?:^|_)ip_inn$/, // sti_ip_inn, sti_person_inn
+    validate: (v) => /^\d{12}$/.test(v),
+    formatHint: '12 цифр (ИНН ИП/физлица)',
+  },
+  {
+    keyPattern: /person_inn$/,
+    validate: (v) => /^\d{12}$/.test(v),
+    formatHint: '12 цифр (ИНН физлица)',
+  },
+  {
+    keyPattern: /inn$/,
+    validate: (v) => /^\d{10}$/.test(v),
+    formatHint: '10 цифр (ИНН организации)',
+  },
+  {
+    keyPattern: /kpp$/,
+    validate: (v) => /^\d{9}$/.test(v),
+    formatHint: '9 цифр (КПП)',
+  },
+  {
+    keyPattern: /okpo$/,
+    validate: (v) => /^\d{8,10}$/.test(v),
+    formatHint: '8 или 10 цифр (ОКПО)',
+  },
+  {
+    keyPattern: /snils/,
+    validate: (v) => /^\d{11}$/.test(v),
+    formatHint: '11 цифр (СНИЛС)',
+  },
+
+  // ── Banking ───────────────────────────────────────────────────────
+  {
+    keyPattern: /(?:bik|bic)$/i,
+    validate: (v) => /^\d{9}$/.test(v),
+    formatHint: '9 цифр (БИК)',
+  },
+  {
+    keyPattern: /(?:^|_)rs$/,
+    validate: (v) => /^\d{20}$/.test(v),
+    formatHint: '20 цифр (расчётный счёт)',
+  },
+  {
+    keyPattern: /(?:^|_)ks$/,
+    validate: (v) => /^\d{20}$/.test(v),
+    formatHint: '20 цифр (корр. счёт)',
+  },
+
+  // ── Contact ───────────────────────────────────────────────────────
+  {
+    keyPattern: /email$/,
+    validate: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v),
+    formatHint: 'example@domain.com',
+  },
+  {
+    keyPattern: /fax$/,
+    validate: (v) => /^[\d\s\-\+\(\)]{7,25}$/.test(v),
+    formatHint: '+7 (XXX) XXX-XX-XX',
+  },
+  {
+    keyPattern: /phone$/,
+    validate: (v) => /^[\d\s\-\+\(\)]{7,25}$/.test(v),
+    formatHint: '+7 (XXX) XXX-XX-XX',
+  },
+
+  // ── Maritime identifiers ──────────────────────────────────────────
+  {
+    keyPattern: /(?:^|_)imo$/,
+    validate: (v) => /^\d{7}$/.test(v),
+    formatHint: '7 цифр (IMO номер судна)',
+  },
+  {
+    keyPattern: /mmsi$/,
+    validate: (v) => /^\d{9}$/.test(v),
+    formatHint: '9 цифр (MMSI)',
+  },
+  {
+    keyPattern: /call_sign$/,
+    validate: (v) => /^[A-Za-z0-9\-]{3,10}$/.test(v),
+    formatHint: 'Буквенно-цифровой позывной (3–10 символов)',
+  },
+
+  // ── Coordinates ───────────────────────────────────────────────────
+  {
+    keyPattern: /(?:_lat|latitude)$/,
+    validate: (v) => {
+      const n = Number(v);
+      return /^-?\d{1,3}(\.\d+)?$/.test(v) && n >= -90 && n <= 90;
+    },
+    formatHint: '-90.000000 … +90.000000 (широта)',
+  },
+  {
+    keyPattern: /(?:_lon|longitude)$/,
+    validate: (v) => {
+      const n = Number(v);
+      return /^-?\d{1,3}(\.\d+)?$/.test(v) && n >= -180 && n <= 180;
+    },
+    formatHint: '-180.000000 … +180.000000 (долгота)',
+  },
+
+  // ── Registration numbers ──────────────────────────────────────────
+  {
+    keyPattern: /reg_num$/,
+    validate: (v) => v.length >= 3,
+    formatHint: 'Не менее 3 символов',
+  },
+];
+
+// =============================================================================
 // Validation helpers
 // =============================================================================
 
 export type FieldStatus = 'empty' | 'invalid' | 'ok';
 
 /**
- * Determine if a field value is considered "empty" (unfilled).
+ * Find the matching format rule for a field key, or null if none.
+ */
+function findFormatRule(fieldKey: string): FormatRule | null {
+  for (const rule of FORMAT_RULES) {
+    if (rule.keyPattern.test(fieldKey)) return rule;
+  }
+  return null;
+}
+
+/**
+ * Get the Russian format hint for a field (for tooltips).
+ * Returns null if the field has no specific format requirement.
+ */
+export function getFieldFormatHint(field: FieldDef): string | null {
+  // Number fields: always validate as finite number
+  if (field.type === 'number') {
+    return 'Число (дробное через точку)';
+  }
+  // Date fields: always validate as YYYY-MM-DD
+  if (field.type === 'date') {
+    return 'ГГГГ-ММ-ДД (например, 2024-12-31)';
+  }
+  // Text/textarea: check against FORMAT_RULES by key name
+  const rule = findFormatRule(field.key);
+  return rule ? rule.formatHint : null;
+}
+
+/**
+ * Determine if a field value is "empty" or "invalid".
  * Booleans, readOnly, virtual, and object fields are always 'ok'.
+ *
+ * Returns:
+ *   'empty'   — value is missing / unfilled
+ *   'invalid' — value is present but fails format validation
+ *   'ok'      — value is present and valid
  */
 export function getFieldStatus(field: FieldDef, value: unknown): FieldStatus {
   // Skip types that don't need validation
@@ -54,23 +224,69 @@ export function getFieldStatus(field: FieldDef, value: unknown): FieldStatus {
   if (field.type === 'boolean') return 'ok';
   if (field.type === 'object') return 'ok';
 
-  switch (field.type) {
-    case 'text':
-    case 'textarea':
-      return (value as string) === '' ? 'empty' : 'ok';
-    case 'number':
-      return value === null || value === undefined ? 'empty' : 'ok';
-    case 'date':
-      return value === null || value === undefined || value === '' ? 'empty' : 'ok';
-    case 'select':
-      return (value as string) === '' || value === null ? 'empty' : 'ok';
-    case 'array':
-      return Array.isArray(value) && value.length === 0 ? 'empty' : 'ok';
-    case 'ref':
-      return value === null || value === undefined ? 'empty' : 'ok';
-    default:
-      return 'ok';
+  // Helper: is the value considered "empty" for this type?
+  const isEmpty = (): boolean => {
+    switch (field.type) {
+      case 'text':
+      case 'textarea':
+        return (value as string) === '' || value === undefined || value === null;
+      case 'number':
+        return value === null || value === undefined;
+      case 'date':
+        return value === null || value === undefined || value === '';
+      case 'select':
+        return (value as string) === '' || value === null;
+      case 'array':
+        return !Array.isArray(value) || value.length === 0;
+      case 'ref':
+        return value === null || value === undefined;
+      default:
+        return false;
+    }
+  };
+
+  if (isEmpty()) return 'empty';
+
+  // ── Format validation for non-empty values ──
+
+  // Number: must be a finite number
+  if (field.type === 'number') {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return 'invalid';
+    return 'ok';
   }
+
+  // Date: must match YYYY-MM-DD and be a real date
+  if (field.type === 'date') {
+    const str = String(value);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return 'invalid';
+    const d = new Date(str + 'T00:00:00');
+    if (isNaN(d.getTime())) return 'invalid';
+    // Verify the parsed date matches the input (e.g. no rollover like 2024-02-30)
+    const [y, m, day] = str.split('-').map(Number);
+    if (d.getFullYear() !== y || d.getMonth() + 1 !== m || d.getDate() !== day) {
+      return 'invalid';
+    }
+    return 'ok';
+  }
+
+  // Text / textarea: check against format rules by key name
+  if (field.type === 'text' || field.type === 'textarea') {
+    const str = String(value);
+    const rule = findFormatRule(field.key);
+    if (rule && !rule.validate(str)) return 'invalid';
+    return 'ok';
+  }
+
+  // Select: if value is set, it's always valid (chosen from a list)
+  if (field.type === 'select') return 'ok';
+
+  // Array: if non-empty, valid
+  if (field.type === 'array') return 'ok';
+
+  // Ref: if set, valid
+  if (field.type === 'ref') return 'ok';
+
+  return 'ok';
 }
 
 /** Count empty + invalid fields in a record */
@@ -452,6 +668,39 @@ function RecordFieldRow({
 }
 
 // =============================================================================
+// InvalidFieldTooltip — wraps an input in a tooltip showing format error
+// =============================================================================
+
+function InvalidFieldTooltip({
+  field,
+  children,
+}: {
+  field: FieldDef;
+  children: React.ReactNode;
+}) {
+  const formatHint = getFieldFormatHint(field);
+  const msg = formatHint
+    ? `Поле «${field.label}» — некорректный формат ввода. Корректный формат: ${formatHint}`
+    : `Поле «${field.label}» — некорректный формат ввода`;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent
+        side="top"
+        sideOffset={6}
+        className="max-w-sm bg-destructive text-destructive-foreground border-destructive"
+      >
+        <p className="text-xs flex items-start gap-1.5">
+          <AlertCircle className="size-3.5 mt-0.5 shrink-0" />
+          {msg}
+        </p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+// =============================================================================
 // FieldInput — renders the actual input control for a field
 // =============================================================================
 
@@ -497,18 +746,19 @@ function FieldInput({
   updateCell,
 }: FieldInputProps) {
   const isAutoFilled = field.autoFilled;
-  const isEmpty = status === 'empty';
+  const hasIssue = status !== 'ok';
+  const isInvalid = status === 'invalid';
 
   // Build class based on status
   const baseInputClass = isAutoFilled
     ? 'h-9 text-sm border-primary/25 bg-primary/5 focus-visible:ring-primary/40'
-    : isEmpty
+    : hasIssue
       ? 'h-9 text-sm border-destructive/50 bg-destructive/5 focus-visible:ring-destructive/40'
       : 'h-9 text-sm focus-visible:ring-1 focus-visible:ring-ring';
 
   switch (field.type) {
-    case 'text':
-      return (
+    case 'text': {
+      const inputEl = (
         <Input
           type="text"
           value={(value as string) || ''}
@@ -519,22 +769,37 @@ function FieldInput({
           }
         />
       );
+      return isInvalid ? (
+        <InvalidFieldTooltip field={field}>{inputEl}</InvalidFieldTooltip>
+      ) : (
+        inputEl
+      );
+    }
 
-    case 'textarea':
-      return (
+    case 'textarea': {
+      const taClass = hasIssue
+        ? 'min-h-[80px] text-sm resize-y border-destructive/50 bg-destructive/5 focus-visible:ring-destructive/40'
+        : 'min-h-[80px] text-sm resize-y focus-visible:ring-1 focus-visible:ring-ring';
+      const inputEl = (
         <Textarea
           value={(value as string) || ''}
           placeholder={field.placeholder}
           rows={3}
-          className={`min-h-[80px] text-sm resize-y ${isEmpty ? 'border-destructive/50 bg-destructive/5 focus-visible:ring-destructive/40' : 'focus-visible:ring-1 focus-visible:ring-ring'}`}
+          className={taClass}
           onChange={(e) =>
             updateCell(sectionKey, rowIndex, field.key, e.target.value)
           }
         />
       );
+      return isInvalid ? (
+        <InvalidFieldTooltip field={field}>{inputEl}</InvalidFieldTooltip>
+      ) : (
+        inputEl
+      );
+    }
 
-    case 'number':
-      return (
+    case 'number': {
+      const inputEl = (
         <Input
           type="number"
           step="any"
@@ -554,9 +819,15 @@ function FieldInput({
           }}
         />
       );
+      return isInvalid ? (
+        <InvalidFieldTooltip field={field}>{inputEl}</InvalidFieldTooltip>
+      ) : (
+        inputEl
+      );
+    }
 
-    case 'date':
-      return (
+    case 'date': {
+      const inputEl = (
         <Input
           type="date"
           value={(value as string) || ''}
@@ -571,6 +842,12 @@ function FieldInput({
           }
         />
       );
+      return isInvalid ? (
+        <InvalidFieldTooltip field={field}>{inputEl}</InvalidFieldTooltip>
+      ) : (
+        inputEl
+      );
+    }
 
     case 'boolean':
       return (
@@ -584,8 +861,8 @@ function FieldInput({
         </div>
       );
 
-    case 'select':
-      return (
+    case 'select': {
+      const selectEl = (
         <Select
           value={(value as string) || ''}
           onValueChange={(v) =>
@@ -596,7 +873,7 @@ function FieldInput({
             className={
               isAutoFilled
                 ? 'h-9 text-sm border-primary/25 bg-primary/5 focus:ring-primary/40 w-full'
-                : isEmpty
+                : hasIssue
                   ? 'h-9 text-sm border-destructive/50 bg-destructive/5 focus:ring-destructive/40 w-full'
                   : 'h-9 text-sm w-full'
             }
@@ -612,10 +889,16 @@ function FieldInput({
           </SelectContent>
         </Select>
       );
+      return isInvalid ? (
+        <InvalidFieldTooltip field={field}>{selectEl}</InvalidFieldTooltip>
+      ) : (
+        selectEl
+      );
+    }
 
     case 'array': {
       const arr = Array.isArray(value) ? (value as string[]) : [];
-      return (
+      const inputEl = (
         <Input
           type="text"
           value={arr.join(', ')}
@@ -630,18 +913,29 @@ function FieldInput({
           }}
         />
       );
+      return isInvalid ? (
+        <InvalidFieldTooltip field={field}>{inputEl}</InvalidFieldTooltip>
+      ) : (
+        inputEl
+      );
     }
 
-    case 'ref':
-      return (
+    case 'ref': {
+      const refEl = (
         <RefSelect
           field={field}
           value={value}
           sectionKey={sectionKey}
           rowIndex={rowIndex}
-          isEmpty={isEmpty}
+          hasIssue={hasIssue}
         />
       );
+      return isInvalid ? (
+        <InvalidFieldTooltip field={field}>{refEl}</InvalidFieldTooltip>
+      ) : (
+        refEl
+      );
+    }
 
     default:
       return <span className="text-muted-foreground text-xs">—</span>;
@@ -657,13 +951,13 @@ function RefSelect({
   value,
   sectionKey,
   rowIndex,
-  isEmpty,
+  hasIssue,
 }: {
   field: FieldDef;
   value: unknown;
   sectionKey: string;
   rowIndex: number;
-  isEmpty: boolean;
+  hasIssue: boolean;
 }) {
   const updateCell = useStore((s) => s.updateCell);
   const allData = useStore((s) => s.data);
@@ -694,7 +988,7 @@ function RefSelect({
       : '';
 
   const isVirtual = field.virtual;
-  const triggerClass = isEmpty
+  const triggerClass = hasIssue
     ? 'h-9 text-sm w-full border-destructive/50 bg-destructive/5 focus:ring-destructive/40'
     : isVirtual
       ? 'h-9 text-sm w-full border-primary/30 bg-primary/5 focus:ring-1 focus:ring-primary'

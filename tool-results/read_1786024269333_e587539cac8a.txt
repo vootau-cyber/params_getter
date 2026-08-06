@@ -1,0 +1,1045 @@
+     1→'use client';
+     2→
+     3→import React, { useState, useMemo } from 'react';
+     4→import type { SectionDef, FieldDef } from '@/lib/schema';
+     5→import { useStore } from '@/lib/store';
+     6→
+     7→import { Input } from '@/components/ui/input';
+     8→import { Textarea } from '@/components/ui/textarea';
+     9→import { Switch } from '@/components/ui/switch';
+    10→import {
+    11→  Select,
+    12→  SelectContent,
+    13→  SelectItem,
+    14→  SelectTrigger,
+    15→  SelectValue,
+    16→} from '@/components/ui/select';
+    17→import { Button } from '@/components/ui/button';
+    18→import {
+    19→  Tooltip,
+    20→  TooltipContent,
+    21→  TooltipTrigger,
+    22→} from '@/components/ui/tooltip';
+    23→import { Badge } from '@/components/ui/badge';
+    24→import { Label } from '@/components/ui/label';
+    25→import {
+    26→  Collapsible,
+    27→  CollapsibleContent,
+    28→  CollapsibleTrigger,
+    29→} from '@/components/ui/collapsible';
+    30→import {
+    31→  Plus,
+    32→  Trash2,
+    33→  Minus,
+    34→  Link2,
+    35→  ChevronDown,
+    36→  ChevronRight,
+    37→  FileText,
+    38→  AlertCircle,
+    39→} from 'lucide-react';
+    40→
+    41→// =============================================================================
+    42→// Validation helpers
+    43→// =============================================================================
+    44→
+    45→export type FieldStatus = 'empty' | 'invalid' | 'ok';
+    46→
+    47→/**
+    48→ * Determine if a field value is considered "empty" (unfilled).
+    49→ * Booleans, readOnly, virtual, and object fields are always 'ok'.
+    50→ */
+    51→export function getFieldStatus(field: FieldDef, value: unknown): FieldStatus {
+    52→  // Skip types that don't need validation
+    53→  if (field.readOnly || field.virtual) return 'ok';
+    54→  if (field.type === 'boolean') return 'ok';
+    55→  if (field.type === 'object') return 'ok';
+    56→
+    57→  switch (field.type) {
+    58→    case 'text':
+    59→    case 'textarea':
+    60→      return (value as string) === '' ? 'empty' : 'ok';
+    61→    case 'number':
+    62→      return value === null || value === undefined ? 'empty' : 'ok';
+    63→    case 'date':
+    64→      return value === null || value === undefined || value === '' ? 'empty' : 'ok';
+    65→    case 'select':
+    66→      return (value as string) === '' || value === null ? 'empty' : 'ok';
+    67→    case 'array':
+    68→      return Array.isArray(value) && value.length === 0 ? 'empty' : 'ok';
+    69→    case 'ref':
+    70→      return value === null || value === undefined ? 'empty' : 'ok';
+    71→    default:
+    72→      return 'ok';
+    73→  }
+    74→}
+    75→
+    76→/** Count empty + invalid fields in a record */
+    77→export function countFieldIssues(
+    78→  fields: FieldDef[],
+    79→  row: Record<string, unknown>,
+    80→): number {
+    81→  let count = 0;
+    82→  for (const f of fields) {
+    83→    const status = getFieldStatus(f, row[f.key]);
+    84→    if (status !== 'ok') count++;
+    85→  }
+    86→  return count;
+    87→}
+    88→
+    89→// =============================================================================
+    90→// SectionTable — Vertical card-per-record layout (desktop-only)
+    91→// =============================================================================
+    92→
+    93→interface SectionTableProps {
+    94→  section: SectionDef;
+    95→}
+    96→
+    97→export function SectionTable({ section }: SectionTableProps) {
+    98→  const data = useStore((s) => s.data[section.key] || []);
+    99→  const addRow = useStore((s) => s.addRow);
+   100→  const removeRow = useStore((s) => s.removeRow);
+   101→  const [activeRecord, setActiveRecord] = useState(0);
+   102→
+   103→  // Clamp activeRecord when data changes
+   104→  const clampedRecord =
+   105→    data.length > 0 ? Math.min(activeRecord, data.length - 1) : 0;
+   106→
+   107→  React.useEffect(() => {
+   108→    if (clampedRecord !== activeRecord) {
+   109→      setActiveRecord(clampedRecord);
+   110→    }
+   111→  }, [clampedRecord, activeRecord]);
+   112→
+   113→  const editableFields = section.fields.filter((f) => !f.readOnly);
+   114→  const readOnlyFields = section.fields.filter((f) => f.readOnly);
+   115→  const row =
+   116→    data.length > 0
+   117→      ? (data[clampedRecord] as Record<string, unknown>)
+   118→      : null;
+   119→
+   120→  // Empty state
+   121→  if (data.length === 0) {
+   122→    return (
+   123→      <div className="py-16 text-center">
+   124→        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+   125→          <FileText className="size-7 text-muted-foreground" />
+   126→        </div>
+   127→        <p className="text-muted-foreground text-sm mb-4">
+   128→          Нет данных. Добавьте запись для начала.
+   129→        </p>
+   130→        <Button
+   131→          variant="outline"
+   132→          onClick={() => {
+   133→            addRow(section.key);
+   134→            setActiveRecord(0);
+   135→          }}
+   136→        >
+   137→          <Plus className="mr-2 size-4" />
+   138→          Добавить запись
+   139→        </Button>
+   140→      </div>
+   141→    );
+   142→  }
+   143→
+   144→  // Classify fields for layout
+   145→  const shortFields = editableFields.filter(
+   146→    (f) =>
+   147→      !f.virtual &&
+   148→      f.type !== 'textarea' &&
+   149→      f.type !== 'object' &&
+   150→      f.type !== 'array',
+   151→  );
+   152→  const virtualFields = editableFields.filter((f) => f.virtual);
+   153→  const textareaFields = editableFields.filter((f) => f.type === 'textarea');
+   154→  const arrayFields = editableFields.filter((f) => f.type === 'array');
+   155→  const objectFields = editableFields.filter((f) => f.type === 'object');
+   156→
+   157→  // Split short fields into pairs for 2-column grid
+   158→  const fieldPairs: (FieldDef | null)[][] = [];
+   159→  for (let i = 0; i < shortFields.length; i += 2) {
+   160→    fieldPairs.push([shortFields[i], shortFields[i + 1] ?? null]);
+   161→  }
+   162→
+   163→  return (
+   164→    <div className="space-y-4">
+   165→      {/* ── Record Tabs ─────────────────────────────────────────────── */}
+   166→      <div className="flex items-center gap-2 border-b pb-3">
+   167→        <div className="flex items-center gap-1 overflow-x-auto">
+   168→          {data.map((_, idx) => {
+   169→            const r = data[idx] as Record<string, unknown>;
+   170→            const issues = countFieldIssues(editableFields, r);
+   171→            const isActive = idx === clampedRecord;
+   172→            return (
+   173→              <Button
+   174→                key={idx}
+   175→                variant={isActive ? 'default' : 'outline'}
+   176→                size="sm"
+   177→                className={`shrink-0 h-8 px-3 text-xs gap-1.5 ${!isActive && issues > 0 ? 'border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive' : ''}`}
+   178→                onClick={() => setActiveRecord(idx)}
+   179→              >
+   180→                Запись {idx + 1}
+   181→                {issues > 0 && (
+   182→                  <Badge
+   183→                    variant="secondary"
+   184→                    className={`text-[9px] px-1 py-0 h-4 ${isActive ? 'bg-white/20 text-primary-foreground' : 'bg-destructive/10 text-destructive'}`}
+   185→                  >
+   186→                    {issues}
+   187→                  </Badge>
+   188→                )}
+   189→              </Button>
+   190→            );
+   191→          })}
+   192→        </div>
+   193→        <Button
+   194→          variant="outline"
+   195→          size="sm"
+   196→          className="shrink-0 h-8 text-xs"
+   197→          onClick={() => {
+   198→            addRow(section.key);
+   199→            setTimeout(() => setActiveRecord(data.length), 0);
+   200→          }}
+   201→        >
+   202→          <Plus className="mr-1 size-3.5" />
+   203→          Добавить
+   204→        </Button>
+   205→        <div className="ml-auto">
+   206→          <Button
+   207→            variant="outline"
+   208→            size="sm"
+   209→            className="h-8 text-xs text-destructive hover:text-destructive"
+   210→            onClick={() => {
+   211→              removeRow(section.key, clampedRecord);
+   212→              if (
+   213→                clampedRecord >= data.length - 1 &&
+   214→                clampedRecord > 0
+   215→              ) {
+   216→                setActiveRecord(clampedRecord - 1);
+   217→              }
+   218→            }}
+   219→          >
+   220→            <Trash2 className="mr-1 size-3.5" />
+   221→            Удалить
+   222→          </Button>
+   223→        </div>
+   224→      </div>
+   225→
+   226→      {/* ── Record Form ──────────────────────────────────────────────── */}
+   227→      {row && (
+   228→        <div className="space-y-6">
+   229→          {/* Virtual ref fields (reference selectors) */}
+   230→          {virtualFields.length > 0 && (
+   231→            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+   232→              <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
+   233→                <Link2 className="size-3.5" />
+   234→                Ссылки на другие разделы
+   235→              </div>
+   236→              {virtualFields.map((field) => (
+   237→                <RecordFieldRow
+   238→                  key={field.key}
+   239→                  field={field}
+   240→                  value={row[field.key]}
+   241→                  sectionKey={section.key}
+   242→                  rowIndex={clampedRecord}
+   243→                  fullWidth
+   244→                />
+   245→              ))}
+   246→            </div>
+   247→          )}
+   248→
+   249→          {/* Main 2-column field grid */}
+   250→          {fieldPairs.length > 0 && (
+   251→            <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+   252→              {fieldPairs.map((pair, pairIdx) => (
+   253→                <React.Fragment key={pairIdx}>
+   254→                  <RecordFieldRow
+   255→                    field={pair[0]!}
+   256→                    value={row[pair[0]!.key]}
+   257→                    sectionKey={section.key}
+   258→                    rowIndex={clampedRecord}
+   259→                    fullWidth={false}
+   260→                  />
+   261→                  {pair[1] ? (
+   262→                    <RecordFieldRow
+   263→                      field={pair[1]}
+   264→                      value={row[pair[1].key]}
+   265→                      sectionKey={section.key}
+   266→                      rowIndex={clampedRecord}
+   267→                      fullWidth={false}
+   268→                    />
+   269→                  ) : null}
+   270→                </React.Fragment>
+   271→              ))}
+   272→            </div>
+   273→          )}
+   274→
+   275→          {/* Textarea fields — full width */}
+   276→          {textareaFields.length > 0 && (
+   277→            <div className="space-y-3">
+   278→              {textareaFields.map((field) => (
+   279→                <RecordFieldRow
+   280→                  key={field.key}
+   281→                  field={field}
+   282→                  value={row[field.key]}
+   283→                  sectionKey={section.key}
+   284→                  rowIndex={clampedRecord}
+   285→                  fullWidth
+   286→                />
+   287→              ))}
+   288→            </div>
+   289→          )}
+   290→
+   291→          {/* Array fields — full width */}
+   292→          {arrayFields.length > 0 && (
+   293→            <div className="space-y-3">
+   294→              {arrayFields.map((field) => (
+   295→                <RecordFieldRow
+   296→                  key={field.key}
+   297→                  field={field}
+   298→                  value={row[field.key]}
+   299→                  sectionKey={section.key}
+   300→                  rowIndex={clampedRecord}
+   301→                  fullWidth
+   302→                />
+   303→              ))}
+   304→            </div>
+   305→          )}
+   306→
+   307→          {/* Object fields (nested arrays/objects) — full width */}
+   308→          {objectFields.length > 0 && (
+   309→            <div className="space-y-4">
+   310→              {objectFields.map((field) => (
+   311→                <RecordFieldRow
+   312→                  key={field.key}
+   313→                  field={field}
+   314→                  value={row[field.key]}
+   315→                  sectionKey={section.key}
+   316→                  rowIndex={clampedRecord}
+   317→                  fullWidth
+   318→                />
+   319→              ))}
+   320→            </div>
+   321→          )}
+   322→
+   323→          {/* Read-only fields (qdrant tags, etc.) — collapsed */}
+   324→          {readOnlyFields.length > 0 && (
+   325→            <ReadonlyFieldsBlock fields={readOnlyFields} row={row} />
+   326→          )}
+   327→        </div>
+   328→      )}
+   329→    </div>
+   330→  );
+   331→}
+   332→
+   333→// =============================================================================
+   334→// RecordFieldRow — a single field displayed as label + input
+   335→// =============================================================================
+   336→
+   337→interface RecordFieldRowProps {
+   338→  field: FieldDef;
+   339→  value: unknown;
+   340→  sectionKey: string;
+   341→  rowIndex: number;
+   342→  fullWidth: boolean;
+   343→}
+   344→
+   345→function RecordFieldRow({
+   346→  field,
+   347→  value,
+   348→  sectionKey,
+   349→  rowIndex,
+   350→  fullWidth,
+   351→}: RecordFieldRowProps) {
+   352→  const updateCell = useStore((s) => s.updateCell);
+   353→  const updateNestedCell = useStore((s) => s.updateNestedCell);
+   354→  const addNestedRow = useStore((s) => s.addNestedRow);
+   355→  const removeNestedRow = useStore((s) => s.removeNestedRow);
+   356→
+   357→  const isAutoFilled = field.autoFilled;
+   358→  const status = getFieldStatus(field, value);
+   359→  const hasIssue = status !== 'ok';
+   360→
+   361→  const labelContent = (
+   362→    <div className="flex items-center gap-1.5">
+   363→      {hasIssue && (
+   364→        <AlertCircle className="size-3.5 text-destructive shrink-0" />
+   365→      )}
+   366→      <Label
+   367→        className={`text-xs font-medium ${isAutoFilled ? 'text-primary' : hasIssue ? 'text-destructive' : 'text-foreground/80'}`}
+   368→      >
+   369→        {field.label}
+   370→      </Label>
+   371→      {isAutoFilled && (
+   372→        <Badge
+   373→          variant="outline"
+   374→          className="text-[9px] px-1 py-0 h-3.5 text-primary/70 border-primary/30"
+   375→        >
+   376→          авто
+   377→        </Badge>
+   378→      )}
+   379→      {field.hint && (
+   380→        <Tooltip>
+   381→          <TooltipTrigger asChild>
+   382→            <span className="text-muted-foreground/50 cursor-help text-[10px] leading-none">
+   383→              ?
+   384→            </span>
+   385→          </TooltipTrigger>
+   386→          <TooltipContent side="top" sideOffset={4} className="max-w-xs">
+   387→            <p className="text-xs">{field.hint}</p>
+   388→          </TooltipContent>
+   389→        </Tooltip>
+   390→      )}
+   391→    </div>
+   392→  );
+   393→
+   394→  const inputEl = (
+   395→    <FieldInput
+   396→      field={field}
+   397→      value={value}
+   398→      sectionKey={sectionKey}
+   399→      rowIndex={rowIndex}
+   400→      status={status}
+   401→      updateCell={updateCell}
+   402→      updateNestedCell={updateNestedCell}
+   403→      addNestedRow={addNestedRow}
+   404→      removeNestedRow={removeNestedRow}
+   405→    />
+   406→  );
+   407→
+   408→  // For object fields (nested tables), render differently
+   409→  if (field.type === 'object' && field.nestedFields) {
+   410→    return (
+   411→      <div className={fullWidth ? '' : 'col-span-2'}>
+   412→        <div className="flex items-center gap-2 mb-2">{labelContent}</div>
+   413→        <NestedFieldBlock
+   414→          field={field}
+   415→          value={value}
+   416→          sectionKey={sectionKey}
+   417→          rowIndex={rowIndex}
+   418→          updateNestedCell={updateNestedCell}
+   419→          addNestedRow={addNestedRow}
+   420→          removeNestedRow={removeNestedRow}
+   421→        />
+   422→      </div>
+   423→    );
+   424→  }
+   425→
+   426→  // For array fields that need more space
+   427→  if (field.type === 'array' && fullWidth) {
+   428→    return (
+   429→      <div>
+   430→        {labelContent}
+   431→        <div className="mt-1">{inputEl}</div>
+   432→      </div>
+   433→    );
+   434→  }
+   435→
+   436→  // For textarea in grid, span 2 columns
+   437→  if (field.type === 'textarea') {
+   438→    return (
+   439→      <div className="col-span-2">
+   440→        {labelContent}
+   441→        <div className="mt-1">{inputEl}</div>
+   442→      </div>
+   443→    );
+   444→  }
+   445→
+   446→  return (
+   447→    <div>
+   448→      {labelContent}
+   449→      <div className="mt-1">{inputEl}</div>
+   450→    </div>
+   451→  );
+   452→}
+   453→
+   454→// =============================================================================
+   455→// FieldInput — renders the actual input control for a field
+   456→// =============================================================================
+   457→
+   458→interface FieldInputProps {
+   459→  field: FieldDef;
+   460→  value: unknown;
+   461→  sectionKey: string;
+   462→  rowIndex: number;
+   463→  status: FieldStatus;
+   464→  updateCell: (
+   465→    sectionKey: string,
+   466→    rowIndex: number,
+   467→    fieldKey: string,
+   468→    value: unknown,
+   469→  ) => void;
+   470→  updateNestedCell: (
+   471→    sectionKey: string,
+   472→    rowIndex: number,
+   473→    fieldKey: string,
+   474→    nestedIndex: number,
+   475→    nestedFieldKey: string,
+   476→    value: unknown,
+   477→  ) => void;
+   478→  addNestedRow: (
+   479→    sectionKey: string,
+   480→    rowIndex: number,
+   481→    fieldKey: string,
+   482→  ) => void;
+   483→  removeNestedRow: (
+   484→    sectionKey: string,
+   485→    rowIndex: number,
+   486→    fieldKey: string,
+   487→    nestedIndex: number,
+   488→  ) => void;
+   489→}
+   490→
+   491→function FieldInput({
+   492→  field,
+   493→  value,
+   494→  sectionKey,
+   495→  rowIndex,
+   496→  status,
+   497→  updateCell,
+   498→}: FieldInputProps) {
+   499→  const isAutoFilled = field.autoFilled;
+   500→  const isEmpty = status === 'empty';
+   501→
+   502→  // Build class based on status
+   503→  const baseInputClass = isAutoFilled
+   504→    ? 'h-9 text-sm border-primary/25 bg-primary/5 focus-visible:ring-primary/40'
+   505→    : isEmpty
+   506→      ? 'h-9 text-sm border-destructive/50 bg-destructive/5 focus-visible:ring-destructive/40'
+   507→      : 'h-9 text-sm focus-visible:ring-1 focus-visible:ring-ring';
+   508→
+   509→  switch (field.type) {
+   510→    case 'text':
+   511→      return (
+   512→        <Input
+   513→          type="text"
+   514→          value={(value as string) || ''}
+   515→          placeholder={field.placeholder}
+   516→          className={baseInputClass}
+   517→          onChange={(e) =>
+   518→            updateCell(sectionKey, rowIndex, field.key, e.target.value)
+   519→          }
+   520→        />
+   521→      );
+   522→
+   523→    case 'textarea':
+   524→      return (
+   525→        <Textarea
+   526→          value={(value as string) || ''}
+   527→          placeholder={field.placeholder}
+   528→          rows={3}
+   529→          className={`min-h-[80px] text-sm resize-y ${isEmpty ? 'border-destructive/50 bg-destructive/5 focus-visible:ring-destructive/40' : 'focus-visible:ring-1 focus-visible:ring-ring'}`}
+   530→          onChange={(e) =>
+   531→            updateCell(sectionKey, rowIndex, field.key, e.target.value)
+   532→          }
+   533→        />
+   534→      );
+   535→
+   536→    case 'number':
+   537→      return (
+   538→        <Input
+   539→          type="number"
+   540→          step="any"
+   541→          value={
+   542→            value === null || value === undefined ? '' : String(value)
+   543→          }
+   544→          placeholder={field.placeholder}
+   545→          className={baseInputClass}
+   546→          onChange={(e) => {
+   547→            const v = e.target.value;
+   548→            updateCell(
+   549→              sectionKey,
+   550→              rowIndex,
+   551→              field.key,
+   552→              v === '' ? null : Number(v),
+   553→            );
+   554→          }}
+   555→        />
+   556→      );
+   557→
+   558→    case 'date':
+   559→      return (
+   560→        <Input
+   561→          type="date"
+   562→          value={(value as string) || ''}
+   563→          className={baseInputClass}
+   564→          onChange={(e) =>
+   565→            updateCell(
+   566→              sectionKey,
+   567→              rowIndex,
+   568→              field.key,
+   569→              e.target.value || null,
+   570→            )
+   571→          }
+   572→        />
+   573→      );
+   574→
+   575→    case 'boolean':
+   576→      return (
+   577→        <div className="flex items-center h-9">
+   578→          <Switch
+   579→            checked={!!value}
+   580→            onCheckedChange={(checked) =>
+   581→              updateCell(sectionKey, rowIndex, field.key, checked)
+   582→            }
+   583→          />
+   584→        </div>
+   585→      );
+   586→
+   587→    case 'select':
+   588→      return (
+   589→        <Select
+   590→          value={(value as string) || ''}
+   591→          onValueChange={(v) =>
+   592→            updateCell(sectionKey, rowIndex, field.key, v)
+   593→          }
+   594→        >
+   595→          <SelectTrigger
+   596→            className={
+   597→              isAutoFilled
+   598→                ? 'h-9 text-sm border-primary/25 bg-primary/5 focus:ring-primary/40 w-full'
+   599→                : isEmpty
+   600→                  ? 'h-9 text-sm border-destructive/50 bg-destructive/5 focus:ring-destructive/40 w-full'
+   601→                  : 'h-9 text-sm w-full'
+   602→            }
+   603→          >
+   604→            <SelectValue placeholder={field.placeholder || 'Выберите…'} />
+   605→          </SelectTrigger>
+   606→          <SelectContent>
+   607→            {(field.options || []).map((opt) => (
+   608→              <SelectItem key={opt} value={opt}>
+   609→                {opt}
+   610→              </SelectItem>
+   611→            ))}
+   612→          </SelectContent>
+   613→        </Select>
+   614→      );
+   615→
+   616→    case 'array': {
+   617→      const arr = Array.isArray(value) ? (value as string[]) : [];
+   618→      return (
+   619→        <Input
+   620→          type="text"
+   621→          value={arr.join(', ')}
+   622→          placeholder="через запятую"
+   623→          className={baseInputClass}
+   624→          onChange={(e) => {
+   625→            const items = e.target.value
+   626→              .split(',')
+   627→              .map((s) => s.trim())
+   628→              .filter(Boolean);
+   629→            updateCell(sectionKey, rowIndex, field.key, items);
+   630→          }}
+   631→        />
+   632→      );
+   633→    }
+   634→
+   635→    case 'ref':
+   636→      return (
+   637→        <RefSelect
+   638→          field={field}
+   639→          value={value}
+   640→          sectionKey={sectionKey}
+   641→          rowIndex={rowIndex}
+   642→          isEmpty={isEmpty}
+   643→        />
+   644→      );
+   645→
+   646→    default:
+   647→      return <span className="text-muted-foreground text-xs">—</span>;
+   648→  }
+   649→}
+   650→
+   651→// =============================================================================
+   652→// RefSelect — dropdown populated from another section's data
+   653→// =============================================================================
+   654→
+   655→function RefSelect({
+   656→  field,
+   657→  value,
+   658→  sectionKey,
+   659→  rowIndex,
+   660→  isEmpty,
+   661→}: {
+   662→  field: FieldDef;
+   663→  value: unknown;
+   664→  sectionKey: string;
+   665→  rowIndex: number;
+   666→  isEmpty: boolean;
+   667→}) {
+   668→  const updateCell = useStore((s) => s.updateCell);
+   669→  const allData = useStore((s) => s.data);
+   670→  const refSection = field.refSection;
+   671→  const refLabelField = field.refLabelField;
+   672→
+   673→  const options = useMemo(() => {
+   674→    if (!refSection) return [];
+   675→    const rows = (allData[refSection] || []) as Record<string, unknown>[];
+   676→    return rows
+   677→      .map((row, idx) => {
+   678→        const label = refLabelField
+   679→          ? String(row[refLabelField] || '')
+   680→          : `Запись ${idx + 1}`;
+   681→        return { idx, label };
+   682→      })
+   683→      .filter((o) => o.label);
+   684→  }, [allData, refSection, refLabelField]);
+   685→
+   686→  const currentIdx = value as number | null;
+   687→  const currentValue =
+   688→    currentIdx !== null && currentIdx !== undefined
+   689→      ? String(currentIdx)
+   690→      : '';
+   691→  const currentLabel =
+   692→    currentIdx !== null && currentIdx !== undefined
+   693→      ? options.find((o) => o.idx === currentIdx)?.label || ''
+   694→      : '';
+   695→
+   696→  const isVirtual = field.virtual;
+   697→  const triggerClass = isEmpty
+   698→    ? 'h-9 text-sm w-full border-destructive/50 bg-destructive/5 focus:ring-destructive/40'
+   699→    : isVirtual
+   700→      ? 'h-9 text-sm w-full border-primary/30 bg-primary/5 focus:ring-1 focus:ring-primary'
+   701→      : 'h-9 text-sm w-full';
+   702→
+   703→  return (
+   704→    <Select
+   705→      value={currentValue}
+   706→      onValueChange={(v) =>
+   707→        updateCell(sectionKey, rowIndex, field.key, Number(v))
+   708→      }
+   709→    >
+   710→      <SelectTrigger className={triggerClass}>
+   711→        <SelectValue placeholder={field.placeholder || 'Выберите…'}>
+   712→          {currentLabel || (field.placeholder || 'Выберите…')}
+   713→        </SelectValue>
+   714→      </SelectTrigger>
+   715→      <SelectContent>
+   716→        {options.length === 0 && (
+   717→          <SelectItem value="_empty" disabled>
+   718→            Нет записей в справочнике
+   719→          </SelectItem>
+   720→        )}
+   721→        {options.map((opt) => (
+   722→          <SelectItem key={opt.idx} value={String(opt.idx)}>
+   723→            {opt.label}
+   724→          </SelectItem>
+   725→        ))}
+   726→      </SelectContent>
+   727→    </Select>
+   728→  );
+   729→}
+   730→
+   731→// =============================================================================
+   732→// NestedFieldBlock — for object fields with nested sub-fields
+   733→// =============================================================================
+   734→
+   735→function NestedFieldBlock({
+   736→  field,
+   737→  value,
+   738→  sectionKey,
+   739→  rowIndex,
+   740→  updateNestedCell,
+   741→  addNestedRow,
+   742→  removeNestedRow,
+   743→}: {
+   744→  field: FieldDef;
+   745→  value: unknown;
+   746→  sectionKey: string;
+   747→  rowIndex: number;
+   748→  updateNestedCell: (
+   749→    sectionKey: string,
+   750→    rowIndex: number,
+   751→    fieldKey: string,
+   752→    nestedIndex: number,
+   753→    nestedFieldKey: string,
+   754→    value: unknown,
+   755→  ) => void;
+   756→  addNestedRow: (
+   757→    sectionKey: string,
+   758→    rowIndex: number,
+   759→    fieldKey: string,
+   760→  ) => void;
+   761→  removeNestedRow: (
+   762→    sectionKey: string,
+   763→    rowIndex: number,
+   764→    fieldKey: string,
+   765→    nestedIndex: number,
+   766→  ) => void;
+   767→}) {
+   768→  const [open, setOpen] = useState(false);
+   769→  const editableNestedFields = (field.nestedFields || []).filter(
+   770→    (nf) => !nf.readOnly,
+   771→  );
+   772→
+   773→  // Array of nested objects (e.g., points, scenarios, cargo lists)
+   774→  if (Array.isArray(value)) {
+   775→    const items = value as Record<string, unknown>[];
+   776→    return (
+   777→      <Collapsible open={open} onOpenChange={setOpen}>
+   778→        <CollapsibleTrigger asChild>
+   779→          <button className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+   780→            {open ? (
+   781→              <ChevronDown className="size-3.5" />
+   782→            ) : (
+   783→              <ChevronRight className="size-3.5" />
+   784→            )}
+   785→            <Badge variant="secondary" className="text-xs">
+   786→              {items.length}{' '}
+   787→              {items.length === 1
+   788→                ? 'запись'
+   789→                : items.length < 5
+   790→                  ? 'записи'
+   791→                  : 'записей'}
+   792→            </Badge>
+   793→            <span className="underline">развернуть</span>
+   794→          </button>
+   795→        </CollapsibleTrigger>
+   796→        <CollapsibleContent>
+   797→          <div className="mt-2 border rounded-lg overflow-hidden">
+   798→            {/* Header */}
+   799→            <div className="grid bg-muted/50 border-b px-3 py-2 text-xs font-medium text-muted-foreground">
+   800→              <div className="flex gap-4">
+   801→                <span className="w-8 text-center">#</span>
+   802→                {editableNestedFields.map((nf) => (
+   803→                  <span key={nf.key} className="min-w-[120px]">
+   804→                    {nf.label}
+   805→                  </span>
+   806→                ))}
+   807→                <span className="w-7" />
+   808→              </div>
+   809→            </div>
+   810→            {/* Rows */}
+   811→            {items.map((item, ni) => (
+   812→              <div
+   813→                key={ni}
+   814→                className="grid border-b last:border-b-0 hover:bg-muted/20 px-3 py-1.5"
+   815→              >
+   816→                <div className="flex gap-4 items-center">
+   817→                  <span className="w-8 text-center text-xs text-muted-foreground">
+   818→                    {ni + 1}
+   819→                  </span>
+   820→                  {editableNestedFields.map((nf) => (
+   821→                    <div key={nf.key} className="min-w-[120px]">
+   822→                      <NestedFieldInput
+   823→                        nestedField={nf}
+   824→                        value={item[nf.key]}
+   825→                        onChange={(v) =>
+   826→                          updateNestedCell(
+   827→                            sectionKey,
+   828→                            rowIndex,
+   829→                            field.key,
+   830→                            ni,
+   831→                            nf.key,
+   832→                            v,
+   833→                          )
+   834→                        }
+   835→                      />
+   836→                    </div>
+   837→                  ))}
+   838→                  <div className="w-7">
+   839→                    <Button
+   840→                      variant="ghost"
+   841→                      size="icon"
+   842→                      className="size-6 text-muted-foreground hover:text-destructive"
+   843→                      onClick={() =>
+   844→                        removeNestedRow(
+   845→                          sectionKey,
+   846→                          rowIndex,
+   847→                          field.key,
+   848→                          ni,
+   849→                        )
+   850→                      }
+   851→                    >
+   852→                      <Minus className="size-3" />
+   853→                    </Button>
+   854→                  </div>
+   855→                </div>
+   856→              </div>
+   857→            ))}
+   858→            {/* Add row */}
+   859→            <div className="px-3 py-1.5 border-t">
+   860→              <Button
+   861→                variant="ghost"
+   862→                size="sm"
+   863→                className="h-7 text-xs"
+   864→                onClick={() =>
+   865→                  addNestedRow(sectionKey, rowIndex, field.key)
+   866→                }
+   867→              >
+   868→                <Plus className="mr-1 size-3" />
+   869→                Добавить
+   870→              </Button>
+   871→            </div>
+   872→          </div>
+   873→        </CollapsibleContent>
+   874→      </Collapsible>
+   875→    );
+   876→  }
+   877→
+   878→  // Single nested object (e.g., ztb_boundaries)
+   879→  if (field.nestedFields && typeof value === 'object' && value !== null) {
+   880→    const obj = value as Record<string, unknown>;
+   881→    return (
+   882→      <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+   883→        {editableNestedFields.map((nf) => (
+   884→          <div key={nf.key}>
+   885→            <Label className="text-xs font-medium text-foreground/80">
+   886→              {nf.label}
+   887→            </Label>
+   888→            <div className="mt-1">
+   889→              <NestedFieldInput
+   890→                nestedField={nf}
+   891→                value={obj[nf.key]}
+   892→                onChange={(v) => {
+   893→                  const updated = { ...obj, [nf.key]: v };
+   894→                  useStore
+   895→                    .getState()
+   896→                    .updateCell(sectionKey, rowIndex, field.key, updated);
+   897→                }}
+   898→              />
+   899→            </div>
+   900→          </div>
+   901→        ))}
+   902→      </div>
+   903→    );
+   904→  }
+   905→
+   906→  return null;
+   907→}
+   908→
+   909→// =============================================================================
+   910→// NestedFieldInput — input for a single nested field
+   911→// =============================================================================
+   912→
+   913→function NestedFieldInput({
+   914→  nestedField,
+   915→  value,
+   916→  onChange,
+   917→}: {
+   918→  nestedField: FieldDef;
+   919→  value: unknown;
+   920→  onChange: (value: unknown) => void;
+   921→}) {
+   922→  const v = value ?? '';
+   923→
+   924→  switch (nestedField.type) {
+   925→    case 'boolean':
+   926→      return (
+   927→        <Switch
+   928→          checked={!!value}
+   929→          onCheckedChange={(checked) => onChange(checked)}
+   930→          className="scale-75"
+   931→        />
+   932→      );
+   933→    case 'number':
+   934→      return (
+   935→        <input
+   936→          type="number"
+   937→          step="any"
+   938→          value={v === '' || v === null ? '' : String(v)}
+   939→          className="w-full h-7 text-xs border rounded-md px-2 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+   940→          onChange={(e) => {
+   941→            const nv = e.target.value;
+   942→            onChange(nv === '' ? null : Number(nv));
+   943→          }}
+   944→        />
+   945→      );
+   946→    case 'select':
+   947→      return (
+   948→        <select
+   949→          value={String(v)}
+   950→          className="w-full h-7 text-xs border rounded-md px-2 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+   951→          onChange={(e) => onChange(e.target.value)}
+   952→        >
+   953→          <option value="">—</option>
+   954→          {(nestedField.options || []).map((opt) => (
+   955→            <option key={opt} value={opt}>
+   956→              {opt}
+   957→            </option>
+   958→          ))}
+   959→        </select>
+   960→      );
+   961→    default:
+   962→      return (
+   963→        <input
+   964→          type="text"
+   965→          value={String(v)}
+   966→          className="w-full h-7 text-xs border rounded-md px-2 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+   967→          onChange={(e) => onChange(e.target.value)}
+   968→        />
+   969→      );
+   970→  }
+   971→}
+   972→
+   973→// =============================================================================
+   974→// ReadonlyFieldsBlock — collapsed block for qdrant_* and other readOnly fields
+   975→// =============================================================================
+   976→
+   977→function ReadonlyFieldsBlock({
+   978→  fields,
+   979→  row,
+   980→}: {
+   981→  fields: FieldDef[];
+   982→  row: Record<string, unknown>;
+   983→}) {
+   984→  const [open, setOpen] = useState(false);
+   985→
+   986→  const hasValues = fields.some(
+   987→    (f) =>
+   988→      row[f.key] !== '' &&
+   989→      row[f.key] !== null &&
+   990→      row[f.key] !== undefined,
+   991→  );
+   992→
+   993→  if (!hasValues && !open) return null;
+   994→
+   995→  return (
+   996→    <Collapsible open={open} onOpenChange={setOpen}>
+   997→      <CollapsibleTrigger asChild>
+   998→        <button className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+   999→          {open ? (
+  1000→            <ChevronDown className="size-3.5" />
+  1001→          ) : (
+  1002→            <ChevronRight className="size-3.5" />
+  1003→          )}
+  1004→          <span className="font-medium">Системные теги и метаданные</span>
+  1005→          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
+  1006→            {fields.length} полей
+  1007→          </Badge>
+  1008→          {hasValues && !open && (
+  1009→            <Badge
+  1010→              variant="secondary"
+  1011→              className="text-[9px] px-1 py-0 h-4 bg-primary/10 text-primary border-primary/25"
+  1012→            >
+  1013→              есть данные
+  1014→            </Badge>
+  1015→          )}
+  1016→        </button>
+  1017→      </CollapsibleTrigger>
+  1018→      <CollapsibleContent>
+  1019→        <div className="mt-2 grid grid-cols-3 gap-x-6 gap-y-2 p-3 rounded-lg bg-muted/30 border">
+  1020→          {fields.map((f) => (
+  1021→            <div
+  1022→              key={f.key}
+  1023→              className="flex items-center justify-between gap-2"
+  1024→            >
+  1025→              <span
+  1026→                className="text-xs text-muted-foreground truncate"
+  1027→                title={f.label}
+  1028→              >
+  1029→                {f.label}
+  1030→              </span>
+  1031→              <span className="text-xs font-mono text-muted-foreground/70 truncate max-w-[160px]">
+  1032→                {row[f.key] === null
+  1033→                  ? 'null'
+  1034→                  : Array.isArray(row[f.key])
+  1035→                    ? `[${(row[f.key] as unknown[]).length}]`
+  1036→                    : String(row[f.key]) || '—'}
+  1037→              </span>
+  1038→            </div>
+  1039→          ))}
+  1040→        </div>
+  1041→      </CollapsibleContent>
+  1042→    </Collapsible>
+  1043→  );
+  1044→}
+  1045→

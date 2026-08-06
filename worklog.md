@@ -1584,3 +1584,27 @@ Stage Summary:
 - page.tsx simplified for desktop-only
 - Output JSON field names remain completely unchanged (virtual fields stripped on save)
 - All 30 sections functional in the new layout
+
+---
+Task ID: 3
+Agent: Main
+Task: Add format validation with red highlighting and tooltip for invalid fields
+
+Work Log:
+- Added FORMAT_RULES array with 17 pattern-based validation rules for Russian business identifiers (ИНН, ОГРН, КПП, ОКПО, СНИЛС), banking (БИК, р/с, к/с), contact (email, phone, fax), maritime (IMO, MMSI, call sign), coordinates (lat/lon), and registration numbers
+- Rewrote getFieldStatus() to return three states: 'empty', 'invalid', 'ok' — with full format validation for non-empty values
+- Number fields: validated as finite numbers (not NaN/Infinity)
+- Date fields: validated as real YYYY-MM-DD dates (checks for rollover like Feb 30)
+- Text fields: validated against FORMAT_RULES by key name pattern matching
+- Added getFieldFormatHint() function returning Russian format descriptions
+- Created InvalidFieldTooltip component wrapping invalid inputs in a red Tooltip with message: "Поле «{label}» — некорректный формат ввода. Корректный формат: {hint}"
+- Updated FieldInput to use hasIssue/isInvalid for both empty and invalid red styling
+- Updated RefSelect to use hasIssue prop instead of isEmpty
+- All input types (text, textarea, number, date, select, array, ref) wrapped in InvalidFieldTooltip when invalid
+- Badge issue counter on record tabs correctly reflects both empty and invalid field counts
+
+Stage Summary:
+- Modified: /home/z/my-project/src/components/section-table.tsx (added ~250 lines of validation + tooltip code)
+- No schema.ts changes needed — validation is auto-detected from field key names
+- Browser verified: INN with "abc" → red border + red tooltip "Поле «ИНН» — некорректный формат ввода. Корректный формат: 10 цифр (ИНН организации)"
+- Browser verified: email with "not-an-email" → red border + red tooltip "Поле Электронная почта — некорректный формат ввода. Корректный формат: example@domain.com"
