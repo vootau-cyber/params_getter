@@ -96,6 +96,46 @@ function getEmptyNestedRow(nestedFields: FieldDef[]): Record<string, unknown> {
 }
 
 // =============================================================================
+// Auto-fill companion name fields from infrastructure refs
+// =============================================================================
+
+const INFRA_REF_TO_NAME: Record<string, string> = {
+  located_on_infra_ref: 'located_on_name',
+  connected_to_infra_ref: 'connected_to_name',
+  berth_infra_ref: 'berth_name',
+  tsotb_location_infra_ref: 'tsotb_location_name',
+  tsotb_monitors_infra_ref: 'tsotb_monitors_object_name',
+  tsotb_powered_from_infra_ref: 'tsotb_powered_from_name',
+  eng_instance_location_infra_ref: 'eng_instance_location_name',
+};
+
+function autoFillNameFromRef(
+  sectionKey: string,
+  rowIndex: number,
+  refFieldKey: string,
+  refValue: unknown
+) {
+  const nameFieldKey = INFRA_REF_TO_NAME[refFieldKey];
+  if (!nameFieldKey) return;
+
+  const state = useStore.getState();
+  const infraRows = (state.data['infrastructure'] || []) as Record<string, unknown>[];
+  const idx = refValue as number | null;
+  const name = idx !== null && idx !== undefined && infraRows[idx]
+    ? String(infraRows[idx]['obj_name'] || '')
+    : '';
+
+  // Set the name field
+  set((s) => {
+    const sectionRows = (s.data[sectionKey] || []) as Record<string, unknown>[];
+    const rows = sectionRows.map((r, i) =>
+      i === rowIndex ? { ...r, [nameFieldKey]: name } : r
+    );
+    return { data: { ...s.data, [sectionKey]: rows } };
+  });
+}
+
+// =============================================================================
 // Store
 // =============================================================================
 
@@ -180,6 +220,11 @@ export const useStore = create<AppState>((set, get) => ({
       );
       return { data: { ...state.data, [sectionKey]: rows } };
     });
+
+    // Auto-fill companion *_name fields when a ref changes
+    if (fieldKey.endsWith('_infra_ref')) {
+      autoFillNameFromRef(sectionKey, rowIndex, fieldKey, value);
+    }
   },
 
   addRow: (sectionKey) => {

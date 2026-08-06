@@ -57,6 +57,59 @@ function detectChangedSections(oldData: DomainData, newData: DomainData): string
   return changed;
 }
 
+/**
+ * Migrates old data format to the current schema.
+ * - Merges ptb_contracts + maintenance_contracts → contracts
+ */
+export function migrateData(data: DomainData): DomainData {
+  const migrated = { ...data };
+
+  // Merge old contract sections into unified "contracts"
+  if (migrated['ptb_contracts'] || migrated['maintenance_contracts']) {
+    const contracts: unknown[] = [];
+    for (const row of (migrated['ptb_contracts'] || []) as Record<string, unknown>[]) {
+      contracts.push({
+        ...row,
+        contract_type: 'ПТБ',
+        oti_ref: null,
+        contract_provider: '',
+        contract_scope: '',
+        contract_is_active: true,
+      });
+    }
+    for (const row of (migrated['maintenance_contracts'] || []) as Record<string, unknown>[]) {
+      contracts.push({
+        ...row,
+        contract_type: 'Техническое обслуживание',
+        is_prolonged: false,
+        prolongation_date: null,
+        prolongation_new_exp_date: null,
+      });
+    }
+    migrated['contracts'] = contracts;
+    delete migrated['ptb_contracts'];
+    delete migrated['maintenance_contracts'];
+  }
+
+  // Ensure all current schema section keys exist
+  const knownKeys = [
+    'sti', 'sti_licenses', 'oti', 'persons', 'assessments', 'security_plans',
+    'land', 'land_summary', 'aquatories', 'cargo', 'cargo_summary',
+    'cargo_turnover', 'oti_operations', 'opo', 'infrastructure',
+    'critical_elements', 'restricted_access_zones', 'zoning', 'ptb',
+    'contracts', 'ptb_supplementary_agreements', 'posts', 'post_staff',
+    'post_equipment', 'tsotb_catalog', 'tsotb_instances',
+    'eng_catalog', 'eng_instances', 'climate_context',
+  ];
+  for (const key of knownKeys) {
+    if (!migrated[key]) {
+      migrated[key] = [];
+    }
+  }
+
+  return migrated;
+}
+
 // ── Core functions ───────────────────────────────────────────────────────────
 
 /**
@@ -67,13 +120,14 @@ export async function loadCurrentData(): Promise<DomainData> {
   await ensureDataDir();
 
   const existing = await readJsonFile<DomainData>(CURRENT_FILE);
-  if (existing) return existing;
+  if (existing) return migrateData(existing);
 
   // Initialise from seed
   const seedRaw = await readFile(SEED_FILE, 'utf-8');
   const seed = JSON.parse(seedRaw) as DomainData;
-  await writeFile(CURRENT_FILE, JSON.stringify(seed, null, 2), 'utf-8');
-  return seed;
+  const migrated = migrateData(seed);
+  await writeFile(CURRENT_FILE, JSON.stringify(migrated, null, 2), 'utf-8');
+  return migrated;
 }
 
 /**
@@ -139,7 +193,8 @@ export async function loadVersionData(versionId: number): Promise<DomainData | n
   if (!entry) return null;
 
   const snapshotPath = path.join(DATA_DIR, entry.data_file);
-  return readJsonFile<DomainData>(snapshotPath);
+  const data = await readJsonFile<DomainData>(snapshotPath);
+  return data ? migrateData(data) : null;
 }
 
 /** Returns the current data as a pretty-printed JSON string. */
@@ -148,10 +203,11 @@ export async function exportJson(): Promise<string> {
   return JSON.stringify(data, null, 2);
 }
 
-/** Resets current.json back to the seed template. */
+/** Resets current.json back to the seed template (migrated). */
 export async function resetToSeed(): Promise<void> {
   await ensureDataDir();
   const seedRaw = await readFile(SEED_FILE, 'utf-8');
   const seed = JSON.parse(seedRaw) as DomainData;
-  await writeFile(CURRENT_FILE, JSON.stringify(seed, null, 2), 'utf-8');
+  const migrated = migrateData(seed);
+  await writeFile(CURRENT_FILE, JSON.stringify(migrated, null, 2), 'utf-8');
 }

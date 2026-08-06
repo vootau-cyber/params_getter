@@ -1,89 +1,29 @@
+# Worklog — Реестр данных ОТИ
+
 ---
 Task ID: 1
 Agent: main
-Task: Create comprehensive schema definition with Russian labels/hints for 30 sections
+Task: Реструктуризация схемы: консолидация сущностей, устранение дублирования данных
 
 Work Log:
-- Read seed_domain_data_full.json (30 sections, 727 lines)
-- Created /src/lib/schema.ts with 520 fields across 30 sections
-- All labels and hints in Russian
-- Correct type inference: text, textarea, number, date, boolean, select, array, object
-- Helper functions: getEmptyRow(), getSectionGroups()
-- 8 navigation groups defined
+- Провёл анализ всех 30 разделов (~520 полей) на дублирующиеся сущности
+- Добавил тип поля `ref` в FieldDef с параметрами refSection и refLabelField
+- Конвертировал 22 текстовых `*_ref` поля в тип `ref` (выпадающие списки из справочников)
+- Сделал readOnly 7 полей `*_name`, которые автозаполняются из ссылок на инфраструктуру
+- Объединил `ptb_contracts` + `maintenance_contracts` в единый раздел `contracts` с полем `contract_type`
+- Реструктурировал `post_staff`: убрал 6 дублирующих полей (ФИО, должность, аттестация), добавил `person_ref` → справочник persons
+- Реструктурировал `zoning`: убрал 9 дублирующих полей КЭ и РОД, заменил на `critical_element_ref` и `rod_ref`
+- Обновил section-table.tsx: добавил компонент RefCell с выпадающим списком из данных другого раздела
+- Обновил store.ts: добавил авто-заполнение companion `*_name` полей при изменении ref-полей
+- Обновил storage.ts: добавил функцию миграции данных (contracts merge, обеспечение всех ключей схемы)
+- Обновил getSectionGroups() — заменил ptb_contracts/maintenance_contracts на contracts
+- Обновил getEmptyRow() — добавил обработку типа `ref` (defaultValue: null)
+- ESLint: 0 ошибок
+- Браузерное тестирование: все разделы отображаются, ref-поля рендерятся как combobox, мобильная адаптация работает
 
 Stage Summary:
-- Schema file: /src/lib/schema.ts (complete, 520 fields)
-- All 30 sections from JSON template covered
-- Zero missing fields
-
----
-Task ID: 2
-Agent: subagent (fullstack-developer)
-Task: Build file-based storage layer and versioning API routes
-
-Work Log:
-- Created /src/lib/storage.ts with file-based JSON storage
-- Created 6 API routes: /api/data, /api/versions, /api/versions/[id], /api/export, /api/import, /api/reset
-- Versioning system: snapshots + manifest, change detection per section
-- Data stored in /home/z/my-project/data/ directory
-
-Stage Summary:
-- Storage utility: /src/lib/storage.ts
-- API routes: /src/app/api/data/route.ts, versions/route.ts, versions/[id]/route.ts, export/route.ts, import/route.ts, reset/route.ts
-- No database required - pure JSON file storage
-
----
-Task ID: 3-6
-Agent: subagent (fullstack-developer)
-Task: Build frontend SPA with sidebar navigation, data tables, version history, import/export
-
-Work Log:
-- Created Zustand store /src/lib/store.ts with full state management
-- Created main page /src/app/page.tsx with header, sidebar, content area, footer
-- Created SectionTable component with cell renderers for all field types
-- Created VersionHistoryDialog and ImportDialog components
-- Responsive design with Sheet for mobile sidebar
-
-Stage Summary:
-- Store: /src/lib/store.ts
-- Page: /src/app/page.tsx
-- Components: section-table.tsx, version-history-dialog.tsx, import-dialog.tsx
-- Updated layout.tsx with Russian metadata
-
----
-Task ID: 7
-Agent: main
-Task: Lint, verify, browser-test
-
-Work Log:
-- ESLint passed with zero errors
-- Dev server running, all API routes returning 200
-- Browser verification: all 30 sections visible in sidebar
-- Data tables render correctly with all field types
-- Add row, delete row, save, export all working
-- Version history dialog works
-- Mobile responsive layout verified (375x812)
-- Updated layout.tsx metadata to Russian
-
-Stage Summary:
-- Application fully functional
-- All core features verified via browser automation
-
----
-Task ID: 8
-Agent: main
-Task: Verify schema fields against docx, hide auto-generated fields
-
-Work Log:
-- Converted full_variables_list.docx to text and extracted 625 field definitions
-- Identified 91 unique auto-generated fields across 6 categories
-- Categories: Qdrant tags (29), regulatory triggers (15), target doc sections (16), LLM narratives (13), computed fields (5), LLM semantic fields (13)
-- Marked all 91 fields as readOnly: true in schema.ts
-- Updated section-table.tsx to filter readOnly fields from nested arrays and objects
-- Verified no manual fields are missing from schema
-- Browser-tested: confirmed readOnly fields are hidden from STI, OTI, Persons sections
-
-Stage Summary:
-- 91 fields hidden from frontend (auto-generated/computed/LLM)
-- All remaining ~410 fields are manually editable
-- Categories hidden: qdrant_*, *_regulatory_triggers, *_target_doc_sections, *_narrative_description, computed dates, LLM semantic fields
+- 30 разделов → 28 (объединены 2 контрактных раздела в 1)
+- 22 ref-поля конвертированы в выпадающие списки
+- ~20 полей убрано/сделано readOnly (дублирование данных устранено)
+- post_staff: 18 полей → 8 полей (убрано 10 дублирующих)
+- zoning: убрано 9 полей, заменено на 2 ref-ссылки

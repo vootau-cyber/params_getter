@@ -11,7 +11,8 @@ export type FieldType =
   | "array"
   | "select"
   | "textarea"
-  | "object";
+  | "object"
+  | "ref";
 
 export interface FieldDef {
   key: string;
@@ -23,6 +24,10 @@ export interface FieldDef {
   readOnly?: boolean;
   nestedFields?: FieldDef[];
   defaultValue?: unknown;
+  /** For type="ref": which section's data to use as dropdown source */
+  refSection?: string;
+  /** For type="ref": which field in the referenced section to display as label */
+  refLabelField?: string;
 }
 
 export interface SectionDef {
@@ -267,9 +272,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "sti_ref",
         label: "Ссылка на СТИ",
-        type: "text",
+        type: "ref",
+        refSection: "sti",
+        refLabelField: "sti_full_name",
         hint: "Бизнес-ссылка на субъект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "license_type",
@@ -337,9 +344,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "sti_ref",
         label: "Ссылка на СТИ",
-        type: "text",
+        type: "ref",
+        refSection: "sti",
+        refLabelField: "sti_full_name",
         hint: "Бизнес-ссылка на субъект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "oti_registry_num",
@@ -599,16 +608,20 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "sti_ref",
         label: "Ссылка на СТИ",
-        type: "text",
+        type: "ref",
+        refSection: "sti",
+        refLabelField: "sti_full_name",
         hint: "Бизнес-ссылка на субъект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "person_role",
@@ -781,9 +794,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "assessment_type",
@@ -844,9 +859,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "assessment_plan_ref",
         label: "Ссылка на план",
-        type: "text",
+        type: "ref",
+        refSection: "security_plans",
+        refLabelField: "plan_number",
         hint: "Бизнес-ссылка на план обеспечения транспортной безопасности",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "assessment_narrative_description",
@@ -888,9 +905,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "plan_type",
@@ -955,9 +974,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "plan_assessment_ref",
         label: "Ссылка на оценку уязвимости",
-        type: "text",
+        type: "ref",
+        refSection: "assessments",
+        refLabelField: "assessment_number",
         hint: "Бизнес-ссылка на соответствующую оценку уязвимости",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "plan_narrative_description",
@@ -998,9 +1019,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "cadastre_number",
@@ -1122,9 +1145,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "land_lease_term_summary",
@@ -1187,9 +1212,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "aquatory_area_sqm",
@@ -1361,9 +1388,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "cargo_name",
@@ -1422,9 +1451,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "berth_infra_ref",
         label: "Ссылка на инфраструктуру причала",
-        type: "text",
+        type: "ref",
+        refSection: "infrastructure",
+        refLabelField: "obj_name",
         hint: "Бизнес-ссылка на инфраструктурный объект причала",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "season_start",
@@ -1502,9 +1533,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "cargo_general",
@@ -1676,9 +1709,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "year",
@@ -1750,9 +1785,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "is_passenger_ops",
@@ -1840,9 +1877,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "opo_registry_num",
@@ -1948,9 +1987,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "obj_type",
@@ -2101,29 +2142,35 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
         key: "located_on_name",
         label: "Расположение (наименование)",
         type: "text",
-        hint: "Наименование объекта, на котором расположен",
+        readOnly: true,
+        hint: "Автозаполняется из ссылки на инфраструктуру",
         defaultValue: "",
       },
       {
         key: "located_on_infra_ref",
         label: "Ссылка на объект расположения",
-        type: "text",
+        type: "ref",
+        refSection: "infrastructure",
+        refLabelField: "obj_name",
         hint: "Бизнес-ссылка на инфраструктурный объект, на котором расположен",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "connected_to_name",
         label: "Связь с (наименование)",
         type: "text",
-        hint: "Наименование объекта, с которым связан",
+        readOnly: true,
+        hint: "Автозаполняется из ссылки на инфраструктуру",
         defaultValue: "",
       },
       {
         key: "connected_to_infra_ref",
         label: "Ссылка на связанный объект",
-        type: "text",
+        type: "ref",
+        refSection: "infrastructure",
+        refLabelField: "obj_name",
         hint: "Бизнес-ссылка на связанный инфраструктурный объект",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "operational_context",
@@ -2240,9 +2287,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "critical_element",
@@ -2295,9 +2344,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "rod_name",
@@ -2342,9 +2393,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "ztb_boundaries",
@@ -2405,57 +2458,22 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
         defaultValue: false,
       },
       {
-        key: "critical_element",
+        key: "critical_element_ref",
         label: "Критический элемент",
-        type: "text",
-        hint: "Наименование критического элемента в зоне",
-        defaultValue: "",
+        type: "ref",
+        refSection: "critical_elements",
+        refLabelField: "critical_element",
+        hint: "Выберите критический элемент из справочника",
+        defaultValue: null,
       },
       {
-        key: "critical_element_ce_infra_ref",
-        label: "Ссылка на инфраструктуру КЭ",
-        type: "text",
-        hint: "Бизнес-ссылка на инфраструктурный объект критического элемента",
-        defaultValue: "",
-      },
-      {
-        key: "ce_protection",
-        label: "Защита критического элемента",
-        type: "text",
-        defaultValue: "",
-      },
-      {
-        key: "ce_security_implication",
-        readOnly: true,
-        label: "Последствия для безопасности",
-        type: "textarea",
-        defaultValue: "",
-      },
-      {
-        key: "rod_name",
-        label: "Наименование зоны РОД",
-        type: "text",
-        defaultValue: "",
-      },
-      {
-        key: "rod_name_rod_infra_ref",
-        label: "Ссылка на инфраструктуру зоны РОД",
-        type: "text",
-        hint: "Бизнес-ссылка на инфраструктурный объект зоны РОД",
-        defaultValue: "",
-      },
-      {
-        key: "rod_regime",
-        label: "Режим зоны РОД",
-        type: "text",
-        defaultValue: "",
-      },
-      {
-        key: "rod_isps_compliance",
-        readOnly: true,
-        label: "Соответствие ISPS",
-        type: "text",
-        defaultValue: "",
+        key: "rod_ref",
+        label: "Зона РОД",
+        type: "ref",
+        refSection: "restricted_access_zones",
+        refLabelField: "rod_name",
+        hint: "Выберите зону ограниченного доступа из справочника",
+        defaultValue: null,
       },
       {
         key: "security_zone_status",
@@ -2531,16 +2549,20 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "sti_ref",
         label: "Ссылка на СТИ",
-        type: "text",
+        type: "ref",
+        refSection: "sti",
+        refLabelField: "sti_full_name",
         hint: "Бизнес-ссылка на субъект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "ptb_oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "ptb_name",
@@ -2609,20 +2631,39 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
   },
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 20. Договоры ПТБ
+  // 20. Договоры (объединённый справочник)
   // ──────────────────────────────────────────────────────────────────────────
   {
-    key: "ptb_contracts",
-    label: "Договоры ПТБ",
-    description: "Договоры с подразделениями транспортной безопасности",
+    key: "contracts",
+    label: "Договоры",
+    description: "Единый справочник договоров: ПТБ, техобслуживание, аренда и прочие",
     icon: "FileSignature",
     fields: [
       {
+        key: "contract_type",
+        label: "Тип договора",
+        type: "select",
+        hint: "Тип договора определяет его назначение",
+        options: ["ПТБ", "Техническое обслуживание", "Аренда", "Прочее"],
+        defaultValue: "",
+      },
+      {
+        key: "oti_ref",
+        label: "Ссылка на ОТИ",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
+        hint: "Выберите объект транспортной инфраструктуры",
+        defaultValue: null,
+      },
+      {
         key: "ptb_ref",
         label: "Ссылка на ПТБ",
-        type: "text",
-        hint: "Бизнес-ссылка на подразделение транспортной безопасности",
-        defaultValue: "",
+        type: "ref",
+        refSection: "ptb",
+        refLabelField: "ptb_name",
+        hint: "Выберите подразделение транспортной безопасности",
+        defaultValue: null,
       },
       {
         key: "contract_name",
@@ -2650,6 +2691,27 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
         defaultValue: null,
       },
       {
+        key: "contract_provider",
+        label: "Исполнитель (организация)",
+        type: "text",
+        hint: "Организация-исполнитель по договору",
+        defaultValue: "",
+      },
+      {
+        key: "contract_scope",
+        label: "Предмет договора",
+        type: "textarea",
+        hint: "Описание предмета и объёма работ по договору",
+        defaultValue: "",
+      },
+      {
+        key: "contract_is_active",
+        label: "Договор активен",
+        type: "boolean",
+        hint: "Действует ли договор на данный момент",
+        defaultValue: true,
+      },
+      {
         key: "is_prolonged",
         label: "Пролонгирован",
         type: "boolean",
@@ -2668,13 +2730,6 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
         type: "date",
         defaultValue: null,
       },
-      {
-        key: "contract_is_maintenance",
-        label: "Договор на техническое обслуживание",
-        type: "boolean",
-        hint: "Является ли договор договором на техническое обслуживание",
-        defaultValue: false,
-      },
     ],
   },
 
@@ -2690,9 +2745,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "contract_ref",
         label: "Ссылка на договор",
-        type: "text",
+        type: "ref",
+        refSection: "contracts",
+        refLabelField: "contract_name",
         hint: "Бизнес-ссылка на основной договор",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "agreement_name",
@@ -2734,79 +2791,7 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
   },
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 22. Договоры на ТО
-  // ──────────────────────────────────────────────────────────────────────────
-  {
-    key: "maintenance_contracts",
-    label: "Договоры на техническое обслуживание",
-    description:
-      "Договоры на техническое обслуживание средств транспортной безопасности",
-    icon: "Wrench",
-    fields: [
-      {
-        key: "oti_ref",
-        label: "Ссылка на ОТИ",
-        type: "text",
-        hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
-      },
-      {
-        key: "ptb_ref",
-        label: "Ссылка на ПТБ",
-        type: "text",
-        hint: "Бизнес-ссылка на подразделение транспортной безопасности",
-        defaultValue: "",
-      },
-      {
-        key: "contract_name",
-        label: "Наименование договора",
-        type: "text",
-        defaultValue: "",
-      },
-      {
-        key: "contract_num",
-        label: "Номер договора",
-        type: "text",
-        defaultValue: "",
-      },
-      {
-        key: "contract_date",
-        label: "Дата договора",
-        type: "date",
-        defaultValue: null,
-      },
-      {
-        key: "contract_exp_date",
-        label: "Дата окончания договора",
-        type: "date",
-        defaultValue: null,
-      },
-      {
-        key: "contract_provider",
-        label: "Исполнитель",
-        type: "text",
-        hint: "Организация-исполнитель по договору",
-        defaultValue: "",
-      },
-      {
-        key: "contract_scope",
-        label: "Предмет договора (объём работ)",
-        type: "textarea",
-        hint: "Описание объёма работ по техническому обслуживанию",
-        defaultValue: "",
-      },
-      {
-        key: "contract_is_active",
-        label: "Договор активен",
-        type: "boolean",
-        hint: "Действует ли договор на данный момент",
-        defaultValue: true,
-      },
-    ],
-  },
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // 23. Посты
+  // 22. Посты
   // ──────────────────────────────────────────────────────────────────────────
   {
     key: "posts",
@@ -2817,9 +2802,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "ptb_ref",
         label: "Ссылка на ПТБ",
-        type: "text",
+        type: "ref",
+        refSection: "ptb",
+        refLabelField: "ptb_name",
         hint: "Бизнес-ссылка на подразделение транспортной безопасности",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "post_name",
@@ -2914,62 +2901,40 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
   {
     key: "post_staff",
     label: "Сотрудники постов",
-    description: "Данные о сотрудниках, несущих службу на постах транспортной безопасности",
+    description: "Назначение сотрудников из справочника лиц на посты транспортной безопасности",
     icon: "UserCheck",
     fields: [
       {
         key: "post_ref",
         label: "Ссылка на пост",
-        type: "text",
-        hint: "Бизнес-ссылка на пост транспортной безопасности",
-        defaultValue: "",
-      },
-      {
-        key: "staff_position",
-        label: "Должность",
-        type: "text",
-        placeholder: "Сотрудник ПТБ",
-        defaultValue: "",
-      },
-      {
-        key: "staff_fio",
-        label: "ФИО сотрудника",
-        type: "text",
-        placeholder: "Иванов Иван Иванович",
-        defaultValue: "",
-      },
-      {
-        key: "staff_attestation_category",
-        label: "Категория аттестации",
-        type: "select",
-        hint: "Категория (уровень компетенции) по результатам аттестации",
-        options: ["1", "2", "3", "4"],
+        type: "ref",
+        refSection: "posts",
+        refLabelField: "post_name",
+        hint: "Выберите пост транспортной безопасности",
         defaultValue: null,
       },
       {
-        key: "staff_attestation_num",
-        label: "Номер аттестата",
+        key: "person_ref",
+        label: "Ответственное лицо",
+        type: "ref",
+        refSection: "persons",
+        refLabelField: "person_fio",
+        hint: "Выберите лицо из справочника ответственных лиц",
+        defaultValue: null,
+      },
+      {
+        key: "staff_role_at_post",
+        label: "Роль на посту",
         type: "text",
+        placeholder: "Старший смены, оператор досмотра",
+        hint: "Роль сотрудника конкретно на данном посту",
         defaultValue: "",
-      },
-      {
-        key: "staff_attestation_date",
-        label: "Дата аттестации",
-        type: "date",
-        defaultValue: null,
-      },
-      {
-        key: "staff_attestation_exp_date",
-        readOnly: true,
-        label: "Дата окончания аттестации",
-        type: "date",
-        defaultValue: null,
       },
       {
         key: "staff_is_active",
-        label: "Сотрудник активен",
+        label: "Назначен на пост",
         type: "boolean",
-        hint: "Активен ли сотрудник на данный момент",
+        hint: "Активно ли назначение на данный момент",
         defaultValue: true,
       },
       {
@@ -3016,9 +2981,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "post_ref",
         label: "Ссылка на пост",
-        type: "text",
+        type: "ref",
+        refSection: "posts",
+        refLabelField: "post_name",
         hint: "Бизнес-ссылка на пост транспортной безопасности",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "equipment_category",
@@ -3225,16 +3192,20 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "catalog_tsotb_ref",
         label: "Ссылка на каталог ТСОТБ",
-        type: "text",
+        type: "ref",
+        refSection: "tsotb_catalog",
+        refLabelField: "catalog_tsotb_name",
         hint: "Бизнес-ссылка на запись в каталоге ТСОТБ",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "tsotb_serial_num",
@@ -3252,47 +3223,58 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
         key: "tsotb_location_name",
         label: "Местоположение (наименование)",
         type: "text",
+        readOnly: true,
         defaultValue: "",
       },
       {
         key: "tsotb_location_infra_ref",
         label: "Ссылка на инфраструктуру местоположения",
-        type: "text",
+        type: "ref",
+        refSection: "infrastructure",
+        refLabelField: "obj_name",
         hint: "Бизнес-ссылка на инфраструктурный объект местоположения",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "tsotb_monitors_object_name",
         label: "Контролируемый объект (наименование)",
         type: "text",
+        readOnly: true,
         defaultValue: "",
       },
       {
         key: "tsotb_monitors_infra_ref",
         label: "Ссылка на контролируемую инфраструктуру",
-        type: "text",
+        type: "ref",
+        refSection: "infrastructure",
+        refLabelField: "obj_name",
         hint: "Бизнес-ссылка на контролируемый инфраструктурный объект",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "tsotb_powered_from_name",
         label: "Источник питания (наименование)",
         type: "text",
+        readOnly: true,
         defaultValue: "",
       },
       {
         key: "tsotb_powered_from_infra_ref",
         label: "Ссылка на источник питания",
-        type: "text",
+        type: "ref",
+        refSection: "infrastructure",
+        refLabelField: "obj_name",
         hint: "Бизнес-ссылка на инфраструктурный объект — источник питания",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "tsotb_post_ref",
         label: "Ссылка на пост",
-        type: "text",
+        type: "ref",
+        refSection: "posts",
+        refLabelField: "post_name",
         hint: "Бизнес-ссылка на пост транспортной безопасности",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "tsotb_is_certified_pp969",
@@ -3373,9 +3355,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "tsotb_maintenance_contract_ref",
         label: "Ссылка на договор ТО",
-        type: "text",
+        type: "ref",
+        refSection: "contracts",
+        refLabelField: "contract_name",
         hint: "Бизнес-ссылка на договор технического обслуживания",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "tsotb_narrative_description",
@@ -3619,16 +3603,20 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "catalog_eng_ref",
         label: "Ссылка на каталог ИСО",
-        type: "text",
+        type: "ref",
+        refSection: "eng_catalog",
+        refLabelField: "eng_catalog_name",
         hint: "Бизнес-ссылка на запись в каталоге ИСО",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "eng_instance_name",
@@ -3659,14 +3647,17 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
         key: "eng_instance_location_name",
         label: "Местоположение (наименование)",
         type: "text",
+        readOnly: true,
         defaultValue: "",
       },
       {
         key: "eng_instance_location_infra_ref",
         label: "Ссылка на инфраструктуру местоположения",
-        type: "text",
+        type: "ref",
+        refSection: "infrastructure",
+        refLabelField: "obj_name",
         hint: "Бизнес-ссылка на инфраструктурный объект местоположения",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "eng_instance_protects_ce",
@@ -3677,9 +3668,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "eng_instance_protects_ce_infra_ref",
         label: "Ссылка на защищаемый КЭ",
-        type: "text",
+        type: "ref",
+        refSection: "critical_elements",
+        refLabelField: "critical_element",
         hint: "Бизнес-ссылка на защищаемый критический элемент",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "eng_instance_protects_rod",
@@ -3690,9 +3683,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "eng_instance_protects_rod_infra_ref",
         label: "Ссылка на защищаемую зону РОД",
-        type: "text",
+        type: "ref",
+        refSection: "restricted_access_zones",
+        refLabelField: "rod_name",
         hint: "Бизнес-ссылка на защищаемую зону ограниченного доступа",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "eng_instance_length_m",
@@ -3928,9 +3923,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "eng_instance_maintenance_contract_ref",
         label: "Ссылка на договор ТО",
-        type: "text",
+        type: "ref",
+        refSection: "contracts",
+        refLabelField: "contract_name",
         hint: "Бизнес-ссылка на договор технического обслуживания",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "eng_instance_security_implication",
@@ -4028,9 +4025,11 @@ export const SCHEMA_SECTIONS: SectionDef[] = [
       {
         key: "oti_ref",
         label: "Ссылка на ОТИ",
-        type: "text",
+        type: "ref",
+        refSection: "oti",
+        refLabelField: "oti_full_name",
         hint: "Бизнес-ссылка на объект транспортной инфраструктуры",
-        defaultValue: "",
+        defaultValue: null,
       },
       {
         key: "climate_zone",
@@ -4235,6 +4234,8 @@ export function getEmptyRow(sectionKey: string): Record<string, unknown> {
       row[field.key] = field.defaultValue ?? null;
     } else if (field.type === "date") {
       row[field.key] = field.defaultValue ?? null;
+    } else if (field.type === "ref") {
+      row[field.key] = field.defaultValue ?? null;
     } else {
       row[field.key] = field.defaultValue ?? "";
     }
@@ -4304,9 +4305,8 @@ export function getSectionGroups(): SectionGroup[] {
       sections: SCHEMA_SECTIONS.filter((s) =>
         [
           "ptb",
-          "ptb_contracts",
+          "contracts",
           "ptb_supplementary_agreements",
-          "maintenance_contracts",
           "posts",
           "post_staff",
           "post_equipment",

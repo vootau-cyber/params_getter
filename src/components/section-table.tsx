@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { SectionDef, FieldDef } from '@/lib/schema';
 import { useStore } from '@/lib/store';
 
@@ -156,9 +156,10 @@ function CellRenderer({
       return <SelectCell field={field} value={value} sectionKey={sectionKey} rowIndex={rowIndex} updateCell={updateCell} />;
     case 'array':
       return <ArrayCell field={field} value={value} sectionKey={sectionKey} rowIndex={rowIndex} updateCell={updateCell} />;
+    case 'ref':
+      return <RefCell field={field} value={value} sectionKey={sectionKey} rowIndex={rowIndex} updateCell={updateCell} />;
     case 'object':
       if (field.nestedFields) {
-        // Check if it's a nested array (like points in aquatories)
         if (Array.isArray(value)) {
           return (
             <NestedArrayCell
@@ -172,7 +173,6 @@ function CellRenderer({
             />
           );
         }
-        // Nested object (inline fields)
         return (
           <NestedObjectCell
             field={field}
@@ -187,6 +187,64 @@ function CellRenderer({
     default:
       return <span className="text-muted-foreground text-xs">—</span>;
   }
+}
+
+// =============================================================================
+// Ref Cell — select dropdown populated from another section's data
+// =============================================================================
+
+function RefCell({ field, value, sectionKey, rowIndex, updateCell }: BaseCellProps) {
+  const allData = useStore((s) => s.data);
+  const refSection = field.refSection;
+  const refLabelField = field.refLabelField;
+
+  const options = useMemo(() => {
+    if (!refSection) return [];
+    const rows = (allData[refSection] || []) as Record<string, unknown>[];
+    return rows.map((row, idx) => {
+      const label = refLabelField
+        ? String(row[refLabelField] || '')
+        : `Запись ${idx + 1}`;
+      return { idx, label };
+    }).filter((o) => o.label);
+  }, [allData, refSection, refLabelField]);
+
+  // Current value is the row index in the referenced section
+  const currentIdx = value as number | null;
+  const currentValue = currentIdx !== null && currentIdx !== undefined
+    ? String(currentIdx)
+    : '';
+
+  // Find the label for current value
+  const currentLabel = currentIdx !== null && currentIdx !== undefined
+    ? options.find(o => o.idx === currentIdx)?.label || ''
+    : '';
+
+  const el = (
+    <Select
+      value={currentValue}
+      onValueChange={(v) => updateCell(sectionKey, rowIndex, field.key, Number(v))}
+    >
+      <SelectTrigger className="h-8 text-sm border-0 bg-transparent focus:ring-1 focus:ring-ring w-full min-w-[140px]">
+        <SelectValue placeholder={field.placeholder || 'Выберите…'}>
+          {currentLabel || (field.placeholder || 'Выберите…')}
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {options.length === 0 && (
+          <SelectItem value="_empty" disabled>
+            Нет записей в справочнике
+          </SelectItem>
+        )}
+        {options.map((opt) => (
+          <SelectItem key={opt.idx} value={String(opt.idx)}>
+            <span className="truncate">{opt.label}</span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+  return tooltipWrap(field.hint, el);
 }
 
 // =============================================================================

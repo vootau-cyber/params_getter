@@ -1,5 +1,17 @@
 {
-  "meta": [],
+  "meta": {
+    "template_name": "seed_domain_data_full_manual",
+    "template_version": "1.0.0",
+    "source_reference": "full_variables_list.docx",
+    "manual_fields_only": true,
+    "notes": [
+      "UUID-поля, record_created_at, record_updated_at не заполняются вручную.",
+      "Поля *_ref используются как бизнес-ссылки.",
+      "Новые коллекции oti_operations, opo, cargo_summary, land_summary, maintenance_contracts, critical_elements, restricted_access_zones требуют расширения загрузчика.",
+      "Даты рекомендуется заполнять в формате YYYY-MM-DD.",
+      "Пустые строки и пустые массивы при загрузке лучше интерпретировать как NULL."
+    ]
+  },
   "sti": [
     {
       "sti_full_name": "",
@@ -421,19 +433,6 @@
       "qdrant_gbr_exists_tag": ""
     }
   ],
-  "ptb_contracts": [
-    {
-      "ptb_ref": "",
-      "contract_name": "",
-      "contract_num": "",
-      "contract_date": null,
-      "contract_exp_date": null,
-      "is_prolonged": false,
-      "prolongation_date": null,
-      "prolongation_new_exp_date": null,
-      "contract_is_maintenance": false
-    }
-  ],
   "ptb_supplementary_agreements": [
     {
       "contract_ref": "",
@@ -443,19 +442,6 @@
       "agreement_exp_date": null,
       "agreement_type": "",
       "agreement_description": ""
-    }
-  ],
-  "maintenance_contracts": [
-    {
-      "oti_ref": "",
-      "ptb_ref": "",
-      "contract_name": "",
-      "contract_num": "",
-      "contract_date": null,
-      "contract_exp_date": null,
-      "contract_provider": "",
-      "contract_scope": "",
-      "contract_is_active": true
     }
   ],
   "posts": [
@@ -680,6 +666,39 @@
       "qdrant_flood_risk_tag": "",
       "qdrant_compliance_tag": "",
       "climate_target_doc_sections": []
+    }
+  ],
+  "contracts": [
+    {
+      "ptb_ref": "",
+      "contract_name": "",
+      "contract_num": "",
+      "contract_date": null,
+      "contract_exp_date": null,
+      "is_prolonged": false,
+      "prolongation_date": null,
+      "prolongation_new_exp_date": null,
+      "contract_is_maintenance": false,
+      "contract_type": "ПТБ",
+      "oti_ref": null,
+      "contract_provider": "",
+      "contract_scope": "",
+      "contract_is_active": true
+    },
+    {
+      "oti_ref": "",
+      "ptb_ref": "",
+      "contract_name": "",
+      "contract_num": "",
+      "contract_date": null,
+      "contract_exp_date": null,
+      "contract_provider": "",
+      "contract_scope": "",
+      "contract_is_active": true,
+      "contract_type": "Техническое обслуживание",
+      "is_prolonged": false,
+      "prolongation_date": null,
+      "prolongation_new_exp_date": null
     }
   ]
 }
