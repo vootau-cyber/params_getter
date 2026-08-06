@@ -153,7 +153,7 @@ function SidebarNav() {
                         {section.label}
                       </span>
                       {hasData && (
-                        <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
+                        <span className="size-2 rounded-full bg-primary shrink-0" />
                       )}
                     </button>
                   );
@@ -185,6 +185,9 @@ export default function Home() {
   const author = useStore((s) => s.author);
   const setAuthor = useStore((s) => s.setAuthor);
   const isDirty = useStore((s) => s.isDirty);
+  // Subscribe to data changes so isDirty re-evaluates on every edit
+  useStore((s) => s.data);
+  useStore((s) => s.initialData);
 
   const activeSectionDef = useMemo(
     () => SCHEMA_SECTIONS.find((s) => s.key === activeSection),
@@ -256,7 +259,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-white border-b border-border shadow-sm">
+      <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
         <div className="flex items-center gap-3 px-4 py-2.5">
           {/* Title */}
           <div className="flex items-center gap-2">
@@ -267,7 +270,7 @@ export default function Home() {
             {dirty && (
               <Badge
                 variant="outline"
-                className="text-xs px-1.5 py-0 h-5 border-amber-500/50 text-amber-600"
+                className="text-xs px-1.5 py-0 h-5 border-primary/40 text-primary"
               >
                 изменено
               </Badge>
@@ -385,7 +388,7 @@ export default function Home() {
               {/* Section Header */}
               <div className="mb-6">
                 <div className="flex items-center gap-2.5 mb-1">
-                  <div className="flex items-center justify-center size-8 rounded-md bg-accent">
+                  <div className="flex items-center justify-center size-8 rounded-md bg-primary/10 text-primary">
                     <SectionIcon iconName={activeSectionDef.icon} />
                   </div>
                   <div>
@@ -411,7 +414,7 @@ export default function Home() {
       </div>
 
       {/* ── Footer ─────────────────────────────────────────────────────── */}
-      <footer className="border-t border-border bg-white px-4 py-2">
+      <footer className="border-t border-border bg-card px-4 py-2">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>© 2025 Реестр данных ОТИ</span>
           <span>Версия: {latestVersion}</span>

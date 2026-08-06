@@ -29,5 +29,25 @@
     ],
     "version_label": "Версия 3",
     "data_file": "versions/v_3.json"
+  },
+  {
+    "id": 4,
+    "timestamp": "2026-08-06T13:18:36.908Z",
+    "author_name": "",
+    "author_role": "",
+    "changed_sections": [],
+    "version_label": "Версия 4",
+    "data_file": "versions/v_4.json"
+  },
+  {
+    "id": 5,
+    "timestamp": "2026-08-06T13:22:21.459Z",
+    "author_name": "",
+    "author_role": "",
+    "changed_sections": [
+      "sti"
+    ],
+    "version_label": "Версия 5",
+    "data_file": "versions/v_5.json"
   }
 ]

@@ -163,7 +163,7 @@ export function SectionTable({ section }: SectionTableProps) {
         <div className="space-y-6">
           {/* Virtual ref fields (reference selectors) */}
           {virtualFields.length > 0 && (
-            <div className="rounded-lg border bg-primary/[0.02] p-4 space-y-3">
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
                 <Link2 className="size-3.5" />
                 Ссылки на другие разделы
@@ -294,14 +294,14 @@ function RecordFieldRow({
   const labelContent = (
     <div className="flex items-center gap-1.5">
       <Label
-        className={`text-xs font-medium ${isAutoFilled ? 'text-emerald-700' : 'text-foreground/80'}`}
+        className={`text-xs font-medium ${isAutoFilled ? 'text-primary' : 'text-foreground/80'}`}
       >
         {field.label}
       </Label>
       {isAutoFilled && (
         <Badge
           variant="outline"
-          className="text-[9px] px-1 py-0 h-3.5 text-emerald-600 border-emerald-300"
+          className="text-[9px] px-1 py-0 h-3.5 text-primary/70 border-primary/30"
         >
           авто
         </Badge>
@@ -402,7 +402,7 @@ function FieldInput({
 }: FieldInputProps) {
   const isAutoFilled = field.autoFilled;
   const baseInputClass = isAutoFilled
-    ? 'h-9 text-sm border-emerald-200 bg-emerald-50/50 focus-visible:ring-emerald-500/50'
+    ? 'h-9 text-sm border-primary/25 bg-primary/5 focus-visible:ring-primary/40'
     : 'h-9 text-sm focus-visible:ring-1 focus-visible:ring-ring';
 
   switch (field.type) {
@@ -469,7 +469,7 @@ function FieldInput({
           value={(value as string) || ''}
           onValueChange={(v) => updateCell(sectionKey, rowIndex, field.key, v)}
         >
-          <SelectTrigger className={isAutoFilled ? 'h-9 text-sm border-emerald-200 bg-emerald-50/50 focus:ring-emerald-500/50 w-full' : 'h-9 text-sm w-full'}>
+          <SelectTrigger className={isAutoFilled ? 'h-9 text-sm border-primary/25 bg-primary/5 focus:ring-primary/40 w-full' : 'h-9 text-sm w-full'}>
             <SelectValue placeholder={field.placeholder || 'Выберите…'} />
           </SelectTrigger>
           <SelectContent>
@@ -842,7 +842,7 @@ function ReadonlyFieldsBlock({
             {fields.length} полей
           </Badge>
           {hasValues && !open && (
-            <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-emerald-100 text-emerald-700 border-emerald-200">
+            <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-primary/10 text-primary border-primary/25">
               есть данные
             </Badge>
           )}
