@@ -79,8 +79,8 @@ const FORMAT_RULES: FormatRule[] = [
   },
   {
     keyPattern: /inn$/,
-    validate: (v) => /^\d{10}$/.test(v),
-    formatHint: '10 цифр (ИНН организации)',
+    validate: (v) => /^\d{10}(\d{2})?$/.test(v),
+    formatHint: '10 или 12 цифр (ИНН юрлица/физлица)',
   },
   {
     keyPattern: /kpp$/,
