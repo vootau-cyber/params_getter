@@ -34,6 +34,7 @@ import {
   Camera,
   Thermometer,
   Cctv,
+  Database,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -54,6 +55,8 @@ import { useStore } from '@/lib/store';
 import { SectionTable } from '@/components/section-table';
 import { VersionHistoryDialog } from '@/components/version-history-dialog';
 import { ImportDialog } from '@/components/import-dialog';
+import { ConnectionsDialog } from '@/components/connections-dialog';
+import { useConnectionStore } from '@/lib/store-connections';
 
 // =============================================================================
 // Icon resolver for sidebar items
@@ -355,6 +358,24 @@ export default function Home() {
 
             <Tooltip>
               <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    useConnectionStore.getState().openDialog('sql')
+                  }
+                >
+                  <Database className="size-3.5" />
+                  <span className="ml-1.5">Базы знаний</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Подключение SQL и Qdrant баз данных
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button variant="outline" size="sm" onClick={handleReset}>
                   <RotateCcw className="size-3.5" />
                 </Button>
@@ -424,6 +445,7 @@ export default function Home() {
       {/* ── Dialogs ─────────────────────────────────────────────────────── */}
       <VersionHistoryDialog />
       <ImportDialog />
+      <ConnectionsDialog />
     </div>
   );
 }
