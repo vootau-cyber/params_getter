@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import type { SectionDef, FieldDef } from '@/lib/schema';
+import { SCHEMA_SECTIONS } from '@/lib/schema';
 import { useStore } from '@/lib/store';
+import { useConnectionStore } from '@/lib/store-connections';
 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -36,7 +38,40 @@ import {
   ChevronRight,
   FileText,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
+
+// =============================================================================
+// Autocomplete — field patterns for DB autocomplete eligibility
+// =============================================================================
+
+const AUTOCOMPLETE_FIELD_PATTERNS = [
+  /inn$/,
+  /ogrn$/,
+  /full_name$/,
+  /short_name$/,
+  /reg_num$/,
+  /_name$/,
+  /_fio$/,
+  /imo$/,
+];
+
+function isAutocompleteField(field: FieldDef): boolean {
+  if (field.readOnly || field.virtual || field.type !== 'text') return false;
+  return AUTOCOMPLETE_FIELD_PATTERNS.some((p) => p.test(field.key));
+}
+
+/** Simple debounce utility */
+function debounce<T extends (...args: Parameters<T>) => void>(
+  fn: T,
+  ms: number,
+): (...args: Parameters<T>) => void {
+  let timer: ReturnType<typeof setTimeout>;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), ms);
+  };
+}
 
 // =============================================================================
 // Format validation rules
@@ -569,10 +604,94 @@ function RecordFieldRow({
   const updateNestedCell = useStore((s) => s.updateNestedCell);
   const addNestedRow = useStore((s) => s.addNestedRow);
   const removeNestedRow = useStore((s) => s.removeNestedRow);
+  const markDBSourced = useStore((s) => s.markDBSourced);
+  const isDBSourced = useStore((s) => s.isDBSourced);
+  const allData = useStore((s) => s.data);
+
+  // Autocomplete state
+  const autocompleteResults = useConnectionStore((s) => s.autocompleteResults);
+  const autocompleteLoading = useConnectionStore((s) => s.autocompleteLoading);
+  const activeAutocompleteField = useConnectionStore((s) => s.activeAutocompleteField);
+  const doAutocomplete = useConnectionStore((s) => s.autocomplete);
+  const clearAutocomplete = useConnectionStore((s) => s.clearAutocomplete);
+  const setActiveAutocompleteField = useConnectionStore((s) => s.setActiveAutocompleteField);
+
+  const canAutocomplete = isAutocompleteField(field);
+  const dbSourced = isDBSourced(sectionKey, rowIndex, field.key);
+
+  // Ref for click-outside detection
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    if (!canAutocomplete) return;
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        clearAutocomplete();
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [canAutocomplete, clearAutocomplete]);
+
+  // Debounced autocomplete trigger
+  const debouncedAutocomplete = useMemo(
+    () =>
+      debounce((sk: string, fk: string, v: string) => {
+        if (v.length >= 2) {
+          doAutocomplete(sk, fk, v);
+        } else {
+          clearAutocomplete();
+        }
+      }, 400),
+    [doAutocomplete, clearAutocomplete],
+  );
+
+  // Autocomplete text change handler
+  const handleAutocompleteTextChange = useCallback(
+    (v: string) => {
+      setActiveAutocompleteField({ sectionKey, fieldKey: field.key, rowIndex });
+      debouncedAutocomplete(sectionKey, field.key, v);
+    },
+    [sectionKey, field.key, rowIndex, setActiveAutocompleteField, debouncedAutocomplete],
+  );
+
+  // Apply a match from the autocomplete dropdown
+  const handleApplyMatch = useCallback(
+    (row: Record<string, unknown>) => {
+      // Get the section's field definitions to match DB columns to form fields
+      const sectionDef = SCHEMA_SECTIONS.find((s) => s.key === sectionKey);
+      if (!sectionDef) return;
+
+      for (const [dbKey, dbValue] of Object.entries(row)) {
+        // Find a matching field in the section
+        const fieldDef = sectionDef.fields.find(
+          (f) => f.key === dbKey && !f.readOnly && !f.virtual && f.type === 'text',
+        );
+        if (!fieldDef) continue;
+
+        // Set the value
+        const strVal = dbValue !== null && dbValue !== undefined ? String(dbValue) : '';
+        updateCell(sectionKey, rowIndex, fieldDef.key, strVal);
+        markDBSourced(sectionKey, rowIndex, fieldDef.key);
+      }
+
+      clearAutocomplete();
+    },
+    [sectionKey, rowIndex, allData, updateCell, markDBSourced, clearAutocomplete],
+  );
 
   const isAutoFilled = field.autoFilled;
   const status = getFieldStatus(field, value);
   const hasIssue = status !== 'ok';
+
+  // Show the autocomplete dropdown?
+  const showAutocomplete =
+    canAutocomplete &&
+    autocompleteResults.length > 0 &&
+    activeAutocompleteField?.sectionKey === sectionKey &&
+    activeAutocompleteField?.fieldKey === field.key &&
+    activeAutocompleteField?.rowIndex === rowIndex;
 
   const labelContent = (
     <div className="flex items-center gap-1.5">
@@ -590,6 +709,14 @@ function RecordFieldRow({
           className="text-[9px] px-1 py-0 h-3.5 text-primary/70 border-primary/30"
         >
           авто
+        </Badge>
+      )}
+      {dbSourced && !isAutoFilled && (
+        <Badge
+          variant="outline"
+          className="text-[9px] px-1 py-0 h-3.5 text-amber-600 border-amber-400/40 bg-amber-50"
+        >
+          из БД
         </Badge>
       )}
       {field.hint && (
@@ -618,6 +745,7 @@ function RecordFieldRow({
       updateNestedCell={updateNestedCell}
       addNestedRow={addNestedRow}
       removeNestedRow={removeNestedRow}
+      onTextChange={canAutocomplete ? handleAutocompleteTextChange : undefined}
     />
   );
 
@@ -655,6 +783,47 @@ function RecordFieldRow({
       <div className="col-span-2">
         {labelContent}
         <div className="mt-1">{inputEl}</div>
+      </div>
+    );
+  }
+
+  // Text fields with autocomplete — wrap in relative container for dropdown
+  if (canAutocomplete) {
+    return (
+      <div>
+        {labelContent}
+        <div className="mt-1 relative" ref={dropdownRef}>
+          {inputEl}
+          {autocompleteLoading &&
+            activeAutocompleteField?.sectionKey === sectionKey &&
+            activeAutocompleteField?.fieldKey === field.key &&
+            activeAutocompleteField?.rowIndex === rowIndex && (
+              <div className="absolute z-50 mt-1 w-full bg-popover border rounded-md shadow-lg p-2 flex items-center justify-center">
+                <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-xs text-muted-foreground">Поиск…</span>
+              </div>
+            )}
+          {showAutocomplete && (
+            <div className="absolute z-50 mt-1 w-full bg-popover border rounded-md shadow-lg max-h-60 overflow-y-auto">
+              {autocompleteResults.map((match, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors border-b last:border-b-0"
+                  onClick={() => handleApplyMatch(match.row)}
+                >
+                  <div className="font-medium">{match.label}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {Object.entries(match.row)
+                      .slice(0, 3)
+                      .map(([k, v]) => `${k}: ${v}`)
+                      .join(' · ')}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -735,6 +904,8 @@ interface FieldInputProps {
     fieldKey: string,
     nestedIndex: number,
   ) => void;
+  /** Optional extra onChange handler for text inputs (used by autocomplete) */
+  onTextChange?: (value: string) => void;
 }
 
 function FieldInput({
@@ -744,6 +915,7 @@ function FieldInput({
   rowIndex,
   status,
   updateCell,
+  onTextChange,
 }: FieldInputProps) {
   const isAutoFilled = field.autoFilled;
   const hasIssue = status !== 'ok';
@@ -764,9 +936,10 @@ function FieldInput({
           value={(value as string) || ''}
           placeholder={field.placeholder}
           className={baseInputClass}
-          onChange={(e) =>
-            updateCell(sectionKey, rowIndex, field.key, e.target.value)
-          }
+          onChange={(e) => {
+            updateCell(sectionKey, rowIndex, field.key, e.target.value);
+            onTextChange?.(e.target.value);
+          }}
         />
       );
       return isInvalid ? (

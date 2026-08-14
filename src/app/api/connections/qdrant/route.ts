@@ -1,36 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readConfigs, savePGConfig, clearPGConfig } from '@/lib/connection-storage';
-import type { PGConnectionConfig } from '@/lib/types/connection';
+import { readConfigs, saveQdrantConfig, clearQdrantConfig } from '@/lib/connection-storage';
+import type { QdrantConfig } from '@/lib/types/connection';
 
 export async function GET() {
   try {
     const configs = await readConfigs();
-    return NextResponse.json(configs);
+    return NextResponse.json({ qdrant: configs.qdrant });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Неизвестная ошибка';
-    return NextResponse.json({ error: `Ошибка загрузки конфигураций: ${message}` }, { status: 500 });
+    return NextResponse.json({ error: `Ошибка загрузки: ${message}` }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    const body = (await request.json()) as PGConnectionConfig;
+    const body = (await request.json()) as QdrantConfig;
 
-    if (!body.host || !body.database || !body.username) {
+    if (!body.url) {
       return NextResponse.json(
-        { error: 'Отсутствуют обязательные поля (host, database, username)' },
+        { error: 'Отсутствует обязательное поле (url)' },
         { status: 400 },
       );
     }
 
-    await savePGConfig({
-      host: String(body.host),
-      port: Number(body.port) || 5432,
-      database: String(body.database),
-      username: String(body.username),
-      password: String(body.password ?? ''),
-      ssl: Boolean(body.ssl),
-      graphName: String(body.graphName ?? ''),
+    await saveQdrantConfig({
+      url: String(body.url),
+      apiKey: String(body.apiKey ?? ''),
+      collection: String(body.collection ?? ''),
     });
 
     return NextResponse.json({ success: true });
@@ -42,7 +38,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE() {
   try {
-    await clearPGConfig();
+    await clearQdrantConfig();
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Неизвестная ошибка';

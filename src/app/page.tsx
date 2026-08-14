@@ -362,11 +362,11 @@ export default function Home() {
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    useConnectionStore.getState().openDialog('sql')
+                    useConnectionStore.getState().openDialog()
                   }
                 >
                   <Database className="size-3.5" />
-                  <span className="ml-1.5">Базы знаний</span>
+                  <span className="ml-1.5">Базы данных</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

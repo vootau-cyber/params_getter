@@ -39,6 +39,9 @@ export interface AppState {
   // Author
   author: AuthorInfo;
 
+  // DB-sourced autocomplete fields
+  dbSourcedFields: Record<string, Set<string>>; // sectionKey -> Set of "rowIndex:fieldKey"
+
   // Actions
   setActiveSection: (key: string) => void;
   setSidebarOpen: (open: boolean) => void;
@@ -61,6 +64,9 @@ export interface AppState {
   getJson: () => string;
   /** Returns data with virtual fields stripped for saving/exporting */
   getCleanData: () => Record<string, unknown[]>;
+  markDBSourced: (sectionKey: string, rowIndex: number, fieldKey: string) => void;
+  clearDBSourced: () => void;
+  isDBSourced: (sectionKey: string, rowIndex: number, fieldKey: string) => boolean;
 }
 
 // =============================================================================
@@ -274,6 +280,7 @@ export const useStore = create<AppState>((set, get) => ({
   versionsOpen: false,
   importDialogOpen: false,
   author: { name: '', role: '' },
+  dbSourcedFields: {},
 
   // ── UI Actions ─────────────────────────────────────────────────────────────
 
@@ -511,5 +518,27 @@ export const useStore = create<AppState>((set, get) => ({
 
   getJson: () => {
     return JSON.stringify(get().getCleanData(), null, 2);
+  },
+
+  // ── DB-Sourced Fields ─────────────────────────────────────────────────────
+
+  markDBSourced: (sectionKey, rowIndex, fieldKey) => {
+    const key = `${rowIndex}:${fieldKey}`;
+    set((s) => {
+      const sectionSet = s.dbSourcedFields[sectionKey]
+        ? new Set(s.dbSourcedFields[sectionKey])
+        : new Set<string>();
+      sectionSet.add(key);
+      return {
+        dbSourcedFields: { ...s.dbSourcedFields, [sectionKey]: sectionSet },
+      };
+    });
+  },
+
+  clearDBSourced: () => set({ dbSourcedFields: {} }),
+
+  isDBSourced: (sectionKey, rowIndex, fieldKey) => {
+    const key = `${rowIndex}:${fieldKey}`;
+    return get().dbSourcedFields[sectionKey]?.has(key) ?? false;
   },
 }));

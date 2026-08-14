@@ -1,12 +1,9 @@
 import { create } from 'zustand';
 import type {
-  SQLConnectionConfig,
-  QdrantConnectionConfig,
+  PGConnectionConfig,
+  QdrantConfig,
   ConnectionTestResult,
-  SQLTableInfo,
-  SQLQueryResult,
-  QdrantCollectionInfo,
-  QdrantSearchResult,
+  AutocompleteMatch,
 } from '@/lib/types/connection';
 
 // =============================================================================
@@ -14,62 +11,38 @@ import type {
 // =============================================================================
 
 export interface ConnectionState {
-  // Connection lists
-  sqlConnections: SQLConnectionConfig[];
-  qdrantConnections: QdrantConnectionConfig[];
+  // Config
+  pgConfig: PGConnectionConfig | null;
+  qdrantConfig: QdrantConfig | null;
   isLoading: boolean;
-  testResults: Record<string, ConnectionTestResult>;
 
-  // SQL browser state
-  activeSQLId: string | null;
-  sqlTables: SQLTableInfo[];
-  sqlTablesLoading: boolean;
-  activeSQLTable: string | null;
-  sqlTableData: SQLQueryResult | null;
-  sqlTableLoading: boolean;
+  // Test results
+  pgTestResult: ConnectionTestResult | null;
+  qdrantTestResult: ConnectionTestResult | null;
+  isTesting: 'postgresql' | 'qdrant' | null;
 
-  // Qdrant browser state
-  activeQdrantId: string | null;
-  qdrantCollections: QdrantCollectionInfo[];
-  qdrantCollectionsLoading: boolean;
-  qdrantSearchResults: QdrantSearchResult[];
-  qdrantSearchLoading: boolean;
+  // Autocomplete
+  autocompleteResults: AutocompleteMatch[];
+  autocompleteLoading: boolean;
+  autocompleteSectionKey: string | null;
+  autocompleteFieldKey: string | null;
+  activeAutocompleteField: { sectionKey: string; fieldKey: string; rowIndex: number } | null;
 
   // Dialog
   dialogOpen: boolean;
-  dialogTab: 'sql' | 'qdrant';
 
   // Actions
-  loadConnections: () => Promise<void>;
-  addConnection: (type: 'sql' | 'qdrant', config: Record<string, unknown>) => Promise<void>;
-  updateConnection: (id: string, config: Record<string, unknown>) => Promise<void>;
-  deleteConnection: (id: string) => Promise<void>;
-  testConnection: (id: string) => Promise<void>;
-  openDialog: (tab: 'sql' | 'qdrant') => void;
+  loadConfigs: () => Promise<void>;
+  savePGConfig: (config: PGConnectionConfig) => Promise<void>;
+  clearPGConfig: () => Promise<void>;
+  saveQdrantConfig: (config: QdrantConfig) => Promise<void>;
+  clearQdrantConfig: () => Promise<void>;
+  testConnection: (type: 'postgresql' | 'qdrant') => Promise<ConnectionTestResult>;
+  openDialog: () => void;
   closeDialog: () => void;
-
-  // SQL browser actions
-  setActiveSQL: (id: string | null) => void;
-  loadSQLTables: (id: string) => Promise<void>;
-  setActiveSQLTable: (table: string | null) => void;
-  loadSQLTableData: (id: string, table: string, limit?: number, offset?: number) => Promise<void>;
-  importSQLData: (
-    id: string,
-    table: string,
-    sectionKey: string,
-    mapping: Record<string, string>,
-  ) => Promise<{ success: boolean; imported?: number; error?: string }>;
-
-  // Qdrant browser actions
-  setActiveQdrant: (id: string | null) => void;
-  loadQdrantCollections: (id: string) => Promise<void>;
-  searchQdrant: (
-    id: string,
-    opts: { collection?: string; vector?: number[]; query?: string; limit?: number },
-  ) => Promise<{ success: boolean; message?: string; error?: string }>;
-  syncQdrantTags: (
-    id: string,
-  ) => Promise<{ success: boolean; message?: string; error?: string; affectedSections?: string[] | string }>;
+  autocomplete: (sectionKey: string, fieldKey: string, value: string) => Promise<void>;
+  clearAutocomplete: () => void;
+  setActiveAutocompleteField: (field: { sectionKey: string; fieldKey: string; rowIndex: number } | null) => void;
 }
 
 // =============================================================================
@@ -79,38 +52,33 @@ export interface ConnectionState {
 export const useConnectionStore = create<ConnectionState>((set, get) => ({
   // ── Initial state ─────────────────────────────────────────────────────────
 
-  sqlConnections: [],
-  qdrantConnections: [],
+  pgConfig: null,
+  qdrantConfig: null,
   isLoading: false,
-  testResults: {},
 
-  activeSQLId: null,
-  sqlTables: [],
-  sqlTablesLoading: false,
-  activeSQLTable: null,
-  sqlTableData: null,
-  sqlTableLoading: false,
+  pgTestResult: null,
+  qdrantTestResult: null,
+  isTesting: null,
 
-  activeQdrantId: null,
-  qdrantCollections: [],
-  qdrantCollectionsLoading: false,
-  qdrantSearchResults: [],
-  qdrantSearchLoading: false,
+  autocompleteResults: [],
+  autocompleteLoading: false,
+  autocompleteSectionKey: null,
+  autocompleteFieldKey: null,
+  activeAutocompleteField: null,
 
   dialogOpen: false,
-  dialogTab: 'sql',
 
-  // ── Connection CRUD ──────────────────────────────────────────────────────
+  // ── Config Actions ─────────────────────────────────────────────────────────
 
-  loadConnections: async () => {
+  loadConfigs: async () => {
     set({ isLoading: true });
     try {
       const res = await fetch('/api/connections');
       if (!res.ok) throw new Error('Не удалось загрузить подключения');
       const data = await res.json();
       set({
-        sqlConnections: Array.isArray(data.sql_connections) ? data.sql_connections : [],
-        qdrantConnections: Array.isArray(data.qdrant_connections) ? data.qdrant_connections : [],
+        pgConfig: data.postgresql ?? null,
+        qdrantConfig: data.qdrant ?? null,
         isLoading: false,
       });
     } catch {
@@ -118,244 +86,116 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
     }
   },
 
-  addConnection: async (type, config) => {
+  savePGConfig: async (config) => {
     const res = await fetch('/api/connections', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, ...config }),
-    });
-    if (!res.ok) {
-      const body = await res.json();
-      throw new Error(body.error || 'Ошибка создания подключения');
-    }
-    await get().loadConnections();
-  },
-
-  updateConnection: async (id, config) => {
-    const res = await fetch(`/api/connections/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(config),
     });
     if (!res.ok) {
       const body = await res.json();
-      throw new Error(body.error || 'Ошибка обновления подключения');
+      throw new Error(body.error || 'Ошибка сохранения PostgreSQL');
     }
-    await get().loadConnections();
+    set({ pgConfig: config, pgTestResult: null });
   },
 
-  deleteConnection: async (id) => {
-    const res = await fetch(`/api/connections/${id}`, {
-      method: 'DELETE',
-    });
-    if (!res.ok) {
-      const body = await res.json();
-      throw new Error(body.error || 'Ошибка удаления подключения');
-    }
-    await get().loadConnections();
-    // Reset active state if the deleted connection was active
-    const state = get();
-    if (state.activeSQLId === id) {
-      set({ activeSQLId: null, sqlTables: [], activeSQLTable: null, sqlTableData: null });
-    }
-    if (state.activeQdrantId === id) {
-      set({ activeQdrantId: null, qdrantCollections: [], qdrantSearchResults: [] });
-    }
+  clearPGConfig: async () => {
+    await fetch('/api/connections', { method: 'DELETE' });
+    set({ pgConfig: null, pgTestResult: null });
   },
 
-  testConnection: async (id) => {
-    set((s) => ({
-      testResults: { ...s.testResults, [id]: { ok: false, error: 'Тестирование…' } },
-    }));
-    try {
-      const res = await fetch(`/api/connections/${id}/test`, { method: 'POST' });
-      if (!res.ok) {
-        const body = await res.json();
-        set((s) => ({
-          testResults: {
-            ...s.testResults,
-            [id]: { ok: false, error: body.error || 'Ошибка тестирования' },
-          },
-        }));
-        return;
-      }
-      const result = await res.json();
-      set((s) => ({
-        testResults: { ...s.testResults, [id]: result },
-      }));
-    } catch (err) {
-      set((s) => ({
-        testResults: {
-          ...s.testResults,
-          [id]: {
-            ok: false,
-            error: err instanceof Error ? err.message : 'Ошибка сети',
-          },
-        },
-      }));
-    }
-  },
-
-  // ── Dialog ───────────────────────────────────────────────────────────────
-
-  openDialog: (tab) => set({ dialogOpen: true, dialogTab: tab }),
-  closeDialog: () => set({ dialogOpen: false }),
-
-  // ── SQL Browser ─────────────────────────────────────────────────────────
-
-  setActiveSQL: (id) => {
-    set({
-      activeSQLId: id,
-      sqlTables: [],
-      sqlTablesLoading: false,
-      activeSQLTable: null,
-      sqlTableData: null,
-      sqlTableLoading: false,
-    });
-    if (id) {
-      get().loadSQLTables(id);
-    }
-  },
-
-  loadSQLTables: async (id) => {
-    set({ sqlTablesLoading: true });
-    try {
-      const res = await fetch(`/api/sql/${id}/tables`);
-      if (!res.ok) {
-        throw new Error('Не удалось загрузить список таблиц');
-      }
-      const data = await res.json();
-      set({
-        sqlTables: Array.isArray(data) ? data : [],
-        sqlTablesLoading: false,
-      });
-    } catch (err) {
-      set({ sqlTablesLoading: false });
-      console.error('Error loading SQL tables:', err);
-    }
-  },
-
-  setActiveSQLTable: (table) => {
-    set({ activeSQLTable: table, sqlTableData: null });
-    const { activeSQLId } = get();
-    if (table && activeSQLId) {
-      get().loadSQLTableData(activeSQLId, table, 50, 0);
-    }
-  },
-
-  loadSQLTableData: async (id, table, limit = 50, offset = 0) => {
-    set({ sqlTableLoading: true });
-    try {
-      const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
-      const res = await fetch(`/api/sql/${id}/tables/${table}?${params}`);
-      if (!res.ok) {
-        throw new Error('Не удалось загрузить данные таблицы');
-      }
-      const data = await res.json();
-      set({ sqlTableData: data, sqlTableLoading: false });
-    } catch (err) {
-      set({ sqlTableLoading: false });
-      console.error('Error loading SQL table data:', err);
-    }
-  },
-
-  importSQLData: async (id, table, sectionKey, mapping) => {
-    const res = await fetch(`/api/sql/${id}/import`, {
-      method: 'POST',
+  saveQdrantConfig: async (config) => {
+    const res = await fetch('/api/connections/qdrant', {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ table, sectionKey, mapping }),
+      body: JSON.stringify(config),
     });
     if (!res.ok) {
       const body = await res.json();
-      return { success: false, error: body.error || 'Ошибка импорта' };
+      throw new Error(body.error || 'Ошибка сохранения Qdrant');
     }
-    const body = await res.json();
-    return { success: true, imported: body.imported };
+    set({ qdrantConfig: config, qdrantTestResult: null });
   },
 
-  // ── Qdrant Browser ────────────────────────────────────────────────────
-
-  setActiveQdrant: (id) => {
-    set({
-      activeQdrantId: id,
-      qdrantCollections: [],
-      qdrantCollectionsLoading: false,
-      qdrantSearchResults: [],
-      qdrantSearchLoading: false,
-    });
-    if (id) {
-      get().loadQdrantCollections(id);
-    }
+  clearQdrantConfig: async () => {
+    await fetch('/api/connections/qdrant', { method: 'DELETE' });
+    set({ qdrantConfig: null, qdrantTestResult: null });
   },
 
-  loadQdrantCollections: async (id) => {
-    set({ qdrantCollectionsLoading: true });
+  // ── Test Actions ──────────────────────────────────────────────────────────
+
+  testConnection: async (type) => {
+    set({ isTesting: type });
     try {
-      const res = await fetch(`/api/qdrant/${id}/collections`);
-      if (!res.ok) {
-        throw new Error('Не удалось загрузить список коллекций');
-      }
-      const data = await res.json();
-      set({
-        qdrantCollections: Array.isArray(data) ? data : [],
-        qdrantCollectionsLoading: false,
-      });
-    } catch (err) {
-      set({ qdrantCollectionsLoading: false });
-      console.error('Error loading Qdrant collections:', err);
-    }
-  },
-
-  searchQdrant: async (id, opts) => {
-    set({ qdrantSearchLoading: true });
-    try {
-      const res = await fetch(`/api/qdrant/${id}/search`, {
+      const res = await fetch('/api/connections/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(opts),
+        body: JSON.stringify({ type }),
       });
+      const result = await res.json();
       if (!res.ok) {
-        const body = await res.json();
-        return { success: false, error: body.error || 'Ошибка поиска' };
+        const testResult: ConnectionTestResult = { ok: false, error: result.error || 'Ошибка тестирования' };
+        if (type === 'postgresql') set({ pgTestResult: testResult });
+        else set({ qdrantTestResult: testResult });
+        return testResult;
       }
-      const data = await res.json();
-      set({
-        qdrantSearchResults: Array.isArray(data.results) ? data.results : [],
-        qdrantSearchLoading: false,
-      });
-      if (data.message) {
-        return { success: true, message: data.message };
-      }
-      return { success: true };
+      if (type === 'postgresql') set({ pgTestResult: result });
+      else set({ qdrantTestResult: result });
+      return result;
     } catch (err) {
-      set({ qdrantSearchLoading: false });
-      return {
-        success: false,
+      const testResult: ConnectionTestResult = {
+        ok: false,
         error: err instanceof Error ? err.message : 'Ошибка сети',
       };
+      if (type === 'postgresql') set({ pgTestResult: testResult });
+      else set({ qdrantTestResult: testResult });
+      return testResult;
+    } finally {
+      set({ isTesting: null });
     }
   },
 
-  syncQdrantTags: async (id) => {
+  // ── Dialog ─────────────────────────────────────────────────────────────────
+
+  openDialog: () => {
+ get().loadConfigs();
+    set({ dialogOpen: true });
+  },
+  closeDialog: () => set({ dialogOpen: false }),
+
+  // ── Autocomplete ──────────────────────────────────────────────────────────
+
+  autocomplete: async (sectionKey, fieldKey, value) => {
+    set({ autocompleteLoading: true, autocompleteSectionKey: sectionKey, autocompleteFieldKey: fieldKey });
     try {
-      const res = await fetch(`/api/qdrant/${id}/sync`, {
+      const res = await fetch('/api/connections/autocomplete', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sectionKey, fieldKey, value }),
       });
       if (!res.ok) {
         const body = await res.json();
-        return { success: false, error: body.error || 'Ошибка синхронизации' };
+        // Silently ignore — no PG config is the common case
+        set({ autocompleteResults: [], autocompleteLoading: false });
+        return;
       }
-      const data = await res.json();
-      return {
-        success: true,
-        message: data.message,
-        affectedSections: data.affectedSections,
-      };
-    } catch (err) {
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Ошибка сети',
-      };
+      const matches = await res.json();
+      set({
+        autocompleteResults: Array.isArray(matches) ? matches : [],
+        autocompleteLoading: false,
+      });
+    } catch {
+      set({ autocompleteResults: [], autocompleteLoading: false });
     }
   },
+
+  clearAutocomplete: () =>
+    set({
+      autocompleteResults: [],
+      autocompleteSectionKey: null,
+      autocompleteFieldKey: null,
+      activeAutocompleteField: null,
+    }),
+
+  setActiveAutocompleteField: (field) => set({ activeAutocompleteField: field }),
 }));

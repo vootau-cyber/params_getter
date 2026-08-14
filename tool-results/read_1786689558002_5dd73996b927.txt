@@ -1609,3 +1609,85 @@
   1609→- Browser verified: INN with "abc" → red border + red tooltip "Поле «ИНН» — некорректный формат ввода. Корректный формат: 10 цифр (ИНН организации)"
   1610→- Browser verified: email with "not-an-email" → red border + red tooltip "Поле Электронная почта — некорректный формат ввода. Корректный формат: example@domain.com"
   1611→
+  1612→---
+  1613→
+  1614→# Task 2-a: Foundation Layer — SQL & Qdrant Knowledge Base Connections
+  1615→**Agent**: foundation-builder
+  1616→**Date**: 2026-08-06
+  1617→**Status**: ✅ Completed
+  1618→
+  1619→## Summary
+  1620→
+  1621→Created 5 foundational library files providing type definitions, persistent JSON storage, and client factories for PostgreSQL, MySQL, and Qdrant vector database connections.
+  1622→
+  1623→## Files Created
+  1624→
+  1625→1. **`src/lib/types/connection.ts`** — TypeScript interfaces for SQL/Qdrant connection configs, table info, query results, collection info, search results, and connection test results.
+  1626→2. **`src/lib/connection-storage.ts`** — File-based JSON CRUD storage at `data/connection-configs.json` following the same fs/promises pattern as `storage.ts`. Includes `addSQLConnection`, `addQdrantConnection`, `updateConnection`, `deleteConnection`.
+  1627→3. **`src/lib/sql-client.ts`** — Factory `createSQLClient(config)` with PostgreSQL (`pg.Pool`) and MySQL (`mysql2/promise`) implementations. Methods: testConnection (timed SELECT 1), listTables, describeTable, queryTable (paginated), close. 10s timeout, Russian error messages.
+  1628→4. **`src/lib/qdrant-client.ts`** — Factory `createQdrantClient(config)` using `@qdrant/js-client-rest`. Methods: testConnection, listCollections, getCollectionInfo, search, upsert, close.
+  1629→5. **`src/lib/qdrant-field-mapper.ts`** — Maps all 30 unique `qdrant_*` schema fields to Qdrant payload keys (strips `qdrant_` prefix and `_tag` suffix). Exported `QDRANT_FIELD_MAP` and `getQdrantFieldKeys()`.
+  1630→
+  1631→## Verification
+  1632→
+  1633→- ESLint: 0 errors
+  1634→- Dev server compiles successfully
+  1635→- All required packages already present in package.json
+  1636→
+  1637→---
+  1638→
+  1639→## Task 2-b: API Routes Builder
+  1640→
+  1641→Agent: api-routes-builder
+  1642→
+  1643→### Summary
+  1644→Created all 10 API routes for SQL and Qdrant connection management, data import, and Qdrant search/upsert/sync operations.
+  1645→
+  1646→### Files Created (10 route files)
+  1647→
+  1648→1. **`/src/app/api/connections/route.ts`** — GET all configs, POST new SQL/Qdrant connection
+  1649→2. **`/src/app/api/connections/[id]/route.ts`** — GET/PUT/DELETE single connection by id
+  1650→3. **`/src/app/api/connections/[id]/test/route.ts`** — POST test connection (dynamic import for SQL client)
+  1651→4. **`/src/app/api/sql/[id]/tables/route.ts`** — GET list tables for SQL connection
+  1652→5. **`/src/app/api/sql/[id]/tables/[table]/route.ts`** — GET describe + query table (supports ?limit=&offset=)
+  1653→6. **`/src/app/api/sql/[id]/import/route.ts`** — POST import SQL rows into app section via field mapping
+  1654→7. **`/src/app/api/qdrant/[id]/collections/route.ts`** — GET list Qdrant collections
+  1655→8. **`/src/app/api/qdrant/[id]/search/route.ts`** — POST search with vector or text query placeholder
+  1656→9. **`/src/app/api/qdrant/[id]/upsert/route.ts`** — POST upsert points to collection
+  1657→10. **`/src/app/api/qdrant/[id]/sync/route.ts`** — POST sync analysis (v1: returns affected sections, requires embedding service)
+  1658→
+  1659→### Design Decisions
+  1660→- Dynamic imports for sql-client and qdrant-client to avoid cold-path bundling
+  1661→- Russian error messages throughout
+  1662→- Client cleanup in `finally` blocks
+  1663→- SQL import limit: 100,000 rows; table browse limit: 1,000 rows max
+  1664→
+  1665→### Verification
+  1666→- ESLint: 0 errors
+  1667→- Dev server compiles successfully
+  1668→
+  1669→---
+  1670→
+  1671→# Task 2-c: Connection Store & Dialog Component (ui-builder)
+  1672→
+  1673→Generated: 2026-08-06
+  1674→
+  1675→## Files Created
+  1676→1. `/src/lib/store-connections.ts` — Zustand store for connection state management
+  1677→2. `/src/components/connections-dialog.tsx` — Full-featured dialog for managing SQL/Qdrant connections
+  1678→
+  1679→## Store: `store-connections.ts`
+  1680→- State: sqlConnections, qdrantConnections, testResults, SQL browser state (activeSQLId, sqlTables, activeSQLTable, sqlTableData), Qdrant browser state (activeQdrantId, qdrantCollections, qdrantSearchResults), dialog state
+  1681→- Actions: loadConnections, addConnection, updateConnection, deleteConnection, testConnection, openDialog/closeDialog, setActiveSQL/loadSQLTables/setActiveSQLTable/loadSQLTableData/importSQLData, setActiveQdrant/loadQdrantCollections/searchQdrant/syncQdrantTags
+  1682→
+  1683→## Component: `connections-dialog.tsx`
+  1684→- Exported: `ConnectionsDialog`
+  1685→- Dialog (max-w-5xl) with Tabs (SQL | Qdrant)
+  1686→- SQL tab: two-column (w-80 list + flex browser), inline add/edit forms, table browser with pagination, import wizard with field auto-mapping
+  1687→- Qdrant tab: two-column layout, collection list, vector/text search, results display, tag sync
+  1688→- All text Russian, desktop-only
+  1689→
+  1690→### Verification
+  1691→- ESLint: 0 errors (after fixing setState-in-effect lint rule)
+  1692→- Dev server compiles successfully
+  1693→

@@ -1690,3 +1690,82 @@ Generated: 2026-08-06
 ### Verification
 - ESLint: 0 errors (after fixing setState-in-effect lint rule)
 - Dev server compiles successfully
+
+---
+
+# Task 3: Autocomplete Rewrite — READ-ONLY PG + Apache AGE for Autocomplete
+
+Generated: 2026-08-06T13:30:00.000Z
+
+## Overview
+Rewrote the entire connection/autocomplete subsystem from a multi-connection SQL/Qdrant browser into a streamlined READ-ONLY PostgreSQL 15 + Apache AGE connection for form field autocomplete. Removed table browsing, data import, and collection management. The app now queries an external DB to auto-fill form fields when users type in identity fields (INN, name, OGRN, etc.).
+
+## Changes
+
+### Types: `src/lib/types/connection.ts`
+- Replaced `SQLConnectionConfig` (multi-connection with id/name/type) → `PGConnectionConfig` (single, with `graphName` for AGE)
+- Replaced `QdrantConnectionConfig` (multi-connection) → `QdrantConfig` (single)
+- Replaced `ConnectionConfigs.sql_connections[]` + `qdrant_connections[]` → `postgresql: PGConnectionConfig | null` + `qdrant: QdrantConfig | null`
+- Removed: `SQLTableInfo`, `SQLQueryResult`, `QdrantCollectionInfo`, `QdrantSearchResult`
+- Added: `AutocompleteMatch { row, label }`
+
+### Storage: `src/lib/connection-storage.ts`
+- Simplified to single PG + single Qdrant config
+- Functions: `readConfigs()`, `savePGConfig()`, `clearPGConfig()`, `saveQdrantConfig()`, `clearQdrantConfig()`
+- Removed: `addSQLConnection`, `addQdrantConnection`, `updateConnection`, `deleteConnection`, `writeConfigs` (public)
+
+### SQL Client: `src/lib/sql-client.ts`
+- `testPGConnection(config)` — SELECT 1 with timing, closes pool after use
+- `autocompleteFromPG(config, {sectionKey, fieldKey, value, limit})` — parameterized ILIKE query with `is_current_version = true`, identifier sanitization, auto-label generation from first 2-3 text fields
+- Removed: `SQLClient` interface, `createSQLClient` factory, MySQL support, table listing, data browsing
+
+### Qdrant Client: `src/lib/qdrant-client.ts`
+- `testQdrantConnection(config)` — getCollections with timing
+- `semanticSearch(config, params)` — stub returning `[]` with TODO for embedding integration
+- Removed: `QdrantClientWrapper`, `createQdrantClient`, listCollections, getCollectionInfo, search, upsert
+
+### API Routes
+- Deleted: `src/app/api/connections/[id]/` (entire directory)
+- Rewrote: `src/app/api/connections/route.ts` — GET (return configs), PUT (save PG), DELETE (clear PG)
+- Created: `src/app/api/connections/qdrant/route.ts` — GET/PUT/DELETE for Qdrant config
+- Created: `src/app/api/connections/test/route.ts` — POST with `{type: 'postgresql'|'qdrant'}`
+- Created: `src/app/api/connections/autocomplete/route.ts` — POST with `{sectionKey, fieldKey, value, limit}`
+
+### Store: `src/lib/store-connections.ts`
+- Simplified from 360+ lines to ~110 lines
+- State: pgConfig, qdrantConfig, isLoading, pgTestResult, qdrantTestResult, isTesting, autocompleteResults, autocompleteLoading, autocompleteSectionKey, autocompleteFieldKey, activeAutocompleteField, dialogOpen
+- Actions: loadConfigs, savePGConfig, clearPGConfig, saveQdrantConfig, clearQdrantConfig, testConnection, openDialog, closeDialog, autocomplete, clearAutocomplete, setActiveAutocompleteField
+- Removed: all SQL browser state/actions, all Qdrant browser state/actions, multi-connection CRUD
+
+### Main Store: `src/lib/store.ts`
+- Added: `dbSourcedFields: Record<string, Set<string>>` (sectionKey → Set of "rowIndex:fieldKey")
+- Added: `markDBSourced(sectionKey, rowIndex, fieldKey)`, `clearDBSourced()`, `isDBSourced(sectionKey, rowIndex, fieldKey)`
+
+### Dialog: `src/components/connections-dialog.tsx`
+- Rewritten from ~1500 lines to ~300 lines
+- Compact dialog (max-w-lg) with stacked PG + Qdrant cards
+- Each card: CardHeader with test badge, form fields, CardFooter with Test/Save/Clear buttons
+- Form initialized from store config via props (key-based remount)
+- No tabs, no table browser, no import wizard
+
+### Section Table: `src/components/section-table.tsx`
+- Added `AUTOCOMPLETE_FIELD_PATTERNS` — regexes for inn, ogrn, full_name, short_name, reg_num, _name, _fio, imo
+- Added `isAutocompleteField(field)` — checks field eligibility
+- Added `debounce()` utility (400ms)
+- Modified `FieldInput`: added `onTextChange` prop, text inputs call it on change
+- Modified `RecordFieldRow`:
+  - Subscribes to connection store for autocomplete state
+  - Creates debounced autocomplete trigger (min 2 chars, 400ms)
+  - Renders autocomplete dropdown below input (absolute positioned, z-50, max-h-60)
+  - Shows loading spinner while searching
+  - `handleApplyMatch`: maps DB row columns to section fields, calls updateCell + markDBSourced
+  - Click-outside closes dropdown via mousedown event listener
+  - Shows amber "из БД" badge for DB-sourced fields
+
+### Page: `src/app/page.tsx`
+- Updated dialog open call from `openDialog('sql')` to `openDialog()`
+- Renamed button text from "Базы знаний" to "Базы данных"
+
+## Verification
+- ESLint: 0 errors, 0 warnings
+- Dev server compiles successfully
