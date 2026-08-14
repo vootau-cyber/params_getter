@@ -1769,3 +1769,85 @@ Rewrote the entire connection/autocomplete subsystem from a multi-connection SQL
 ## Verification
 - ESLint: 0 errors, 0 warnings
 - Dev server compiles successfully
+
+---
+
+# Task: Python Flask Backend Implementation
+
+Generated: $(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
+
+---
+
+## Summary
+
+Complete Python 3.8-compatible Flask backend for maritime security data entry SPA. Ported from Next.js/TypeScript (schema.ts, storage.ts) to Python.
+
+## Files Created
+
+| File | Description |
+|------|-------------|
+| `app/__init__.py` | Package init |
+| `app/main.py` | Flask app entry point (port 5000) |
+| `app/schema.py` | Full 30-section schema (545 fields incl. nested) + 5 helper functions |
+| `app/storage.py` | File-based JSON storage with versioning (ported from storage.ts) |
+| `app/routes/__init__.py` | Routes package init |
+| `app/routes/api.py` | All API endpoints (7 routes) |
+| `requirements.txt` | Flask 2.2.5 + Werkzeug 2.2.3 |
+| `seed/seed_domain_data_full.json` | Copied from upload/ |
+
+## Schema Verification
+
+- **30 sections** ✅ (all keys present, matching schema.ts exactly)
+- **545 total fields** (including nested fields in object types)
+- **All field types**: text, number, date, boolean, array, select, textarea, object, ref ✅
+- **Virtual fields**: `_v_person_ref` (post_staff), `_v_catalog_tsotb_ref` (post_equipment) ✅
+- **refAutoFill mappings**: Correctly ported with same target→source keys ✅
+- **9 section groups**: Identical to TypeScript implementation ✅
+- **Nested fields**: aquatories.points, cargo_summary lists, opo_accident_scenarios, zoning.ztb_boundaries, climate_context.neighbor_objects, climate_context.neighbor_interaction_type ✅
+
+## Helper Functions
+
+- `get_empty_row(section_key)` — Returns default dict, skips virtual fields ✅
+- `get_virtual_field_keys()` — Returns {post_staff: {_v_person_ref}, post_equipment: {_v_catalog_tsotb_ref}} ✅
+- `get_ref_auto_fill_mappings()` — Returns same mapping as TypeScript ✅
+- `get_section_groups()` — 9 groups, same keys as TypeScript ✅
+- `get_known_section_keys()` — All 30 keys ✅
+
+## API Endpoints
+
+| Method | Path | Status | Description |
+|--------|------|--------|-------------|
+| GET | /api/schema | 200 | Returns full SCHEMA_SECTIONS |
+| GET | /api/data | 200 | Loads current data (initializes from seed) |
+| POST | /api/data | 200 | Saves data with versioning |
+| GET | /api/versions | 200 | Lists all versions |
+| GET | /api/versions/<id> | 200 | Loads specific version data |
+| POST | /api/import | 200 | Imports JSON file (multipart) |
+| GET | /api/export | 200 | Exports as JSON download |
+| POST | /api/reset | 200 | Resets to seed data |
+
+## Storage
+
+- File paths: `data/current.json`, `data/versions/`, `data/versions.json`
+- Seed: `seed/seed_domain_data_full.json`
+- Versioning with auto-increment IDs, timestamps, author tracking, changed section detection
+- Migration logic: handles old `contracts` key splitting, ensures all 30 keys exist
+
+## Python 3.8 Compatibility
+
+- No walrus operator (`:=`) ✅
+- No match/case statements ✅
+- Type hints use `typing` module style ✅
+- f-strings used throughout ✅
+- All files pass AST parse check ✅
+
+## Testing
+
+All API endpoints tested via Flask test client:
+- Schema endpoint returns 30 sections
+- Data load initializes from seed (30 sections, 0 versions)
+- Save creates version snapshots
+- Version listing and retrieval works
+- Export returns JSON content-type
+- Reset clears to seed
+

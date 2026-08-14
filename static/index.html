@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Реестр данных ОТИ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background: 'var(--background)',
+            foreground: 'var(--foreground)',
+            card: 'var(--card)',
+            'card-foreground': 'var(--card-foreground)',
+            popover: 'var(--popover)',
+            'popover-foreground': 'var(--popover-foreground)',
+            primary: 'var(--primary)',
+            'primary-foreground': 'var(--primary-foreground)',
+            secondary: 'var(--secondary)',
+            'secondary-foreground': 'var(--secondary-foreground)',
+            muted: 'var(--muted)',
+            'muted-foreground': 'var(--muted-foreground)',
+            accent: 'var(--accent)',
+            'accent-foreground': 'var(--accent-foreground)',
+            destructive: 'var(--destructive)',
+            'destructive-foreground': 'var(--destructive-foreground)',
+            border: 'var(--border)',
+            input: 'var(--input)',
+            ring: 'var(--ring)',
+          },
+          borderRadius: {
+            lg: 'var(--radius)',
+            md: 'calc(var(--radius) - 2px)',
+            sm: 'calc(var(--radius) - 4px)',
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-background text-foreground">
+  <div id="app" class="min-h-screen flex flex-col">
+    <!-- Loading state -->
+    <div id="loading-overlay" class="min-h-screen flex items-center justify-center">
+      <div class="flex flex-col items-center gap-3">
+        <div class="spinner size-8"></div>
+        <p class="text-muted-foreground text-sm">Загрузка данных…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden import file input -->
+  <input type="file" id="import-file-input" accept=".json" class="hidden">
+
+  <!-- Version History Modal -->
+  <div id="versions-modal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width: 36rem;">
+      <div class="flex items-center gap-2 mb-1">
+        <i data-lucide="clock" class="size-5"></i>
+        <h3 class="text-lg font-semibold">История версий</h3>
+      </div>
+      <p class="text-sm text-muted-foreground mb-4">Список сохранённых версий данных. Загрузка версии заменит текущие данные.</p>
+      <div id="versions-list" class="max-h-[50vh] overflow-y-auto space-y-2"></div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div id="import-modal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width: 32rem;">
+      <div class="flex items-center gap-2 mb-1">
+        <i data-lucide="upload" class="size-5"></i>
+        <h3 class="text-lg font-semibold">Импорт данных</h3>
+      </div>
+      <p class="text-sm text-muted-foreground mb-4">Загрузите файл JSON с данными для импорта. Текущие данные будут сохранены как новая версия.</p>
+      <div id="import-dropzone" class="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors border-muted-foreground/25 hover:border-muted-foreground/50">
+        <div class="flex flex-col items-center gap-2 text-muted-foreground">
+          <i data-lucide="upload-cloud" class="size-8"></i>
+          <p class="text-sm">Перетащите файл сюда или нажмите для выбора</p>
+          <p class="text-xs">Только файлы .json</p>
+        </div>
+      </div>
+      <div id="import-preview" class="hidden mt-3">
+        <p class="text-xs font-medium text-muted-foreground mb-1">Предпросмотр:</p>
+        <pre id="import-preview-content" class="max-h-48 overflow-auto rounded-md border bg-muted/30 p-3 text-xs font-mono leading-relaxed"></pre>
+      </div>
+      <div id="import-error" class="hidden mt-3 flex items-start gap-2 rounded-md border border-destructive/50 bg-destructive/5 p-3">
+        <i data-lucide="alert-circle" class="size-4 text-destructive mt-0.5 shrink-0"></i>
+        <p id="import-error-text" class="text-sm text-destructive"></p>
+      </div>
+      <div class="flex justify-end gap-2 mt-4">
+        <button id="import-cancel-btn" class="btn btn-outline text-sm">Отмена</button>
+        <button id="import-do-btn" class="btn btn-primary text-sm" disabled>Импортировать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "flask-backend",
+  "scripts": {
+    "dev": "python3 -u index.py"
+  }
+}
