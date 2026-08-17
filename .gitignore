@@ -1,2 +1,59 @@
-skills/
+# Dependencies
 node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+
+# Next.js
+/.next/
+/out/
+/build
+
+# Environment
+.env*
+
+# Python
+__pycache__/
+*.pyc
+python-app/data/
+python-app/__pycache__/
+
+# Misc
+.DS_Store
+*.pem
+*.log
+dev.log
+
+# Internal/tooling
+.claude
+.z-ai-config
+.zscripts/
+agent-ctx/
+tool-results/
+tests/
+local-*
+server.log
+
+# Runtime data
+data/
+db/
+
+# Screenshots
+screenshot-*.png
+
+# Upload/download
+upload/
+download/
+
+# Skills
+tools-results/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+
+# Lock
+bun.lock
