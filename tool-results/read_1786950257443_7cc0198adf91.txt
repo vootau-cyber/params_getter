@@ -1,0 +1,1512 @@
+     1→'use client';
+     2→
+     3→import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+     4→import type { SectionDef, FieldDef } from '@/lib/schema';
+     5→import { SCHEMA_SECTIONS } from '@/lib/schema';
+     6→import { useStore } from '@/lib/store';
+     7→import { useConnectionStore } from '@/lib/store-connections';
+     8→
+     9→import { Input } from '@/components/ui/input';
+    10→import { Textarea } from '@/components/ui/textarea';
+    11→import { Switch } from '@/components/ui/switch';
+    12→import {
+    13→  Select,
+    14→  SelectContent,
+    15→  SelectItem,
+    16→  SelectTrigger,
+    17→  SelectValue,
+    18→} from '@/components/ui/select';
+    19→import { Button } from '@/components/ui/button';
+    20→import {
+    21→  Tooltip,
+    22→  TooltipContent,
+    23→  TooltipTrigger,
+    24→} from '@/components/ui/tooltip';
+    25→import { Badge } from '@/components/ui/badge';
+    26→import { Label } from '@/components/ui/label';
+    27→import {
+    28→  Collapsible,
+    29→  CollapsibleContent,
+    30→  CollapsibleTrigger,
+    31→} from '@/components/ui/collapsible';
+    32→import {
+    33→  Plus,
+    34→  Trash2,
+    35→  Minus,
+    36→  Link2,
+    37→  ChevronDown,
+    38→  ChevronRight,
+    39→  FileText,
+    40→  AlertCircle,
+    41→  Loader2,
+    42→} from 'lucide-react';
+    43→
+    44→// =============================================================================
+    45→// Autocomplete — field patterns for DB autocomplete eligibility
+    46→// =============================================================================
+    47→
+    48→const AUTOCOMPLETE_FIELD_PATTERNS = [
+    49→  /inn$/,
+    50→  /ogrn$/,
+    51→  /full_name$/,
+    52→  /short_name$/,
+    53→  /reg_num$/,
+    54→  /_name$/,
+    55→  /_fio$/,
+    56→  /imo$/,
+    57→];
+    58→
+    59→function isAutocompleteField(field: FieldDef): boolean {
+    60→  if (field.readOnly || field.virtual || field.type !== 'text') return false;
+    61→  return AUTOCOMPLETE_FIELD_PATTERNS.some((p) => p.test(field.key));
+    62→}
+    63→
+    64→/** Simple debounce utility */
+    65→function debounce<T extends (...args: Parameters<T>) => void>(
+    66→  fn: T,
+    67→  ms: number,
+    68→): (...args: Parameters<T>) => void {
+    69→  let timer: ReturnType<typeof setTimeout>;
+    70→  return (...args: Parameters<T>) => {
+    71→    clearTimeout(timer);
+    72→    timer = setTimeout(() => fn(...args), ms);
+    73→  };
+    74→}
+    75→
+    76→// =============================================================================
+    77→// Format validation rules
+    78→// =============================================================================
+    79→
+    80→interface FormatRule {
+    81→  /** Regex to match against field key */
+    82→  keyPattern: RegExp;
+    83→  /** Validation function — returns true if the value is valid */
+    84→  validate: (v: string) => boolean;
+    85→  /** Human-readable (Russian) description of the expected format */
+    86→  formatHint: string;
+    87→}
+    88→
+    89→/**
+    90→ * Format rules ordered from most specific to least specific.
+    91→ * First matching rule wins.
+    92→ */
+    93→const FORMAT_RULES: FormatRule[] = [
+    94→  // ── Russian business identifiers ──────────────────────────────────
+    95→  {
+    96→    keyPattern: /(?:^|_)ip_ogrn$/, // sti_ip_ogrn
+    97→    validate: (v) => /^\d{15}$/.test(v),
+    98→    formatHint: '15 цифр (ОГРНИП)',
+    99→  },
+   100→  {
+   101→    keyPattern: /ogrn$/,
+   102→    validate: (v) => /^\d{13}$/.test(v),
+   103→    formatHint: '13 цифр (ОГРН)',
+   104→  },
+   105→  {
+   106→    keyPattern: /(?:^|_)ip_inn$/, // sti_ip_inn, sti_person_inn
+   107→    validate: (v) => /^\d{12}$/.test(v),
+   108→    formatHint: '12 цифр (ИНН ИП/физлица)',
+   109→  },
+   110→  {
+   111→    keyPattern: /person_inn$/,
+   112→    validate: (v) => /^\d{12}$/.test(v),
+   113→    formatHint: '12 цифр (ИНН физлица)',
+   114→  },
+   115→  {
+   116→    keyPattern: /inn$/,
+   117→    validate: (v) => /^\d{10}(\d{2})?$/.test(v),
+   118→    formatHint: '10 или 12 цифр (ИНН юрлица/физлица)',
+   119→  },
+   120→  {
+   121→    keyPattern: /kpp$/,
+   122→    validate: (v) => /^\d{9}$/.test(v),
+   123→    formatHint: '9 цифр (КПП)',
+   124→  },
+   125→  {
+   126→    keyPattern: /okpo$/,
+   127→    validate: (v) => /^\d{8,10}$/.test(v),
+   128→    formatHint: '8 или 10 цифр (ОКПО)',
+   129→  },
+   130→  {
+   131→    keyPattern: /snils/,
+   132→    validate: (v) => /^\d{11}$/.test(v),
+   133→    formatHint: '11 цифр (СНИЛС)',
+   134→  },
+   135→
+   136→  // ── Banking ───────────────────────────────────────────────────────
+   137→  {
+   138→    keyPattern: /(?:bik|bic)$/i,
+   139→    validate: (v) => /^\d{9}$/.test(v),
+   140→    formatHint: '9 цифр (БИК)',
+   141→  },
+   142→  {
+   143→    keyPattern: /(?:^|_)rs$/,
+   144→    validate: (v) => /^\d{20}$/.test(v),
+   145→    formatHint: '20 цифр (расчётный счёт)',
+   146→  },
+   147→  {
+   148→    keyPattern: /(?:^|_)ks$/,
+   149→    validate: (v) => /^\d{20}$/.test(v),
+   150→    formatHint: '20 цифр (корр. счёт)',
+   151→  },
+   152→
+   153→  // ── Contact ───────────────────────────────────────────────────────
+   154→  {
+   155→    keyPattern: /email$/,
+   156→    validate: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v),
+   157→    formatHint: 'example@domain.com',
+   158→  },
+   159→  {
+   160→    keyPattern: /fax$/,
+   161→    validate: (v) => /^[\d\s\-\+\(\)]{7,25}$/.test(v),
+   162→    formatHint: '+7 (XXX) XXX-XX-XX',
+   163→  },
+   164→  {
+   165→    keyPattern: /phone$/,
+   166→    validate: (v) => /^[\d\s\-\+\(\)]{7,25}$/.test(v),
+   167→    formatHint: '+7 (XXX) XXX-XX-XX',
+   168→  },
+   169→
+   170→  // ── Maritime identifiers ──────────────────────────────────────────
+   171→  {
+   172→    keyPattern: /(?:^|_)imo$/,
+   173→    validate: (v) => /^\d{7}$/.test(v),
+   174→    formatHint: '7 цифр (IMO номер судна)',
+   175→  },
+   176→  {
+   177→    keyPattern: /mmsi$/,
+   178→    validate: (v) => /^\d{9}$/.test(v),
+   179→    formatHint: '9 цифр (MMSI)',
+   180→  },
+   181→  {
+   182→    keyPattern: /call_sign$/,
+   183→    validate: (v) => /^[A-Za-z0-9\-]{3,10}$/.test(v),
+   184→    formatHint: 'Буквенно-цифровой позывной (3–10 символов)',
+   185→  },
+   186→
+   187→  // ── Coordinates ───────────────────────────────────────────────────
+   188→  {
+   189→    keyPattern: /(?:_lat|latitude)$/,
+   190→    validate: (v) => {
+   191→      const n = Number(v);
+   192→      return /^-?\d{1,3}(\.\d+)?$/.test(v) && n >= -90 && n <= 90;
+   193→    },
+   194→    formatHint: '-90.000000 … +90.000000 (широта)',
+   195→  },
+   196→  {
+   197→    keyPattern: /(?:_lon|longitude)$/,
+   198→    validate: (v) => {
+   199→      const n = Number(v);
+   200→      return /^-?\d{1,3}(\.\d+)?$/.test(v) && n >= -180 && n <= 180;
+   201→    },
+   202→    formatHint: '-180.000000 … +180.000000 (долгота)',
+   203→  },
+   204→
+   205→  // ── Registration numbers ──────────────────────────────────────────
+   206→  {
+   207→    keyPattern: /reg_num$/,
+   208→    validate: (v) => v.length >= 3,
+   209→    formatHint: 'Не менее 3 символов',
+   210→  },
+   211→];
+   212→
+   213→// =============================================================================
+   214→// Validation helpers
+   215→// =============================================================================
+   216→
+   217→export type FieldStatus = 'empty' | 'invalid' | 'ok';
+   218→
+   219→/**
+   220→ * Find the matching format rule for a field key, or null if none.
+   221→ */
+   222→function findFormatRule(fieldKey: string): FormatRule | null {
+   223→  for (const rule of FORMAT_RULES) {
+   224→    if (rule.keyPattern.test(fieldKey)) return rule;
+   225→  }
+   226→  return null;
+   227→}
+   228→
+   229→/**
+   230→ * Get the Russian format hint for a field (for tooltips).
+   231→ * Returns null if the field has no specific format requirement.
+   232→ */
+   233→export function getFieldFormatHint(field: FieldDef): string | null {
+   234→  // Number fields: always validate as finite number
+   235→  if (field.type === 'number') {
+   236→    return 'Число (дробное через точку)';
+   237→  }
+   238→  // Date fields: always validate as YYYY-MM-DD
+   239→  if (field.type === 'date') {
+   240→    return 'ГГГГ-ММ-ДД (например, 2024-12-31)';
+   241→  }
+   242→  // Text/textarea: check against FORMAT_RULES by key name
+   243→  const rule = findFormatRule(field.key);
+   244→  return rule ? rule.formatHint : null;
+   245→}
+   246→
+   247→/**
+   248→ * Determine if a field value is "empty" or "invalid".
+   249→ * Booleans, readOnly, virtual, and object fields are always 'ok'.
+   250→ *
+   251→ * Returns:
+   252→ *   'empty'   — value is missing / unfilled
+   253→ *   'invalid' — value is present but fails format validation
+   254→ *   'ok'      — value is present and valid
+   255→ */
+   256→export function getFieldStatus(field: FieldDef, value: unknown): FieldStatus {
+   257→  // Skip types that don't need validation
+   258→  if (field.readOnly || field.virtual) return 'ok';
+   259→  if (field.type === 'boolean') return 'ok';
+   260→  if (field.type === 'object') return 'ok';
+   261→
+   262→  // Helper: is the value considered "empty" for this type?
+   263→  const isEmpty = (): boolean => {
+   264→    switch (field.type) {
+   265→      case 'text':
+   266→      case 'textarea':
+   267→        return (value as string) === '' || value === undefined || value === null;
+   268→      case 'number':
+   269→        return value === null || value === undefined;
+   270→      case 'date':
+   271→        return value === null || value === undefined || value === '';
+   272→      case 'select':
+   273→        return (value as string) === '' || value === null;
+   274→      case 'array':
+   275→        return !Array.isArray(value) || value.length === 0;
+   276→      case 'ref':
+   277→        return value === null || value === undefined;
+   278→      default:
+   279→        return false;
+   280→    }
+   281→  };
+   282→
+   283→  if (isEmpty()) return 'empty';
+   284→
+   285→  // ── Format validation for non-empty values ──
+   286→
+   287→  // Number: must be a finite number
+   288→  if (field.type === 'number') {
+   289→    if (typeof value !== 'number' || !Number.isFinite(value)) return 'invalid';
+   290→    return 'ok';
+   291→  }
+   292→
+   293→  // Date: must match YYYY-MM-DD and be a real date
+   294→  if (field.type === 'date') {
+   295→    const str = String(value);
+   296→    if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return 'invalid';
+   297→    const d = new Date(str + 'T00:00:00');
+   298→    if (isNaN(d.getTime())) return 'invalid';
+   299→    // Verify the parsed date matches the input (e.g. no rollover like 2024-02-30)
+   300→    const [y, m, day] = str.split('-').map(Number);
+   301→    if (d.getFullYear() !== y || d.getMonth() + 1 !== m || d.getDate() !== day) {
+   302→      return 'invalid';
+   303→    }
+   304→    return 'ok';
+   305→  }
+   306→
+   307→  // Text / textarea: check against format rules by key name
+   308→  if (field.type === 'text' || field.type === 'textarea') {
+   309→    const str = String(value);
+   310→    const rule = findFormatRule(field.key);
+   311→    if (rule && !rule.validate(str)) return 'invalid';
+   312→    return 'ok';
+   313→  }
+   314→
+   315→  // Select: if value is set, it's always valid (chosen from a list)
+   316→  if (field.type === 'select') return 'ok';
+   317→
+   318→  // Array: if non-empty, valid
+   319→  if (field.type === 'array') return 'ok';
+   320→
+   321→  // Ref: if set, valid
+   322→  if (field.type === 'ref') return 'ok';
+   323→
+   324→  return 'ok';
+   325→}
+   326→
+   327→/** Count empty + invalid fields in a record */
+   328→export function countFieldIssues(
+   329→  fields: FieldDef[],
+   330→  row: Record<string, unknown>,
+   331→): number {
+   332→  let count = 0;
+   333→  for (const f of fields) {
+   334→    const status = getFieldStatus(f, row[f.key]);
+   335→    if (status !== 'ok') count++;
+   336→  }
+   337→  return count;
+   338→}
+   339→
+   340→// =============================================================================
+   341→// SectionTable — Vertical card-per-record layout (desktop-only)
+   342→// =============================================================================
+   343→
+   344→interface SectionTableProps {
+   345→  section: SectionDef;
+   346→}
+   347→
+   348→export function SectionTable({ section }: SectionTableProps) {
+   349→  const data = useStore((s) => s.data[section.key] || []);
+   350→  const addRow = useStore((s) => s.addRow);
+   351→  const removeRow = useStore((s) => s.removeRow);
+   352→  const [activeRecord, setActiveRecord] = useState(0);
+   353→
+   354→  // Clamp activeRecord when data changes
+   355→  const clampedRecord =
+   356→    data.length > 0 ? Math.min(activeRecord, data.length - 1) : 0;
+   357→
+   358→  React.useEffect(() => {
+   359→    if (clampedRecord !== activeRecord) {
+   360→      setActiveRecord(clampedRecord);
+   361→    }
+   362→  }, [clampedRecord, activeRecord]);
+   363→
+   364→  const editableFields = section.fields.filter((f) => !f.readOnly);
+   365→  const readOnlyFields = section.fields.filter((f) => f.readOnly);
+   366→  const row =
+   367→    data.length > 0
+   368→      ? (data[clampedRecord] as Record<string, unknown>)
+   369→      : null;
+   370→
+   371→  // Empty state
+   372→  if (data.length === 0) {
+   373→    return (
+   374→      <div className="py-16 text-center">
+   375→        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+   376→          <FileText className="size-7 text-muted-foreground" />
+   377→        </div>
+   378→        <p className="text-muted-foreground text-sm mb-4">
+   379→          Нет данных. Добавьте запись для начала.
+   380→        </p>
+   381→        <Button
+   382→          variant="outline"
+   383→          onClick={() => {
+   384→            addRow(section.key);
+   385→            setActiveRecord(0);
+   386→          }}
+   387→        >
+   388→          <Plus className="mr-2 size-4" />
+   389→          Добавить запись
+   390→        </Button>
+   391→      </div>
+   392→    );
+   393→  }
+   394→
+   395→  // Classify fields for layout
+   396→  const shortFields = editableFields.filter(
+   397→    (f) =>
+   398→      !f.virtual &&
+   399→      f.type !== 'textarea' &&
+   400→      f.type !== 'object' &&
+   401→      f.type !== 'array',
+   402→  );
+   403→  const virtualFields = editableFields.filter((f) => f.virtual);
+   404→  const textareaFields = editableFields.filter((f) => f.type === 'textarea');
+   405→  const arrayFields = editableFields.filter((f) => f.type === 'array');
+   406→  const objectFields = editableFields.filter((f) => f.type === 'object');
+   407→
+   408→  // Split short fields into pairs for 2-column grid
+   409→  const fieldPairs: (FieldDef | null)[][] = [];
+   410→  for (let i = 0; i < shortFields.length; i += 2) {
+   411→    fieldPairs.push([shortFields[i], shortFields[i + 1] ?? null]);
+   412→  }
+   413→
+   414→  return (
+   415→    <div className="space-y-4">
+   416→      {/* ── Record Tabs ─────────────────────────────────────────────── */}
+   417→      <div className="flex items-center gap-2 border-b pb-3">
+   418→        <div className="flex items-center gap-1 overflow-x-auto">
+   419→          {data.map((_, idx) => {
+   420→            const r = data[idx] as Record<string, unknown>;
+   421→            const issues = countFieldIssues(editableFields, r);
+   422→            const isActive = idx === clampedRecord;
+   423→            return (
+   424→              <Button
+   425→                key={idx}
+   426→                variant={isActive ? 'default' : 'outline'}
+   427→                size="sm"
+   428→                className={`shrink-0 h-8 px-3 text-xs gap-1.5 ${!isActive && issues > 0 ? 'border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive' : ''}`}
+   429→                onClick={() => setActiveRecord(idx)}
+   430→              >
+   431→                Запись {idx + 1}
+   432→                {issues > 0 && (
+   433→                  <Badge
+   434→                    variant="secondary"
+   435→                    className={`text-[9px] px-1 py-0 h-4 ${isActive ? 'bg-white/20 text-primary-foreground' : 'bg-destructive/10 text-destructive'}`}
+   436→                  >
+   437→                    {issues}
+   438→                  </Badge>
+   439→                )}
+   440→              </Button>
+   441→            );
+   442→          })}
+   443→        </div>
+   444→        <Button
+   445→          variant="outline"
+   446→          size="sm"
+   447→          className="shrink-0 h-8 text-xs"
+   448→          onClick={() => {
+   449→            addRow(section.key);
+   450→            setTimeout(() => setActiveRecord(data.length), 0);
+   451→          }}
+   452→        >
+   453→          <Plus className="mr-1 size-3.5" />
+   454→          Добавить
+   455→        </Button>
+   456→        <div className="ml-auto">
+   457→          <Button
+   458→            variant="outline"
+   459→            size="sm"
+   460→            className="h-8 text-xs text-destructive hover:text-destructive"
+   461→            onClick={() => {
+   462→              removeRow(section.key, clampedRecord);
+   463→              if (
+   464→                clampedRecord >= data.length - 1 &&
+   465→                clampedRecord > 0
+   466→              ) {
+   467→                setActiveRecord(clampedRecord - 1);
+   468→              }
+   469→            }}
+   470→          >
+   471→            <Trash2 className="mr-1 size-3.5" />
+   472→            Удалить
+   473→          </Button>
+   474→        </div>
+   475→      </div>
+   476→
+   477→      {/* ── Record Form ──────────────────────────────────────────────── */}
+   478→      {row && (
+   479→        <div className="space-y-6">
+   480→          {/* Virtual ref fields (reference selectors) */}
+   481→          {virtualFields.length > 0 && (
+   482→            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+   483→              <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
+   484→                <Link2 className="size-3.5" />
+   485→                Ссылки на другие разделы
+   486→              </div>
+   487→              {virtualFields.map((field) => (
+   488→                <RecordFieldRow
+   489→                  key={field.key}
+   490→                  field={field}
+   491→                  value={row[field.key]}
+   492→                  sectionKey={section.key}
+   493→                  rowIndex={clampedRecord}
+   494→                  fullWidth
+   495→                />
+   496→              ))}
+   497→            </div>
+   498→          )}
+   499→
+   500→          {/* Main 2-column field grid */}
+   501→          {fieldPairs.length > 0 && (
+   502→            <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+   503→              {fieldPairs.map((pair, pairIdx) => (
+   504→                <React.Fragment key={pairIdx}>
+   505→                  <RecordFieldRow
+   506→                    field={pair[0]!}
+   507→                    value={row[pair[0]!.key]}
+   508→                    sectionKey={section.key}
+   509→                    rowIndex={clampedRecord}
+   510→                    fullWidth={false}
+   511→                  />
+   512→                  {pair[1] ? (
+   513→                    <RecordFieldRow
+   514→                      field={pair[1]}
+   515→                      value={row[pair[1].key]}
+   516→                      sectionKey={section.key}
+   517→                      rowIndex={clampedRecord}
+   518→                      fullWidth={false}
+   519→                    />
+   520→                  ) : null}
+   521→                </React.Fragment>
+   522→              ))}
+   523→            </div>
+   524→          )}
+   525→
+   526→          {/* Textarea fields — full width */}
+   527→          {textareaFields.length > 0 && (
+   528→            <div className="space-y-3">
+   529→              {textareaFields.map((field) => (
+   530→                <RecordFieldRow
+   531→                  key={field.key}
+   532→                  field={field}
+   533→                  value={row[field.key]}
+   534→                  sectionKey={section.key}
+   535→                  rowIndex={clampedRecord}
+   536→                  fullWidth
+   537→                />
+   538→              ))}
+   539→            </div>
+   540→          )}
+   541→
+   542→          {/* Array fields — full width */}
+   543→          {arrayFields.length > 0 && (
+   544→            <div className="space-y-3">
+   545→              {arrayFields.map((field) => (
+   546→                <RecordFieldRow
+   547→                  key={field.key}
+   548→                  field={field}
+   549→                  value={row[field.key]}
+   550→                  sectionKey={section.key}
+   551→                  rowIndex={clampedRecord}
+   552→                  fullWidth
+   553→                />
+   554→              ))}
+   555→            </div>
+   556→          )}
+   557→
+   558→          {/* Object fields (nested arrays/objects) — full width */}
+   559→          {objectFields.length > 0 && (
+   560→            <div className="space-y-4">
+   561→              {objectFields.map((field) => (
+   562→                <RecordFieldRow
+   563→                  key={field.key}
+   564→                  field={field}
+   565→                  value={row[field.key]}
+   566→                  sectionKey={section.key}
+   567→                  rowIndex={clampedRecord}
+   568→                  fullWidth
+   569→                />
+   570→              ))}
+   571→            </div>
+   572→          )}
+   573→
+   574→          {/* Read-only fields (qdrant tags, etc.) — collapsed */}
+   575→          {readOnlyFields.length > 0 && (
+   576→            <ReadonlyFieldsBlock fields={readOnlyFields} row={row} />
+   577→          )}
+   578→        </div>
+   579→      )}
+   580→    </div>
+   581→  );
+   582→}
+   583→
+   584→// =============================================================================
+   585→// RecordFieldRow — a single field displayed as label + input
+   586→// =============================================================================
+   587→
+   588→interface RecordFieldRowProps {
+   589→  field: FieldDef;
+   590→  value: unknown;
+   591→  sectionKey: string;
+   592→  rowIndex: number;
+   593→  fullWidth: boolean;
+   594→}
+   595→
+   596→function RecordFieldRow({
+   597→  field,
+   598→  value,
+   599→  sectionKey,
+   600→  rowIndex,
+   601→  fullWidth,
+   602→}: RecordFieldRowProps) {
+   603→  const updateCell = useStore((s) => s.updateCell);
+   604→  const updateNestedCell = useStore((s) => s.updateNestedCell);
+   605→  const addNestedRow = useStore((s) => s.addNestedRow);
+   606→  const removeNestedRow = useStore((s) => s.removeNestedRow);
+   607→  const markDBSourced = useStore((s) => s.markDBSourced);
+   608→  const isDBSourced = useStore((s) => s.isDBSourced);
+   609→  const allData = useStore((s) => s.data);
+   610→
+   611→  // Autocomplete state
+   612→  const autocompleteResults = useConnectionStore((s) => s.autocompleteResults);
+   613→  const autocompleteLoading = useConnectionStore((s) => s.autocompleteLoading);
+   614→  const activeAutocompleteField = useConnectionStore((s) => s.activeAutocompleteField);
+   615→  const doAutocomplete = useConnectionStore((s) => s.autocomplete);
+   616→  const clearAutocomplete = useConnectionStore((s) => s.clearAutocomplete);
+   617→  const setActiveAutocompleteField = useConnectionStore((s) => s.setActiveAutocompleteField);
+   618→
+   619→  const canAutocomplete = isAutocompleteField(field);
+   620→  const dbSourced = isDBSourced(sectionKey, rowIndex, field.key);
+   621→
+   622→  // Ref for click-outside detection
+   623→  const dropdownRef = useRef<HTMLDivElement>(null);
+   624→
+   625→  // Click outside to close dropdown
+   626→  useEffect(() => {
+   627→    if (!canAutocomplete) return;
+   628→    const handler = (e: MouseEvent) => {
+   629→      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+   630→        clearAutocomplete();
+   631→      }
+   632→    };
+   633→    document.addEventListener('mousedown', handler);
+   634→    return () => document.removeEventListener('mousedown', handler);
+   635→  }, [canAutocomplete, clearAutocomplete]);
+   636→
+   637→  // Debounced autocomplete trigger
+   638→  const debouncedAutocomplete = useMemo(
+   639→    () =>
+   640→      debounce((sk: string, fk: string, v: string) => {
+   641→        if (v.length >= 2) {
+   642→          doAutocomplete(sk, fk, v);
+   643→        } else {
+   644→          clearAutocomplete();
+   645→        }
+   646→      }, 400),
+   647→    [doAutocomplete, clearAutocomplete],
+   648→  );
+   649→
+   650→  // Autocomplete text change handler
+   651→  const handleAutocompleteTextChange = useCallback(
+   652→    (v: string) => {
+   653→      setActiveAutocompleteField({ sectionKey, fieldKey: field.key, rowIndex });
+   654→      debouncedAutocomplete(sectionKey, field.key, v);
+   655→    },
+   656→    [sectionKey, field.key, rowIndex, setActiveAutocompleteField, debouncedAutocomplete],
+   657→  );
+   658→
+   659→  // Apply a match from the autocomplete dropdown
+   660→  const handleApplyMatch = useCallback(
+   661→    (row: Record<string, unknown>) => {
+   662→      // Get the section's field definitions to match DB columns to form fields
+   663→      const sectionDef = SCHEMA_SECTIONS.find((s) => s.key === sectionKey);
+   664→      if (!sectionDef) return;
+   665→
+   666→      for (const [dbKey, dbValue] of Object.entries(row)) {
+   667→        // Find a matching field in the section
+   668→        const fieldDef = sectionDef.fields.find(
+   669→          (f) => f.key === dbKey && !f.readOnly && !f.virtual && f.type === 'text',
+   670→        );
+   671→        if (!fieldDef) continue;
+   672→
+   673→        // Set the value
+   674→        const strVal = dbValue !== null && dbValue !== undefined ? String(dbValue) : '';
+   675→        updateCell(sectionKey, rowIndex, fieldDef.key, strVal);
+   676→        markDBSourced(sectionKey, rowIndex, fieldDef.key);
+   677→      }
+   678→
+   679→      clearAutocomplete();
+   680→    },
+   681→    [sectionKey, rowIndex, allData, updateCell, markDBSourced, clearAutocomplete],
+   682→  );
+   683→
+   684→  const isAutoFilled = field.autoFilled;
+   685→  const status = getFieldStatus(field, value);
+   686→  const hasIssue = status !== 'ok';
+   687→
+   688→  // Show the autocomplete dropdown?
+   689→  const showAutocomplete =
+   690→    canAutocomplete &&
+   691→    autocompleteResults.length > 0 &&
+   692→    activeAutocompleteField?.sectionKey === sectionKey &&
+   693→    activeAutocompleteField?.fieldKey === field.key &&
+   694→    activeAutocompleteField?.rowIndex === rowIndex;
+   695→
+   696→  const labelContent = (
+   697→    <div className="flex items-center gap-1.5">
+   698→      {hasIssue && (
+   699→        <AlertCircle className="size-3.5 text-destructive shrink-0" />
+   700→      )}
+   701→      <Label
+   702→        className={`text-xs font-medium ${isAutoFilled ? 'text-primary' : hasIssue ? 'text-destructive' : 'text-foreground/80'}`}
+   703→      >
+   704→        {field.label}
+   705→      </Label>
+   706→      {isAutoFilled && (
+   707→        <Badge
+   708→          variant="outline"
+   709→          className="text-[9px] px-1 py-0 h-3.5 text-primary/70 border-primary/30"
+   710→        >
+   711→          авто
+   712→        </Badge>
+   713→      )}
+   714→      {dbSourced && !isAutoFilled && (
+   715→        <Badge
+   716→          variant="outline"
+   717→          className="text-[9px] px-1 py-0 h-3.5 text-amber-600 border-amber-400/40 bg-amber-50"
+   718→        >
+   719→          из БД
+   720→        </Badge>
+   721→      )}
+   722→      {field.hint && (
+   723→        <Tooltip>
+   724→          <TooltipTrigger asChild>
+   725→            <span className="text-muted-foreground/50 cursor-help text-[10px] leading-none">
+   726→              ?
+   727→            </span>
+   728→          </TooltipTrigger>
+   729→          <TooltipContent side="top" sideOffset={4} className="max-w-xs">
+   730→            <p className="text-xs">{field.hint}</p>
+   731→          </TooltipContent>
+   732→        </Tooltip>
+   733→      )}
+   734→    </div>
+   735→  );
+   736→
+   737→  const inputEl = (
+   738→    <FieldInput
+   739→      field={field}
+   740→      value={value}
+   741→      sectionKey={sectionKey}
+   742→      rowIndex={rowIndex}
+   743→      status={status}
+   744→      updateCell={updateCell}
+   745→      updateNestedCell={updateNestedCell}
+   746→      addNestedRow={addNestedRow}
+   747→      removeNestedRow={removeNestedRow}
+   748→      onTextChange={canAutocomplete ? handleAutocompleteTextChange : undefined}
+   749→    />
+   750→  );
+   751→
+   752→  // For object fields (nested tables), render differently
+   753→  if (field.type === 'object' && field.nestedFields) {
+   754→    return (
+   755→      <div className={fullWidth ? '' : 'col-span-2'}>
+   756→        <div className="flex items-center gap-2 mb-2">{labelContent}</div>
+   757→        <NestedFieldBlock
+   758→          field={field}
+   759→          value={value}
+   760→          sectionKey={sectionKey}
+   761→          rowIndex={rowIndex}
+   762→          updateNestedCell={updateNestedCell}
+   763→          addNestedRow={addNestedRow}
+   764→          removeNestedRow={removeNestedRow}
+   765→        />
+   766→      </div>
+   767→    );
+   768→  }
+   769→
+   770→  // For array fields that need more space
+   771→  if (field.type === 'array' && fullWidth) {
+   772→    return (
+   773→      <div>
+   774→        {labelContent}
+   775→        <div className="mt-1">{inputEl}</div>
+   776→      </div>
+   777→    );
+   778→  }
+   779→
+   780→  // For textarea in grid, span 2 columns
+   781→  if (field.type === 'textarea') {
+   782→    return (
+   783→      <div className="col-span-2">
+   784→        {labelContent}
+   785→        <div className="mt-1">{inputEl}</div>
+   786→      </div>
+   787→    );
+   788→  }
+   789→
+   790→  // Text fields with autocomplete — wrap in relative container for dropdown
+   791→  if (canAutocomplete) {
+   792→    return (
+   793→      <div>
+   794→        {labelContent}
+   795→        <div className="mt-1 relative" ref={dropdownRef}>
+   796→          {inputEl}
+   797→          {autocompleteLoading &&
+   798→            activeAutocompleteField?.sectionKey === sectionKey &&
+   799→            activeAutocompleteField?.fieldKey === field.key &&
+   800→            activeAutocompleteField?.rowIndex === rowIndex && (
+   801→              <div className="absolute z-50 mt-1 w-full bg-popover border rounded-md shadow-lg p-2 flex items-center justify-center">
+   802→                <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
+   803→                <span className="ml-2 text-xs text-muted-foreground">Поиск…</span>
+   804→              </div>
+   805→            )}
+   806→          {showAutocomplete && (
+   807→            <div className="absolute z-50 mt-1 w-full bg-popover border rounded-md shadow-lg max-h-60 overflow-y-auto">
+   808→              {autocompleteResults.map((match, idx) => (
+   809→                <button
+   810→                  key={idx}
+   811→                  type="button"
+   812→                  className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors border-b last:border-b-0"
+   813→                  onClick={() => handleApplyMatch(match.row)}
+   814→                >
+   815→                  <div className="font-medium">{match.label}</div>
+   816→                  <div className="text-xs text-muted-foreground">
+   817→                    {Object.entries(match.row)
+   818→                      .slice(0, 3)
+   819→                      .map(([k, v]) => `${k}: ${v}`)
+   820→                      .join(' · ')}
+   821→                  </div>
+   822→                </button>
+   823→              ))}
+   824→            </div>
+   825→          )}
+   826→        </div>
+   827→      </div>
+   828→    );
+   829→  }
+   830→
+   831→  return (
+   832→    <div>
+   833→      {labelContent}
+   834→      <div className="mt-1">{inputEl}</div>
+   835→    </div>
+   836→  );
+   837→}
+   838→
+   839→// =============================================================================
+   840→// InvalidFieldTooltip — wraps an input in a tooltip showing format error
+   841→// =============================================================================
+   842→
+   843→function InvalidFieldTooltip({
+   844→  field,
+   845→  children,
+   846→}: {
+   847→  field: FieldDef;
+   848→  children: React.ReactNode;
+   849→}) {
+   850→  const formatHint = getFieldFormatHint(field);
+   851→  const msg = formatHint
+   852→    ? `Поле «${field.label}» — некорректный формат ввода. Корректный формат: ${formatHint}`
+   853→    : `Поле «${field.label}» — некорректный формат ввода`;
+   854→
+   855→  return (
+   856→    <Tooltip>
+   857→      <TooltipTrigger asChild>{children}</TooltipTrigger>
+   858→      <TooltipContent
+   859→        side="top"
+   860→        sideOffset={6}
+   861→        className="max-w-sm bg-destructive text-destructive-foreground border-destructive"
+   862→      >
+   863→        <p className="text-xs flex items-start gap-1.5">
+   864→          <AlertCircle className="size-3.5 mt-0.5 shrink-0" />
+   865→          {msg}
+   866→        </p>
+   867→      </TooltipContent>
+   868→    </Tooltip>
+   869→  );
+   870→}
+   871→
+   872→// =============================================================================
+   873→// FieldInput — renders the actual input control for a field
+   874→// =============================================================================
+   875→
+   876→interface FieldInputProps {
+   877→  field: FieldDef;
+   878→  value: unknown;
+   879→  sectionKey: string;
+   880→  rowIndex: number;
+   881→  status: FieldStatus;
+   882→  updateCell: (
+   883→    sectionKey: string,
+   884→    rowIndex: number,
+   885→    fieldKey: string,
+   886→    value: unknown,
+   887→  ) => void;
+   888→  updateNestedCell: (
+   889→    sectionKey: string,
+   890→    rowIndex: number,
+   891→    fieldKey: string,
+   892→    nestedIndex: number,
+   893→    nestedFieldKey: string,
+   894→    value: unknown,
+   895→  ) => void;
+   896→  addNestedRow: (
+   897→    sectionKey: string,
+   898→    rowIndex: number,
+   899→    fieldKey: string,
+   900→  ) => void;
+   901→  removeNestedRow: (
+   902→    sectionKey: string,
+   903→    rowIndex: number,
+   904→    fieldKey: string,
+   905→    nestedIndex: number,
+   906→  ) => void;
+   907→  /** Optional extra onChange handler for text inputs (used by autocomplete) */
+   908→  onTextChange?: (value: string) => void;
+   909→}
+   910→
+   911→function FieldInput({
+   912→  field,
+   913→  value,
+   914→  sectionKey,
+   915→  rowIndex,
+   916→  status,
+   917→  updateCell,
+   918→  onTextChange,
+   919→}: FieldInputProps) {
+   920→  const isAutoFilled = field.autoFilled;
+   921→  const hasIssue = status !== 'ok';
+   922→  const isInvalid = status === 'invalid';
+   923→
+   924→  // Build class based on status
+   925→  const baseInputClass = isAutoFilled
+   926→    ? 'h-9 text-sm border-primary/25 bg-primary/5 focus-visible:ring-primary/40'
+   927→    : hasIssue
+   928→      ? 'h-9 text-sm border-destructive/50 bg-destructive/5 focus-visible:ring-destructive/40'
+   929→      : 'h-9 text-sm focus-visible:ring-1 focus-visible:ring-ring';
+   930→
+   931→  switch (field.type) {
+   932→    case 'text': {
+   933→      const inputEl = (
+   934→        <Input
+   935→          type="text"
+   936→          value={(value as string) || ''}
+   937→          placeholder={field.placeholder}
+   938→          className={baseInputClass}
+   939→          onChange={(e) => {
+   940→            updateCell(sectionKey, rowIndex, field.key, e.target.value);
+   941→            onTextChange?.(e.target.value);
+   942→          }}
+   943→        />
+   944→      );
+   945→      return isInvalid ? (
+   946→        <InvalidFieldTooltip field={field}>{inputEl}</InvalidFieldTooltip>
+   947→      ) : (
+   948→        inputEl
+   949→      );
+   950→    }
+   951→
+   952→    case 'textarea': {
+   953→      const taClass = hasIssue
+   954→        ? 'min-h-[80px] text-sm resize-y border-destructive/50 bg-destructive/5 focus-visible:ring-destructive/40'
+   955→        : 'min-h-[80px] text-sm resize-y focus-visible:ring-1 focus-visible:ring-ring';
+   956→      const inputEl = (
+   957→        <Textarea
+   958→          value={(value as string) || ''}
+   959→          placeholder={field.placeholder}
+   960→          rows={3}
+   961→          className={taClass}
+   962→          onChange={(e) =>
+   963→            updateCell(sectionKey, rowIndex, field.key, e.target.value)
+   964→          }
+   965→        />
+   966→      );
+   967→      return isInvalid ? (
+   968→        <InvalidFieldTooltip field={field}>{inputEl}</InvalidFieldTooltip>
+   969→      ) : (
+   970→        inputEl
+   971→      );
+   972→    }
+   973→
+   974→    case 'number': {
+   975→      const inputEl = (
+   976→        <Input
+   977→          type="number"
+   978→          step="any"
+   979→          value={
+   980→            value === null || value === undefined ? '' : String(value)
+   981→          }
+   982→          placeholder={field.placeholder}
+   983→          className={baseInputClass}
+   984→          onChange={(e) => {
+   985→            const v = e.target.value;
+   986→            updateCell(
+   987→              sectionKey,
+   988→              rowIndex,
+   989→              field.key,
+   990→              v === '' ? null : Number(v),
+   991→            );
+   992→          }}
+   993→        />
+   994→      );
+   995→      return isInvalid ? (
+   996→        <InvalidFieldTooltip field={field}>{inputEl}</InvalidFieldTooltip>
+   997→      ) : (
+   998→        inputEl
+   999→      );
+  1000→    }
+  1001→
+  1002→    case 'date': {
+  1003→      const inputEl = (
+  1004→        <Input
+  1005→          type="date"
+  1006→          value={(value as string) || ''}
+  1007→          className={baseInputClass}
+  1008→          onChange={(e) =>
+  1009→            updateCell(
+  1010→              sectionKey,
+  1011→              rowIndex,
+  1012→              field.key,
+  1013→              e.target.value || null,
+  1014→            )
+  1015→          }
+  1016→        />
+  1017→      );
+  1018→      return isInvalid ? (
+  1019→        <InvalidFieldTooltip field={field}>{inputEl}</InvalidFieldTooltip>
+  1020→      ) : (
+  1021→        inputEl
+  1022→      );
+  1023→    }
+  1024→
+  1025→    case 'boolean':
+  1026→      return (
+  1027→        <div className="flex items-center h-9">
+  1028→          <Switch
+  1029→            checked={!!value}
+  1030→            onCheckedChange={(checked) =>
+  1031→              updateCell(sectionKey, rowIndex, field.key, checked)
+  1032→            }
+  1033→          />
+  1034→        </div>
+  1035→      );
+  1036→
+  1037→    case 'select': {
+  1038→      const selectEl = (
+  1039→        <Select
+  1040→          value={(value as string) || ''}
+  1041→          onValueChange={(v) =>
+  1042→            updateCell(sectionKey, rowIndex, field.key, v)
+  1043→          }
+  1044→        >
+  1045→          <SelectTrigger
+  1046→            className={
+  1047→              isAutoFilled
+  1048→                ? 'h-9 text-sm border-primary/25 bg-primary/5 focus:ring-primary/40 w-full'
+  1049→                : hasIssue
+  1050→                  ? 'h-9 text-sm border-destructive/50 bg-destructive/5 focus:ring-destructive/40 w-full'
+  1051→                  : 'h-9 text-sm w-full'
+  1052→            }
+  1053→          >
+  1054→            <SelectValue placeholder={field.placeholder || 'Выберите…'} />
+  1055→          </SelectTrigger>
+  1056→          <SelectContent>
+  1057→            {(field.options || []).map((opt) => (
+  1058→              <SelectItem key={opt} value={opt}>
+  1059→                {opt}
+  1060→              </SelectItem>
+  1061→            ))}
+  1062→          </SelectContent>
+  1063→        </Select>
+  1064→      );
+  1065→      return isInvalid ? (
+  1066→        <InvalidFieldTooltip field={field}>{selectEl}</InvalidFieldTooltip>
+  1067→      ) : (
+  1068→        selectEl
+  1069→      );
+  1070→    }
+  1071→
+  1072→    case 'array': {
+  1073→      const arr = Array.isArray(value) ? (value as string[]) : [];
+  1074→      const inputEl = (
+  1075→        <Input
+  1076→          type="text"
+  1077→          value={arr.join(', ')}
+  1078→          placeholder="через запятую"
+  1079→          className={baseInputClass}
+  1080→          onChange={(e) => {
+  1081→            const items = e.target.value
+  1082→              .split(',')
+  1083→              .map((s) => s.trim())
+  1084→              .filter(Boolean);
+  1085→            updateCell(sectionKey, rowIndex, field.key, items);
+  1086→          }}
+  1087→        />
+  1088→      );
+  1089→      return isInvalid ? (
+  1090→        <InvalidFieldTooltip field={field}>{inputEl}</InvalidFieldTooltip>
+  1091→      ) : (
+  1092→        inputEl
+  1093→      );
+  1094→    }
+  1095→
+  1096→    case 'ref': {
+  1097→      const refEl = (
+  1098→        <RefSelect
+  1099→          field={field}
+  1100→          value={value}
+  1101→          sectionKey={sectionKey}
+  1102→          rowIndex={rowIndex}
+  1103→          hasIssue={hasIssue}
+  1104→        />
+  1105→      );
+  1106→      return isInvalid ? (
+  1107→        <InvalidFieldTooltip field={field}>{refEl}</InvalidFieldTooltip>
+  1108→      ) : (
+  1109→        refEl
+  1110→      );
+  1111→    }
+  1112→
+  1113→    default:
+  1114→      return <span className="text-muted-foreground text-xs">—</span>;
+  1115→  }
+  1116→}
+  1117→
+  1118→// =============================================================================
+  1119→// RefSelect — dropdown populated from another section's data
+  1120→// =============================================================================
+  1121→
+  1122→function RefSelect({
+  1123→  field,
+  1124→  value,
+  1125→  sectionKey,
+  1126→  rowIndex,
+  1127→  hasIssue,
+  1128→}: {
+  1129→  field: FieldDef;
+  1130→  value: unknown;
+  1131→  sectionKey: string;
+  1132→  rowIndex: number;
+  1133→  hasIssue: boolean;
+  1134→}) {
+  1135→  const updateCell = useStore((s) => s.updateCell);
+  1136→  const allData = useStore((s) => s.data);
+  1137→  const refSection = field.refSection;
+  1138→  const refLabelField = field.refLabelField;
+  1139→
+  1140→  const options = useMemo(() => {
+  1141→    if (!refSection) return [];
+  1142→    const rows = (allData[refSection] || []) as Record<string, unknown>[];
+  1143→    return rows
+  1144→      .map((row, idx) => {
+  1145→        const label = refLabelField
+  1146→          ? String(row[refLabelField] || '')
+  1147→          : `Запись ${idx + 1}`;
+  1148→        return { idx, label };
+  1149→      })
+  1150→      .filter((o) => o.label);
+  1151→  }, [allData, refSection, refLabelField]);
+  1152→
+  1153→  const currentIdx = value as number | null;
+  1154→  const currentValue =
+  1155→    currentIdx !== null && currentIdx !== undefined
+  1156→      ? String(currentIdx)
+  1157→      : '';
+  1158→  const currentLabel =
+  1159→    currentIdx !== null && currentIdx !== undefined
+  1160→      ? options.find((o) => o.idx === currentIdx)?.label || ''
+  1161→      : '';
+  1162→
+  1163→  const isVirtual = field.virtual;
+  1164→  const triggerClass = hasIssue
+  1165→    ? 'h-9 text-sm w-full border-destructive/50 bg-destructive/5 focus:ring-destructive/40'
+  1166→    : isVirtual
+  1167→      ? 'h-9 text-sm w-full border-primary/30 bg-primary/5 focus:ring-1 focus:ring-primary'
+  1168→      : 'h-9 text-sm w-full';
+  1169→
+  1170→  return (
+  1171→    <Select
+  1172→      value={currentValue}
+  1173→      onValueChange={(v) =>
+  1174→        updateCell(sectionKey, rowIndex, field.key, Number(v))
+  1175→      }
+  1176→    >
+  1177→      <SelectTrigger className={triggerClass}>
+  1178→        <SelectValue placeholder={field.placeholder || 'Выберите…'}>
+  1179→          {currentLabel || (field.placeholder || 'Выберите…')}
+  1180→        </SelectValue>
+  1181→      </SelectTrigger>
+  1182→      <SelectContent>
+  1183→        {options.length === 0 && (
+  1184→          <SelectItem value="_empty" disabled>
+  1185→            Нет записей в справочнике
+  1186→          </SelectItem>
+  1187→        )}
+  1188→        {options.map((opt) => (
+  1189→          <SelectItem key={opt.idx} value={String(opt.idx)}>
+  1190→            {opt.label}
+  1191→          </SelectItem>
+  1192→        ))}
+  1193→      </SelectContent>
+  1194→    </Select>
+  1195→  );
+  1196→}
+  1197→
+  1198→// =============================================================================
+  1199→// NestedFieldBlock — for object fields with nested sub-fields
+  1200→// =============================================================================
+  1201→
+  1202→function NestedFieldBlock({
+  1203→  field,
+  1204→  value,
+  1205→  sectionKey,
+  1206→  rowIndex,
+  1207→  updateNestedCell,
+  1208→  addNestedRow,
+  1209→  removeNestedRow,
+  1210→}: {
+  1211→  field: FieldDef;
+  1212→  value: unknown;
+  1213→  sectionKey: string;
+  1214→  rowIndex: number;
+  1215→  updateNestedCell: (
+  1216→    sectionKey: string,
+  1217→    rowIndex: number,
+  1218→    fieldKey: string,
+  1219→    nestedIndex: number,
+  1220→    nestedFieldKey: string,
+  1221→    value: unknown,
+  1222→  ) => void;
+  1223→  addNestedRow: (
+  1224→    sectionKey: string,
+  1225→    rowIndex: number,
+  1226→    fieldKey: string,
+  1227→  ) => void;
+  1228→  removeNestedRow: (
+  1229→    sectionKey: string,
+  1230→    rowIndex: number,
+  1231→    fieldKey: string,
+  1232→    nestedIndex: number,
+  1233→  ) => void;
+  1234→}) {
+  1235→  const [open, setOpen] = useState(false);
+  1236→  const editableNestedFields = (field.nestedFields || []).filter(
+  1237→    (nf) => !nf.readOnly,
+  1238→  );
+  1239→
+  1240→  // Array of nested objects (e.g., points, scenarios, cargo lists)
+  1241→  if (Array.isArray(value)) {
+  1242→    const items = value as Record<string, unknown>[];
+  1243→    return (
+  1244→      <Collapsible open={open} onOpenChange={setOpen}>
+  1245→        <CollapsibleTrigger asChild>
+  1246→          <button className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+  1247→            {open ? (
+  1248→              <ChevronDown className="size-3.5" />
+  1249→            ) : (
+  1250→              <ChevronRight className="size-3.5" />
+  1251→            )}
+  1252→            <Badge variant="secondary" className="text-xs">
+  1253→              {items.length}{' '}
+  1254→              {items.length === 1
+  1255→                ? 'запись'
+  1256→                : items.length < 5
+  1257→                  ? 'записи'
+  1258→                  : 'записей'}
+  1259→            </Badge>
+  1260→            <span className="underline">развернуть</span>
+  1261→          </button>
+  1262→        </CollapsibleTrigger>
+  1263→        <CollapsibleContent>
+  1264→          <div className="mt-2 border rounded-lg overflow-hidden">
+  1265→            {/* Header */}
+  1266→            <div className="grid bg-muted/50 border-b px-3 py-2 text-xs font-medium text-muted-foreground">
+  1267→              <div className="flex gap-4">
+  1268→                <span className="w-8 text-center">#</span>
+  1269→                {editableNestedFields.map((nf) => (
+  1270→                  <span key={nf.key} className="min-w-[120px]">
+  1271→                    {nf.label}
+  1272→                  </span>
+  1273→                ))}
+  1274→                <span className="w-7" />
+  1275→              </div>
+  1276→            </div>
+  1277→            {/* Rows */}
+  1278→            {items.map((item, ni) => (
+  1279→              <div
+  1280→                key={ni}
+  1281→                className="grid border-b last:border-b-0 hover:bg-muted/20 px-3 py-1.5"
+  1282→              >
+  1283→                <div className="flex gap-4 items-center">
+  1284→                  <span className="w-8 text-center text-xs text-muted-foreground">
+  1285→                    {ni + 1}
+  1286→                  </span>
+  1287→                  {editableNestedFields.map((nf) => (
+  1288→                    <div key={nf.key} className="min-w-[120px]">
+  1289→                      <NestedFieldInput
+  1290→                        nestedField={nf}
+  1291→                        value={item[nf.key]}
+  1292→                        onChange={(v) =>
+  1293→                          updateNestedCell(
+  1294→                            sectionKey,
+  1295→                            rowIndex,
+  1296→                            field.key,
+  1297→                            ni,
+  1298→                            nf.key,
+  1299→                            v,
+  1300→                          )
+  1301→                        }
+  1302→                      />
+  1303→                    </div>
+  1304→                  ))}
+  1305→                  <div className="w-7">
+  1306→                    <Button
+  1307→                      variant="ghost"
+  1308→                      size="icon"
+  1309→                      className="size-6 text-muted-foreground hover:text-destructive"
+  1310→                      onClick={() =>
+  1311→                        removeNestedRow(
+  1312→                          sectionKey,
+  1313→                          rowIndex,
+  1314→                          field.key,
+  1315→                          ni,
+  1316→                        )
+  1317→                      }
+  1318→                    >
+  1319→                      <Minus className="size-3" />
+  1320→                    </Button>
+  1321→                  </div>
+  1322→                </div>
+  1323→              </div>
+  1324→            ))}
+  1325→            {/* Add row */}
+  1326→            <div className="px-3 py-1.5 border-t">
+  1327→              <Button
+  1328→                variant="ghost"
+  1329→                size="sm"
+  1330→                className="h-7 text-xs"
+  1331→                onClick={() =>
+  1332→                  addNestedRow(sectionKey, rowIndex, field.key)
+  1333→                }
+  1334→              >
+  1335→                <Plus className="mr-1 size-3" />
+  1336→                Добавить
+  1337→              </Button>
+  1338→            </div>
+  1339→          </div>
+  1340→        </CollapsibleContent>
+  1341→      </Collapsible>
+  1342→    );
+  1343→  }
+  1344→
+  1345→  // Single nested object (e.g., ztb_boundaries)
+  1346→  if (field.nestedFields && typeof value === 'object' && value !== null) {
+  1347→    const obj = value as Record<string, unknown>;
+  1348→    return (
+  1349→      <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+  1350→        {editableNestedFields.map((nf) => (
+  1351→          <div key={nf.key}>
+  1352→            <Label className="text-xs font-medium text-foreground/80">
+  1353→              {nf.label}
+  1354→            </Label>
+  1355→            <div className="mt-1">
+  1356→              <NestedFieldInput
+  1357→                nestedField={nf}
+  1358→                value={obj[nf.key]}
+  1359→                onChange={(v) => {
+  1360→                  const updated = { ...obj, [nf.key]: v };
+  1361→                  useStore
+  1362→                    .getState()
+  1363→                    .updateCell(sectionKey, rowIndex, field.key, updated);
+  1364→                }}
+  1365→              />
+  1366→            </div>
+  1367→          </div>
+  1368→        ))}
+  1369→      </div>
+  1370→    );
+  1371→  }
+  1372→
+  1373→  return null;
+  1374→}
+  1375→
+  1376→// =============================================================================
+  1377→// NestedFieldInput — input for a single nested field
+  1378→// =============================================================================
+  1379→
+  1380→function NestedFieldInput({
+  1381→  nestedField,
+  1382→  value,
+  1383→  onChange,
+  1384→}: {
+  1385→  nestedField: FieldDef;
+  1386→  value: unknown;
+  1387→  onChange: (value: unknown) => void;
+  1388→}) {
+  1389→  const v = value ?? '';
+  1390→
+  1391→  switch (nestedField.type) {
+  1392→    case 'boolean':
+  1393→      return (
+  1394→        <Switch
+  1395→          checked={!!value}
+  1396→          onCheckedChange={(checked) => onChange(checked)}
+  1397→          className="scale-75"
+  1398→        />
+  1399→      );
+  1400→    case 'number':
+  1401→      return (
+  1402→        <input
+  1403→          type="number"
+  1404→          step="any"
+  1405→          value={v === '' || v === null ? '' : String(v)}
+  1406→          className="w-full h-7 text-xs border rounded-md px-2 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+  1407→          onChange={(e) => {
+  1408→            const nv = e.target.value;
+  1409→            onChange(nv === '' ? null : Number(nv));
+  1410→          }}
+  1411→        />
+  1412→      );
+  1413→    case 'select':
+  1414→      return (
+  1415→        <select
+  1416→          value={String(v)}
+  1417→          className="w-full h-7 text-xs border rounded-md px-2 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+  1418→          onChange={(e) => onChange(e.target.value)}
+  1419→        >
+  1420→          <option value="">—</option>
+  1421→          {(nestedField.options || []).map((opt) => (
+  1422→            <option key={opt} value={opt}>
+  1423→              {opt}
+  1424→            </option>
+  1425→          ))}
+  1426→        </select>
+  1427→      );
+  1428→    default:
+  1429→      return (
+  1430→        <input
+  1431→          type="text"
+  1432→          value={String(v)}
+  1433→          className="w-full h-7 text-xs border rounded-md px-2 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+  1434→          onChange={(e) => onChange(e.target.value)}
+  1435→        />
+  1436→      );
+  1437→  }
+  1438→}
+  1439→
+  1440→// =============================================================================
+  1441→// ReadonlyFieldsBlock — collapsed block for qdrant_* and other readOnly fields
+  1442→// =============================================================================
+  1443→
+  1444→function ReadonlyFieldsBlock({
+  1445→  fields,
+  1446→  row,
+  1447→}: {
+  1448→  fields: FieldDef[];
+  1449→  row: Record<string, unknown>;
+  1450→}) {
+  1451→  const [open, setOpen] = useState(false);
+  1452→
+  1453→  const hasValues = fields.some(
+  1454→    (f) =>
+  1455→      row[f.key] !== '' &&
+  1456→      row[f.key] !== null &&
+  1457→      row[f.key] !== undefined,
+  1458→  );
+  1459→
+  1460→  if (!hasValues && !open) return null;
+  1461→
+  1462→  return (
+  1463→    <Collapsible open={open} onOpenChange={setOpen}>
+  1464→      <CollapsibleTrigger asChild>
+  1465→        <button className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+  1466→          {open ? (
+  1467→            <ChevronDown className="size-3.5" />
+  1468→          ) : (
+  1469→            <ChevronRight className="size-3.5" />
+  1470→          )}
+  1471→          <span className="font-medium">Системные теги и метаданные</span>
+  1472→          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
+  1473→            {fields.length} полей
+  1474→          </Badge>
+  1475→          {hasValues && !open && (
+  1476→            <Badge
+  1477→              variant="secondary"
+  1478→              className="text-[9px] px-1 py-0 h-4 bg-primary/10 text-primary border-primary/25"
+  1479→            >
+  1480→              есть данные
+  1481→            </Badge>
+  1482→          )}
+  1483→        </button>
+  1484→      </CollapsibleTrigger>
+  1485→      <CollapsibleContent>
+  1486→        <div className="mt-2 grid grid-cols-3 gap-x-6 gap-y-2 p-3 rounded-lg bg-muted/30 border">
+  1487→          {fields.map((f) => (
+  1488→            <div
+  1489→              key={f.key}
+  1490→              className="flex items-center justify-between gap-2"
+  1491→            >
+  1492→              <span
+  1493→                className="text-xs text-muted-foreground truncate"
+  1494→                title={f.label}
+  1495→              >
+  1496→                {f.label}
+  1497→              </span>
+  1498→              <span className="text-xs font-mono text-muted-foreground/70 truncate max-w-[160px]">
+  1499→                {row[f.key] === null
+  1500→                  ? 'null'
+  1501→                  : Array.isArray(row[f.key])
+  1502→                    ? `[${(row[f.key] as unknown[]).length}]`
+  1503→                    : String(row[f.key]) || '—'}
+  1504→              </span>
+  1505→            </div>
+  1506→          ))}
+  1507→        </div>
+  1508→      </CollapsibleContent>
+  1509→    </Collapsible>
+  1510→  );
+  1511→}
+  1512→

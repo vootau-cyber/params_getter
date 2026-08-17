@@ -1,0 +1,1353 @@
+     1→/* =====================================================================
+     2→   Maritime Security Data Entry App — Single-file SPA (plain JS, no React)
+     3→   Targets Python 3.8 + Flask backend
+     4→   ===================================================================== */
+     5→
+     6→(function () {
+     7→  'use strict';
+     8→
+     9→  /* ------------------------------------------------------------------
+    10→     1.  GLOBAL STATE
+    11→     ------------------------------------------------------------------ */
+    12→  var APP = {
+    13→    schema: null,        // full schema from /api/schema   {sections:[...], groups:[...]}
+    14→    groups: null,        // section groups array
+    15→    data: {},            // current data  Record<sectionKey, rows[]>
+    16→    initialData: {},     // snapshot after load (for dirty detection)
+    17→    activeSection: 'sti',
+    18→    isLoading: true,
+    19→    isSaving: false,
+    20→    author: { name: '', role: '' },
+    21→    versions: [],
+    22→    versionsOpen: false,
+    23→    importDialogOpen: false,
+    24→    dirty: false,
+    25→  };
+    26→
+    27→  /* ------------------------------------------------------------------
+    28→     2.  FORMAT VALIDATION RULES  (20 rules)
+    29→     ------------------------------------------------------------------ */
+    30→  var VALIDATION_RULES = [
+    31→    { keyPattern: /(?:^|_)ip_ogrn$/,        test: /^\d{15}$/,                hint: '15 цифр (ОГРНИП)' },
+    32→    { keyPattern: /ogrn$/,                   test: /^\d{13}$/,                hint: '13 цифр (ОГРН)' },
+    33→    { keyPattern: /(?:^|_)ip_inn$/,          test: /^\d{12}$/,                hint: '12 цифр (ИНН ИП/физлица)' },
+    34→    { keyPattern: /person_inn$/,              test: /^\d{12}$/,                hint: '12 цифр (ИНН физлица)' },
+    35→    { keyPattern: /inn$/,                     test: /^\d{10}(\d{2})?$/,       hint: '10 или 12 цифр (ИНН юрлица/физлица)' },
+    36→    { keyPattern: /kpp$/,                     test: /^\d{9}$/,                 hint: '9 цифр (КПП)' },
+    37→    { keyPattern: /okpo$/,                    test: /^\d{8,10}$/,              hint: '8 или 10 цифр (ОКПО)' },
+    38→    { keyPattern: /snils/,                    test: /^\d{11}$/,                hint: '11 цифр (СНИЛС)' },
+    39→    { keyPattern: /(?:^|bik|bic)$/i,          test: /^\d{9}$/,                 hint: '9 цифр (БИК)' },
+    40→    { keyPattern: /(?:^|_)rs$/,              test: /^\d{20}$/,                hint: '20 цифр (расчётный счёт)' },
+    41→    { keyPattern: /(?:^|_)ks$/,              test: /^\d{20}$/,                hint: '20 цифр (корр. счёт)' },
+    42→    { keyPattern: /email$/,                   test: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/, hint: 'example@domain.com' },
+    43→    { keyPattern: /fax$/,                     test: /^[\d\s\-\+\(\)]{7,25}$/,    hint: '+7 (XXX) XXX-XX-XX' },
+    44→    { keyPattern: /phone$/,                   test: /^[\d\s\-\+\(\)]{7,25}$/,    hint: '+7 (XXX) XXX-XX-XX' },
+    45→    { keyPattern: /(?:^|_)imo$/,             test: /^\d{7}$/,                 hint: '7 цифр (IMO номер судна)' },
+    46→    { keyPattern: /mmsi$/,                    test: /^\d{9}$/,                 hint: '9 цифр (MMSI)' },
+    47→    { keyPattern: /call_sign$/,               test: /^[A-Za-z0-9\-]{3,10}$/,  hint: 'Буквенно-цифровой позывной (3–10 символов)' },
+    48→    { keyPattern: /(?:_lat|latitude)$/,       test: null,                       hint: '-90.000000 … +90.000000 (широта)', isLat: true },
+    49→    { keyPattern: /(?:_lon|longitude)$/,      test: null,                       hint: '-180.000000 … +180.000000 (долгота)', isLon: true },
+    50→    { keyPattern: /reg_num$/,                 test: null,                       hint: 'Не менее 3 символов', minLen: 3 },
+    51→  ];
+    52→
+    53→  function validateField(key, value) {
+    54→    if (value === null || value === undefined || String(value).trim() === '') {
+    55→      return 'empty';
+    56→    }
+    57→    for (var i = 0; i < VALIDATION_RULES.length; i++) {
+    58→      var rule = VALIDATION_RULES[i];
+    59→      if (!rule.keyPattern.test(key)) continue;
+    60→      var str = String(value).trim();
+    61→      if (rule.isLat) {
+    62→        var n = parseFloat(str);
+    63→        if (isNaN(n) || n < -90 || n > 90) return 'invalid';
+    64→        continue;
+    65→      }
+    66→      if (rule.isLon) {
+    67→        var n2 = parseFloat(str);
+    68→        if (isNaN(n2) || n2 < -180 || n2 > 180) return 'invalid';
+    69→        continue;
+    70→      }
+    71→      if (rule.minLen !== undefined) {
+    72→        if (str.length < rule.minLen) return 'invalid';
+    73→        continue;
+    74→      }
+    75→      if (rule.test && !rule.test.test(str)) return 'invalid';
+    76→    }
+    77→    return 'ok';
+    78→  }
+    79→
+    80→  function getFieldHint(key) {
+    81→    for (var i = 0; i < VALIDATION_RULES.length; i++) {
+    82→      if (VALIDATION_RULES[i].keyPattern.test(key)) return VALIDATION_RULES[i].hint;
+    83→    }
+    84→    return '';
+    85→  }
+    86→
+    87→  /* ------------------------------------------------------------------
+    88→     3.  INFRA REF AUTO-FILL MAP
+    89→     ------------------------------------------------------------------ */
+    90→  var INFRA_REF_MAP = {
+    91→    located_on_infra_ref: 'located_on_name',
+    92→    connected_to_infra_ref: 'connected_to_name',
+    93→    berth_infra_ref: 'berth_name',
+    94→    tsotb_location_infra_ref: 'tsotb_location_name',
+    95→    tsotb_monitors_infra_ref: 'tsotb_monitors_object_name',
+    96→    tsotb_powered_from_infra_ref: 'tsotb_powered_from_name',
+    97→    eng_instance_location_infra_ref: 'eng_instance_location_name',
+    98→  };
+    99→
+   100→  /* ------------------------------------------------------------------
+   101→     4.  SVG ICONS (simple inline SVGs)
+   102→     ------------------------------------------------------------------ */
+   103→  var ICONS = {
+   104→    shield: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+   105→    ship: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/><path d="M12 1v4"/></svg>',
+   106→    users: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+   107→    clipboard: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>',
+   108→    file: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+   109→    map: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>',
+   110→    waves: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1s1.2 1 2.5 1c2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1s1.2 1 2.5 1c2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1s1.2 1 2.5 1c2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>',
+   111→    package: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+   112→    wrench: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+   113→    lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+   114→    database: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
+   115→    camera: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
+   116→    radio: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>',
+   117→    zap: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+   118→    eye: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+   119→    alertTriangle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+   120→    trash: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+   121→    plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+   122→    minus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+   123→    upload: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+   124→    download: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+   125→    save: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
+   126→    history: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+   127→    refreshCw: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+   128→    x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+   129→    chevronDown: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+   130→    chevronRight: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+   131→  };
+   132→
+   133→  /* Section key → icon name mapping */
+   134→  var SECTION_ICON_MAP = {
+   135→    sti: 'shield',
+   136→    sti_licenses: 'shield',
+   137→    sti_employees: 'users',
+   138→    oti: 'ship',
+   139→    oti_docs: 'file',
+   140→    persons: 'users',
+   141→    vessel_crew: 'users',
+   142→    security_assessments: 'clipboard',
+   143→    security_plans: 'file',
+   144→    security_equipment: 'lock',
+   145→    isps_compliance: 'clipboard',
+   146→    training_records: 'clipboard',
+   147→    incident_reports: 'alertTriangle',
+   148→    ports: 'map',
+   149→    port_facilities: 'map',
+   150→    berths: 'map',
+   151→    terminals: 'map',
+   152→    anchorage_areas: 'map',
+   153→    navigation_channels: 'map',
+   154→    aquatories: 'waves',
+   155→    cargo_types: 'package',
+   156→    dangerous_cargo: 'alertTriangle',
+   157→    cargo_operations: 'package',
+   158→    infrastructure: 'wrench',
+   159→    access_control: 'lock',
+   160→    perimeter_security: 'lock',
+   161→    cctv_systems: 'camera',
+   162→    communication_systems: 'radio',
+   163→    lighting_systems: 'zap',
+   164→    power_supply: 'zap',
+   165→    vessel_traffic: 'eye',
+   166→  };
+   167→
+   168→  function getSectionIcon(sectionKey) {
+   169→    var iconKey = SECTION_ICON_MAP[sectionKey] || 'database';
+   170→    return ICONS[iconKey] || ICONS.database;
+   171→  }
+   172→
+   173→  /* ------------------------------------------------------------------
+   174→     5.  UTILITY HELPERS
+   175→     ------------------------------------------------------------------ */
+   176→
+   177→  function esc(str) {
+   178→    if (str === null || str === undefined) return '';
+   179→    return String(str)
+   180→      .replace(/&/g, '&amp;')
+   181→      .replace(/</g, '&lt;')
+   182→      .replace(/>/g, '&gt;')
+   183→      .replace(/"/g, '&quot;');
+   184→  }
+   185→
+   186→  function deepClone(obj) {
+   187→    return JSON.parse(JSON.stringify(obj));
+   188→  }
+   189→
+   190→  function getSectionDef(sectionKey) {
+   191→    if (!APP.schema || !APP.schema.sections) return null;
+   192→    for (var i = 0; i < APP.schema.sections.length; i++) {
+   193→      if (APP.schema.sections[i].key === sectionKey) return APP.schema.sections[i];
+   194→    }
+   195→    return null;
+   196→  }
+   197→
+   198→  function getFieldDef(sectionKey, fieldKey) {
+   199→    var sec = getSectionDef(sectionKey);
+   200→    if (!sec || !sec.fields) return null;
+   201→    for (var i = 0; i < sec.fields.length; i++) {
+   202→      if (sec.fields[i].key === fieldKey) return sec.fields[i];
+   203→    }
+   204→    return null;
+   205→  }
+   206→
+   207→  function isVirtualField(sectionKey, fieldKey) {
+   208→    var fd = getFieldDef(sectionKey, fieldKey);
+   209→    return fd && fd.virtual === true;
+   210→  }
+   211→
+   212→  function stripVirtuals(data) {
+   213→    var cleaned = deepClone(data);
+   214→    if (!APP.schema || !APP.schema.sections) return cleaned;
+   215→    for (var s = 0; s < APP.schema.sections.length; s++) {
+   216→      var secKey = APP.schema.sections[s].key;
+   217→      if (!cleaned[secKey]) continue;
+   218→      var virtualKeys = [];
+   219→      for (var f = 0; f < APP.schema.sections[s].fields.length; f++) {
+   220→        if (APP.schema.sections[s].fields[f].virtual) {
+   221→          virtualKeys.push(APP.schema.sections[s].fields[f].key);
+   222→        }
+   223→      }
+   224→      for (var r = 0; r < cleaned[secKey].length; r++) {
+   225→        for (var vk = 0; vk < virtualKeys.length; vk++) {
+   226→          delete cleaned[secKey][r][virtualKeys[vk]];
+   227→        }
+   228→      }
+   229→    }
+   230→    return cleaned;
+   231→  }
+   232→
+   233→  function checkDirty() {
+   234→    var current = JSON.stringify(stripVirtuals(APP.data));
+   235→    var initial = JSON.stringify(APP.initialData);
+   236→    APP.dirty = (current !== initial);
+   237→    updateDirtyBadge();
+   238→  }
+   239→
+   240→  function updateDirtyBadge() {
+   241→    var badge = document.getElementById('dirty-badge');
+   242→    if (!badge) return;
+   243→    if (APP.dirty) {
+   244→      badge.style.display = 'inline-flex';
+   245→    } else {
+   246→      badge.style.display = 'none';
+   247→    }
+   248→  }
+   249→
+   250→  /* ------------------------------------------------------------------
+   251→     6.  API FUNCTIONS
+   252→     ------------------------------------------------------------------ */
+   253→
+   254→  function apiGet(url) {
+   255→    return fetch(url).then(function (resp) {
+   256→      if (!resp.ok) throw new Error('API error ' + resp.status);
+   257→      return resp.json();
+   258→    });
+   259→  }
+   260→
+   261→  function apiPost(url, body) {
+   262→    return fetch(url, {
+   263→      method: 'POST',
+   264→      headers: { 'Content-Type': 'application/json' },
+   265→      body: JSON.stringify(body),
+   266→    }).then(function (resp) {
+   267→      if (!resp.ok) throw new Error('API error ' + resp.status);
+   268→      return resp.json();
+   269→    });
+   270→  }
+   271→
+   272→  function apiPostForm(url, formData) {
+   273→    return fetch(url, {
+   274→      method: 'POST',
+   275→      body: formData,
+   276→    }).then(function (resp) {
+   277→      if (!resp.ok) throw new Error('API error ' + resp.status);
+   278→      return resp.json();
+   279→    });
+   280→  }
+   281→
+   282→  function loadSchema() {
+   283→    return apiGet('/api/schema').then(function (json) {
+   284→      APP.schema = json;
+   285→      APP.groups = json.groups || [];
+   286→    });
+   287→  }
+   288→
+   289→  function loadData() {
+   290→    return apiGet('/api/data').then(function (json) {
+   291→      APP.data = json;
+   292→      APP.initialData = deepClone(json);
+   293→    });
+   294→  }
+   295→
+   296→  function loadVersions() {
+   297→    return apiGet('/api/versions').then(function (json) {
+   298→      APP.versions = json || [];
+   299→    });
+   300→  }
+   301→
+   302→  function saveData(author) {
+   303→    APP.isSaving = true;
+   304→    renderApp();
+   305→    var payload = {
+   306→      data: stripVirtuals(APP.data),
+   307→      author: author,
+   308→    };
+   309→    return apiPost('/api/data', payload)
+   310→      .then(function () {
+   311→        return loadData().then(function () {
+   312→          return loadVersions();
+   313→        });
+   314→      })
+   315→      .catch(function (err) {
+   316→        alert('Ошибка сохранения: ' + err.message);
+   317→      })
+   318→      .finally(function () {
+   319→        APP.isSaving = false;
+   320→        APP.dirty = false;
+   321→        APP.saveDialogOpen = false;
+   322→        renderApp();
+   323→      });
+   324→  }
+   325→
+   326→  function importData(file) {
+   327→    var fd = new FormData();
+   328→    fd.append('file', file);
+   329→    return apiPostForm('/api/import', fd)
+   330→      .then(function () {
+   331→        return loadData().then(function () {
+   332→          return loadVersions();
+   333→        });
+   334→      })
+   335→      .catch(function (err) {
+   336→        alert('Ошибка импорта: ' + err.message);
+   337→      })
+   338→      .finally(function () {
+   339→        APP.importDialogOpen = false;
+   340→        renderApp();
+   341→      });
+   342→  }
+   343→
+   344→  function exportData() {
+   345→    fetch('/api/export')
+   346→      .then(function (resp) {
+   347→        if (!resp.ok) throw new Error('Export failed');
+   348→        var disposition = resp.headers.get('Content-Disposition') || '';
+   349→        var match = disposition.match(/filename=("?)([^"]+)\1/);
+   350→        var filename = match ? match[2] : 'export.json';
+   351→        return resp.blob().then(function (blob) {
+   352→          var url = URL.createObjectURL(blob);
+   353→          var a = document.createElement('a');
+   354→          a.href = url;
+   355→          a.download = filename;
+   356→          document.body.appendChild(a);
+   357→          a.click();
+   358→          setTimeout(function () {
+   359→            document.body.removeChild(a);
+   360→            URL.revokeObjectURL(url);
+   361→          }, 100);
+   362→        });
+   363→      })
+   364→      .catch(function (err) {
+   365→        alert('Ошибка экспорта: ' + err.message);
+   366→      });
+   367→  }
+   368→
+   369→  function loadVersion(versionId) {
+   370→    return apiGet('/api/versions/' + versionId)
+   371→      .then(function (json) {
+   372→        APP.data = json;
+   373→        APP.initialData = deepClone(json);
+   374→        APP.dirty = false;
+   375→        APP.versionsOpen = false;
+   376→        renderApp();
+   377→      })
+   378→      .catch(function (err) {
+   379→        alert('Ошибка загрузки версии: ' + err.message);
+   380→      });
+   381→  }
+   382→
+   383→  /* ------------------------------------------------------------------
+   384→     7.  AUTO-FILL LOGIC
+   385→     ------------------------------------------------------------------ */
+   386→
+   387→  function handleInfraRefChange(sectionKey, rowIndex, fieldKey, selectedIdx) {
+   388→    var companionKey = INFRA_REF_MAP[fieldKey];
+   389→    if (!companionKey) return;
+   390→    var infraData = APP.data['infrastructure'] || [];
+   391→    var idx = parseInt(selectedIdx, 10);
+   392→    var row = (APP.data[sectionKey] || [])[rowIndex];
+   393→    if (!row) return;
+   394→    if (isNaN(idx) || idx < 0 || idx >= infraData.length) {
+   395→      row[companionKey] = '';
+   396→    } else {
+   397→      var infraRow = infraData[idx];
+   398→      row[companionKey] = infraRow.infrastructure_name || infraRow.name || ('Объект #' + (idx + 1));
+   399→    }
+   400→  }
+   401→
+   402→  function handleVirtualRefChange(sectionKey, rowIndex, fieldKey, selectedIdx) {
+   403→    var fd = getFieldDef(sectionKey, fieldKey);
+   404→    if (!fd || !fd.refAutoFill) return;
+   405→    var refSection = fd.refSection || 'infrastructure';
+   406→    var refData = APP.data[refSection] || [];
+   407→    var idx = parseInt(selectedIdx, 10);
+   408→    var row = (APP.data[sectionKey] || [])[rowIndex];
+   409→    if (!row) return;
+   410→    var mapping = fd.refAutoFill;
+   411→    var keys = Object.keys(mapping);
+   412→    if (isNaN(idx) || idx < 0 || idx >= refData.length) {
+   413→      for (var k = 0; k < keys.length; k++) {
+   414→        row[keys[k]] = '';
+   415→      }
+   416→      return;
+   417→    }
+   418→    var srcRow = refData[idx];
+   419→    for (var k2 = 0; k2 < keys.length; k2++) {
+   420→      var targetKey = keys[k2];
+   421→      var srcKey = mapping[targetKey];
+   422→      row[targetKey] = srcRow[srcKey] !== undefined ? srcRow[srcKey] : '';
+   423→    }
+   424→  }
+   425→
+   426→  /* ------------------------------------------------------------------
+   427→     8.  RENDER: HEADER
+   428→     ------------------------------------------------------------------ */
+   429→
+   430→  function renderHeader() {
+   431→    var dirtyBadge = '';
+   432→    if (APP.dirty) {
+   433→      dirtyBadge = '<span id="dirty-badge" class="badge-ready" style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;font-size:12px;padding:2px 8px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);">● Готово к сохранению</span>';
+   434→    } else {
+   435→      dirtyBadge = '<span id="dirty-badge" class="badge-ready" style="display:none;align-items:center;gap:4px;margin-left:8px;font-size:12px;padding:2px 8px;border-radius:9999px;background:var(--accent);color:var(--accent-foreground);">● Готово к сохранению</span>';
+   436→    }
+   437→    var savingDisabled = APP.isSaving ? ' disabled' : '';
+   438→    var savingText = APP.isSaving ? 'Сохранение…' : 'Сохранить';
+   439→
+   440→    return '<header class="header">' +
+   441→      '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 24px;height:100%;">' +
+   442→        '<div style="display:flex;align-items:center;gap:12px;">' +
+   443→          '<span style="font-size:18px;font-weight:600;color:var(--foreground);">Ввод параметров морской безопасности</span>' +
+   444→        '</div>' +
+   445→        '<div class="header-actions" style="display:flex;align-items:center;gap:8px;">' +
+   446→          '<button class="btn-secondary" data-action="import">' + ICONS.upload + ' Импорт</button>' +
+   447→          '<button class="btn-secondary" data-action="export">' + ICONS.download + ' Экспорт</button>' +
+   448→          '<button class="btn-primary" data-action="save" style="position:relative;"' + savingDisabled + '>' + ICONS.save + ' ' + savingText + dirtyBadge + '</button>' +
+   449→          '<button class="btn-secondary" data-action="versions">' + ICONS.history + ' Версии</button>' +
+   450→          '<button class="btn-destructive" data-action="reset">' + ICONS.refreshCw + ' Сброс</button>' +
+   451→        '</div>' +
+   452→      '</div>' +
+   453→    '</header>';
+   454→  }
+   455→
+   456→  /* ------------------------------------------------------------------
+   457→     9.  RENDER: SIDEBAR
+   458→     ------------------------------------------------------------------ */
+   459→
+   460→  function renderSidebar() {
+   461→    if (!APP.schema || !APP.schema.sections || !APP.groups) return '';
+   462→    var html = '<nav class="sidebar">';
+   463→
+   464→    for (var g = 0; g < APP.groups.length; g++) {
+   465→      var group = APP.groups[g];
+   466→      var groupSections = group.sections || [];
+   467→      if (groupSections.length === 0) continue;
+   468→
+   469→      html += '<div class="sidebar-group-label">' + esc(group.label) + '</div>';
+   470→
+   471→      for (var s = 0; s < groupSections.length; s++) {
+   472→        var secKey = groupSections[s];
+   473→        var secDef = getSectionDef(secKey);
+   474→        if (!secDef) continue;
+   475→        var isActive = (APP.activeSection === secKey);
+   476→        var activeClass = isActive ? ' active' : ''
+   477→          var icon = getSectionIcon(secKey);
+   478→        var rows = (APP.data[secKey] || []).length;
+   479→        html += '<button class="sidebar-item' + activeClass + '" data-action="select-section" data-section="' + esc(secKey) + '">' +
+   480→          '<span style="display:flex;align-items:center;gap:8px;width:100%;">' +
+   481→            '<span style="flex-shrink:0;display:flex;align-items:center;">' + icon + '</span>' +
+   482→            '<span style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(secDef.label) + '</span>' +
+   483→            (rows > 0 ? '<span style="font-size:11px;color:var(--muted-foreground);flex-shrink:0;">' + rows + '</span>' : '') +
+   484→          '</span>' +
+   485→        '</button>';
+   486→      }
+   487→    }
+   488→
+   489→    html += '</nav>';
+   490→    return html;
+   491→  }
+   492→
+   493→  /* ------------------------------------------------------------------
+   494→     10. RENDER: FIELD (single field within a card)
+   495→     ------------------------------------------------------------------ */
+   496→
+   497→  function renderField(sectionKey, rowIndex, fieldDef, value) {
+   498→    var key = fieldDef.key;
+   499→    var label = fieldDef.label || key;
+   500→    var type = fieldDef.type || 'text';
+   501→    var readOnly = fieldDef.readOnly === true;
+   502→    var autoFilled = fieldDef.autoFilled === true;
+   503→    var isVirtual = fieldDef.virtual === true;
+   504→    var options = fieldDef.options || [];
+   505→    var nestedFields = fieldDef.nestedFields || [];
+   506→    var refSection = fieldDef.refSection;
+   507→    var refLabelField = fieldDef.refLabelField;
+   508→
+   509→    var status = validateField(key, value);
+   510→    var statusClass = '';
+   511→    var tooltipHtml = '';
+   512→
+   513→    if (status === 'empty') {
+   514→      statusClass = ' field-status-empty';
+   515→    } else if (status === 'invalid') {
+   516→      statusClass = ' invalid-field';
+   517→      var hint = getFieldHint(key);
+   518→      tooltipHtml = '<span class="invalid-tooltip">Поле ' + esc(label) + ' — некорректный формат ввода. Корректный формат: ' + esc(hint) + '</span>';
+   519→    }
+   520→
+   521→    var autoBadge = '';
+   522→    if (autoFilled || isVirtual) {
+   523→      autoBadge = ' <span class="badge-auto">авто</span>';
+   524→    }
+   525→
+   526→    var dataAttrs = ' data-section="' + esc(sectionKey) + '" data-row="' + rowIndex + '" data-field="' + esc(key) + '"';
+   527→
+   528→    var labelHtml = '<label class="field-label" style="display:flex;align-items:center;gap:6px;">' +
+   529→      (status === 'empty' && !readOnly ? '<span style="width:6px;height:6px;border-radius:50%;background:var(--destructive);flex-shrink:0;"></span>' : '') +
+   530→      esc(label) +
+   531→      autoBadge +
+   532→      tooltipHtml +
+   533→    '</label>';
+   534→
+   535→    var inputHtml = '';
+   536→
+   537→    if (type === 'object') {
+   538→      var nestedData = Array.isArray(value) ? value : [];
+   539→      inputHtml = renderNestedTable(sectionKey, rowIndex, key, label, nestedFields, nestedData, readOnly);
+   540→      return '<div class="field-wrapper" style="margin-bottom:16px;">' + inputHtml + '</div>';
+   541→    }
+   542→
+   543→    var disabledAttr = readOnly ? ' disabled' : '';
+   544→    var roClass = readOnly ? ' style="opacity:0.6;background:var(--muted);"' : '';
+   545→
+   546→    if (type === 'boolean') {
+   547→      var checked = value === true || value === 'true' || value === 1 ? ' checked' : '';
+   548→      inputHtml = '<div class="field-checkbox-wrapper">' +
+   549→        '<input type="checkbox" class="field-input"' + dataAttrs + checked + disabledAttr + ' />' +
+   550→      '</div>';
+   551→    } else if (type === 'select' && options.length > 0) {
+   552→      inputHtml = '<select class="field-select' + statusClass + '"' + dataAttrs + disabledAttr + roClass + '>';
+   553→      inputHtml += '<option value=""></option>';
+   554→      for (var o = 0; o < options.length; o++) {
+   555→        var opt = options[o];
+   556→        var optVal = typeof opt === 'object' ? opt.value : opt;
+   557→        var optLabel = typeof opt === 'object' ? opt.label : opt;
+   558→        var sel = (String(value) === String(optVal)) ? ' selected' : '';
+   559→        inputHtml += '<option value="' + esc(optVal) + '"' + sel + '>' + esc(optLabel) + '</option>';
+   560→      }
+   561→      inputHtml += '</select>';
+   562→    } else if (type === 'ref' || type === 'virtual') {
+   563→      inputHtml = renderRefSelect(sectionKey, rowIndex, key, fieldDef, value, statusClass, disabledAttr, roClass, isVirtual);
+   564→    } else if (type === 'textarea') {
+   565→      inputHtml = '<textarea class="field-textarea' + statusClass + '"' + dataAttrs + disabledAttr + roClass + ' rows="3">' + esc(value) + '</textarea>';
+   566→    } else if (type === 'number') {
+   567→      inputHtml = '<input type="number" class="field-number' + statusClass + '"' + dataAttrs + ' value="' + esc(value) + '"' + disabledAttr + roClass + ' />';
+   568→    } else if (type === 'date') {
+   569→      var dateVal = value ? String(value).substring(0, 10) : '';
+   570→      inputHtml = '<input type="date" class="field-date' + statusClass + '"' + dataAttrs + ' value="' + esc(dateVal) + '"' + disabledAttr + roClass + ' />';
+   571→    } else if (type === 'array') {
+   572→      var arrStr = Array.isArray(value) ? value.join(', ') : (value || '');
+   573→      inputHtml = '<input type="text" class="field-input' + statusClass + '"' + dataAttrs + ' value="' + esc(arrStr) + '"' + disabledAttr + roClass + ' placeholder="Значения через запятую" />';
+   574→    } else {
+   575→      inputHtml = '<input type="text" class="field-input' + statusClass + '"' + dataAttrs + ' value="' + esc(value) + '"' + disabledAttr + roClass + ' />';
+   576→    }
+   577→
+   578→    return '<div class="field-wrapper" style="margin-bottom:16px;">' + labelHtml + inputHtml + '</div>';
+   579→  }
+   580→
+   581→  /* ------------------------------------------------------------------
+   582→     11. RENDER: REF SELECT (for ref and virtual types)
+   583→     ------------------------------------------------------------------ */
+   584→
+   585→  function renderRefSelect(sectionKey, rowIndex, fieldKey, fieldDef, value, statusClass, disabledAttr, roClass, isVirtual) {
+   586→    var refSec = fieldDef.refSection || 'infrastructure';
+   587→    var labelField = fieldDef.refLabelField || 'name';
+   588→    var refData = APP.data[refSec] || [];
+   589→
+   590→    var dataAttrs = ' data-section="' + esc(sectionKey) + '" data-row="' + rowIndex + '" data-field="' + esc(fieldKey) + '"';
+   591→    var html = '<select class="field-select' + statusClass + '"' + dataAttrs + disabledAttr + roClass + (isVirtual ? ' data-virtual-ref="true"' : '') + '>';
+   592→    html += '<option value=""></option>';
+   593→    for (var r = 0; r < refData.length; r++) {
+   594→      var refRow = refData[r];
+   595→      var displayVal = refRow[labelField] || ('Запись #' + (r + 1));
+   596→      var sel = (String(value) === String(r)) ? ' selected' : '';
+   597→      html += '<option value="' + r + '"' + sel + '>' + esc(displayVal) + '</option>';
+   598→    }
+   599→    html += '</select>';
+   600→    return html;
+   601→  }
+   602→
+   603→  /* ------------------------------------------------------------------
+   604→     12. RENDER: NESTED TABLE (object type fields)
+   605→     ------------------------------------------------------------------ */
+   606→
+   607→  function renderNestedTable(sectionKey, rowIndex, fieldKey, fieldLabel, nestedFields, nestedData, readOnly) {
+   608→    var count = nestedData.length;
+   609→    var html = '<div class="nested-section" data-nested-section="' + esc(fieldKey) + '" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;">';
+   610→
+   611→    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--muted);cursor:pointer;" data-action="toggle-nested" data-section="' + esc(sectionKey) + '" data-row="' + rowIndex + '" data-field="' + esc(fieldKey) + '">' +
+   612→      '<span style="font-weight:500;font-size:14px;color:var(--foreground);">' + esc(fieldLabel) + ' (' + count + ' запис' + pluralRu(count, 'ь', 'и', 'ей') + ')</span>' +
+   613→      '<span style="display:flex;align-items:center;gap:8px;">' +
+   614→        (!readOnly ? '<button class="btn-icon" data-action="add-nested" data-section="' + esc(sectionKey) + '" data-row="' + rowIndex + '" data-field="' + esc(fieldKey) + '" title="Добавить">' + ICONS.plus + '</button>' : '') +
+   615→        '<span class="chevron-icon">' + ICONS.chevronDown + '</span>' +
+   616→      '</span>' +
+   617→    '</div>';
+   618→
+   619→    html += '<div class="nested-body" style="max-height:500px;overflow-y:auto;">';
+   620→
+   621→    if (count === 0) {
+   622→      html += '<div style="padding:16px;text-align:center;color:var(--muted-foreground);font-size:13px;">Нет записей</div>';
+   623→    } else {
+   624→      html += '<table class="nested-table" style="width:100%;border-collapse:collapse;font-size:13px;">';
+   625→      html += '<thead><tr>';
+   626→      for (var f = 0; f < nestedFields.length; f++) {
+   627→        html += '<th style="padding:8px 10px;text-align:left;font-weight:500;color:var(--muted-foreground);border-bottom:1px solid var(--border);white-space:nowrap;">' + esc(nestedFields[f].label || nestedFields[f].key) + '</th>';
+   628→      }
+   629→      if (!readOnly) {
+   630→        html += '<th style="width:40px;border-bottom:1px solid var(--border);"></th>';
+   631→      }
+   632→      html += '</tr></thead><tbody>';
+   633→
+   634→      for (var nr = 0; nr < nestedData.length; nr++) {
+   635→        html += '<tr>';
+   636→        for (var nf = 0; nf < nestedFields.length; nf++) {
+   637→          var nfDef = nestedFields[nf];
+   638→          var nVal = nestedData[nr][nfDef.key] !== undefined ? nestedData[nr][nfDef.key] : '';
+   639→          var nDataAttrs = ' data-section="' + esc(sectionKey) + '" data-row="' + rowIndex + '" data-field="' + esc(fieldKey) + '" data-nested-row="' + nr + '" data-nested-field="' + esc(nfDef.key) + '"';
+   640→          html += '<td style="padding:4px 6px;border-bottom:1px solid var(--border);">';
+   641→
+   642→          if (nfDef.type === 'boolean') {
+   643→            var nChecked = nVal === true || nVal === 'true' || nVal === 1 ? ' checked' : '';
+   644→            html += '<input type="checkbox"' + nDataAttrs + nChecked + (readOnly ? ' disabled' : '') + ' />';
+   645→          } else if (nfDef.type === 'number') {
+   646→            html += '<input type="number" class="field-number" style="width:100%;min-width:80px;"' + nDataAttrs + ' value="' + esc(nVal) + '"' + (readOnly ? ' disabled' : '') + ' />';
+   647→          } else if (nfDef.type === 'date') {
+   648→            html += '<input type="date" class="field-date" style="width:100%;min-width:120px;"' + nDataAttrs + ' value="' + esc(nVal) + '"' + (readOnly ? ' disabled' : '') + ' />';
+   649→          } else if (nfDef.type === 'select' && nfDef.options && nfDef.options.length > 0) {
+   650→            html += '<select class="field-select" style="width:100%;min-width:100px;"' + nDataAttrs + (readOnly ? ' disabled' : '') + '>';
+   651→            html += '<option value=""></option>';
+   652→            for (var no = 0; no < nfDef.options.length; no++) {
+   653→              var nOpt = nfDef.options[no];
+   654→              var nOptVal = typeof nOpt === 'object' ? nOpt.value : nOpt;
+   655→              var nOptLabel = typeof nOpt === 'object' ? nOpt.label : nOpt;
+   656→              var nSel = (String(nVal) === String(nOptVal)) ? ' selected' : '';
+   657→              html += '<option value="' + esc(nOptVal) + '"' + nSel + '>' + esc(nOptLabel) + '</option>';
+   658→            }
+   659→            html += '</select>';
+   660→          } else {
+   661→            html += '<input type="text" class="field-input" style="width:100%;min-width:100px;"' + nDataAttrs + ' value="' + esc(nVal) + '"' + (readOnly ? ' disabled' : '') + ' />';
+   662→          }
+   663→          html += '</td>';
+   664→        }
+   665→        if (!readOnly) {
+   666→          html += '<td style="padding:4px 6px;border-bottom:1px solid var(--border);text-align:center;">' +
+   667→            '<button class="btn-icon" data-action="remove-nested" data-section="' + esc(sectionKey) + '" data-row="' + rowIndex + '" data-field="' + esc(fieldKey) + '" data-nested-row="' + nr + '" title="Удалить" style="color:var(--destructive);">' + ICONS.trash + '</button>' +
+   668→          '</td>';
+   669→        }
+   670→        html += '</tr>';
+   671→      }
+   672→
+   673→      html += '</tbody></table>';
+   674→    }
+   675→
+   676→    html += '</div></div>';
+   677→    return html;
+   678→  }
+   679→
+   680→  function pluralRu(n, one, few, many) {
+   681→    var abs = Math.abs(n) % 100;
+   682→    var lastDigit = abs % 10;
+   683→    if (abs > 10 && abs < 20) return many;
+   684→    if (lastDigit > 1 && lastDigit < 5) return few;
+   685→    if (lastDigit === 1) return one;
+   686→    return many;
+   687→  }
+   688→
+   689→  /* ------------------------------------------------------------------
+   690→     13. RENDER: MAIN CONTENT (section cards)
+   691→     ------------------------------------------------------------------ */
+   692→
+   693→  function renderMainContent() {
+   694→    var secKey = APP.activeSection;
+   695→    var secDef = getSectionDef(secKey);
+   696→    if (!secDef) {
+   697→      return '<main class="main-content"><div class="empty-state"><p>Раздел не найден</p></div></main>';
+   698→    }
+   699→
+   700→    var rows = APP.data[secKey] || [];
+   701→    var fields = secDef.fields || [];
+   702→
+   703→    var html = '<main class="main-content">';
+   704→    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">';
+   705→    html += '<h2 style="font-size:20px;font-weight:600;color:var(--foreground);margin:0;">' + esc(secDef.label) + '</h2>';
+   706→    html += '<button class="btn-primary" data-action="add-row" data-section="' + esc(secKey) + '">' + ICONS.plus + ' Добавить запись</button>';
+   707→    html += '</div>';
+   708→
+   709→    if (rows.length === 0) {
+   710→      html += '<div class="empty-state" style="padding:48px 24px;text-align:center;">' +
+   711→        '<p style="color:var(--muted-foreground);font-size:15px;">Нет записей в этом разделе</p>' +
+   712→        '<p style="color:var(--muted-foreground);font-size:13px;margin-top:4px;">Нажмите «Добавить запись» для создания</p>' +
+   713→      '</div>';
+   714→    } else {
+   715→      for (var r = 0; r < rows.length; r++) {
+   716→        var row = rows[r];
+   717→        html += '<div class="section-card" style="margin-bottom:20px;">';
+   718→        html += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:16px;">';
+   719→        html += '<span style="font-weight:600;font-size:15px;color:var(--foreground);">Запись #' + (r + 1) + '</span>';
+   720→        html += '<button class="btn-icon" data-action="delete-row" data-section="' + esc(secKey) + '" data-row="' + r + '" title="Удалить запись" style="color:var(--destructive);">' + ICONS.trash + '</button>';
+   721→        html += '</div>';
+   722→
+   723→        for (var f = 0; f < fields.length; f++) {
+   724→          var fDef = fields[f];
+   725→          var fVal = row[fDef.key] !== undefined ? row[fDef.key] : '';
+   726→          html += renderField(secKey, r, fDef, fVal);
+   727→        }
+   728→
+   729→        html += '</div>';
+   730→      }
+   731→    }
+   732→
+   733→    html += '</main>';
+   734→    return html;
+   735→  }
+   736→
+   737→  /* ------------------------------------------------------------------
+   738→     14. RENDER: FOOTER
+   739→     ------------------------------------------------------------------ */
+   740→
+   741→  function renderFooter() {
+   742→    return '<footer class="footer">© 2025 Морская безопасность</footer>';
+   743→  }
+   744→
+   745→  /* ------------------------------------------------------------------
+   746→     15. RENDER: MODALS / DIALOGS
+   747→     ------------------------------------------------------------------ */
+   748→
+   749→  function renderModals() {
+   750→    var html = '';
+   751→
+   752→    /* Save dialog */
+   753→    if (APP.saveDialogOpen) {
+   754→      html += '<div class="modal-overlay" data-action="close-save-dialog" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;">' +
+   755→        '<div class="modal-content" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;width:400px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">' +
+   756→          '<h3 style="font-size:16px;font-weight:600;margin-bottom:16px;color:var(--foreground);">Сохранить данные</h3>' +
+   757→          '<div style="margin-bottom:12px;">' +
+   758→            '<label class="field-label">Имя автора</label>' +
+   759→            '<input type="text" id="save-author-name" class="field-input" value="' + esc(APP.author.name) + '" placeholder="Введите имя" />' +
+   760→          '</div>' +
+   761→          '<div style="margin-bottom:20px;">' +
+   762→            '<label class="field-label">Роль</label>' +
+   763→            '<input type="text" id="save-author-role" class="field-input" value="' + esc(APP.author.role) + '" placeholder="Введите роль" />' +
+   764→          '</div>' +
+   765→          '<div style="display:flex;justify-content:flex-end;gap:8px;">' +
+   766→            '<button class="btn-secondary" data-action="close-save-dialog">Отмена</button>' +
+   767→            '<button class="btn-primary" data-action="confirm-save">Сохранить</button>' +
+   768→          '</div>' +
+   769→        '</div>' +
+   770→      '</div>';
+   771→    }
+   772→
+   773→    /* Import dialog */
+   774→    if (APP.importDialogOpen) {
+   775→      html += '<div class="modal-overlay" data-action="close-import-dialog" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;">' +
+   776→        '<div class="modal-content" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;width:400px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">' +
+   777→          '<h3 style="font-size:16px;font-weight:600;margin-bottom:16px;color:var(--foreground);">Импорт данных</h3>' +
+   778→          '<div style="margin-bottom:20px;">' +
+   779→            '<label class="field-label">Выберите файл (.json)</label>' +
+   780→            '<input type="file" id="import-file" accept=".json" class="field-input" style="padding:8px;" />' +
+   781→          '</div>' +
+   782→          '<div style="display:flex;justify-content:flex-end;gap:8px;">' +
+   783→            '<button class="btn-secondary" data-action="close-import-dialog">Отмена</button>' +
+   784→            '<button class="btn-primary" data-action="confirm-import">Импорт</button>' +
+   785→          '</div>' +
+   786→        '</div>' +
+   787→      '</div>';
+   788→    }
+   789→
+   790→    /* Versions dialog */
+   791→    if (APP.versionsOpen) {
+   792→      var vListHtml = '';
+   793→      if (APP.versions.length === 0) {
+   794→        vListHtml = '<div class="empty-state" style="padding:24px;text-align:center;color:var(--muted-foreground);">Нет сохранённых версий</div>';
+   795→      } else {
+   796→        for (var v = 0; v < APP.versions.length; v++) {
+   797→          var ver = APP.versions[v];
+   798→          var ts = ver.timestamp || ver.created_at || '';
+   799→          var author = ver.author || 'Неизвестный';
+   800→          var authorStr = (typeof author === 'object') ? ((author.name || '') + (author.role ? ' (' + author.role + ')' : '')) : author;
+   801→          var changedSections = ver.changed_sections || ver.sections || [];
+   802→          var sectionsStr = Array.isArray(changedSections) ? changedSections.join(', ') : String(changedSections);
+   803→
+   804→          vListHtml += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;" ' +
+   805→            'data-action="load-version" data-version-id="' + esc(ver.id || ver.version_id || v) + '" ' +
+   806→            'onmouseover="this.style.background=\'var(--muted)\'" onmouseout="this.style.background=\'transparent\'">' +
+   807→            '<div>' +
+   808→              '<div style="font-weight:500;font-size:14px;color:var(--foreground);">' + esc(authorStr) + '</div>' +
+   809→              '<div style="font-size:12px;color:var(--muted-foreground);margin-top:2px;">' + esc(sectionsStr) + '</div>' +
+   810→            '</div>' +
+   811→            '<div style="font-size:12px;color:var(--muted-foreground);white-space:nowrap;margin-left:12px;">' + esc(ts) + '</div>' +
+   812→          '</div>';
+   813→        }
+   814→      }
+   815→
+   816→      html += '<div class="modal-overlay" data-action="close-versions-dialog" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;">' +
+   817→        '<div class="modal-content" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;width:500px;max-width:90vw;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">' +
+   818→          '<h3 style="font-size:16px;font-weight:600;margin-bottom:16px;color:var(--foreground);">Версии</h3>' +
+   819→          '<div style="flex:1;overflow-y:auto;max-height:400px;">' + vListHtml + '</div>' +
+   820→          '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">' +
+   821→            '<button class="btn-secondary" data-action="close-versions-dialog">Закрыть</button>' +
+   822→          '</div>' +
+   823→        '</div>' +
+   824→      '</div>';
+   825→    }
+   826→
+   827→    /* Confirm dialog (for reset) */
+   828→    if (APP.confirmDialogOpen) {
+   829→      html += '<div class="modal-overlay" data-action="close-confirm-dialog" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;">' +
+   830→        '<div class="modal-content" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;width:400px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">' +
+   831→          '<h3 style="font-size:16px;font-weight:600;margin-bottom:8px;color:var(--foreground);">Подтверждение</h3>' +
+   832→          '<p style="color:var(--muted-foreground);font-size:14px;margin-bottom:20px;">Вы уверены, что хотите сбросить все изменения? Данные будут восстановлены до последнего сохранённого состояния.</p>' +
+   833→          '<div style="display:flex;justify-content:flex-end;gap:8px;">' +
+   834→            '<button class="btn-secondary" data-action="close-confirm-dialog">Отмена</button>' +
+   835→            '<button class="btn-destructive" data-action="confirm-reset">Сбросить</button>' +
+   836→          '</div>' +
+   837→        '</div>' +
+   838→      '</div>';
+   839→    }
+   840→
+   841→    return html;
+   842→  }
+   843→
+   844→  /* ------------------------------------------------------------------
+   845→     16. RENDER: LOADING STATE
+   846→     ------------------------------------------------------------------ */
+   847→
+   848→  function renderLoading() {
+   849→    return '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:var(--background);">' +
+   850→      '<div style="text-align:center;">' +
+   851→        '<div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;"></div>' +
+   852→        '<p style="color:var(--muted-foreground);font-size:14px;">Загрузка данных…</p>' +
+   853→      '</div>' +
+   854→    '</div>' +
+   855→    '<style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
+   856→  }
+   857→
+   858→  /* ------------------------------------------------------------------
+   859→     17. MASTER RENDER
+   860→     ------------------------------------------------------------------ */
+   861→
+   862→  function renderApp() {
+   863→    var root = document.getElementById('app');
+   864→    if (!root) return;
+   865→
+   866→    if (APP.isLoading) {
+   867→      root.innerHTML = renderLoading();
+   868→      return;
+   869→    }
+   870→
+   871→    var html = '<div style="display:flex;flex-direction:column;min-height:100vh;background:var(--background);">';
+   872→    html += renderHeader();
+   873→    html += '<div style="display:flex;flex:1;overflow:hidden;">';
+   874→    html += renderSidebar();
+   875→    html += renderMainContent();
+   876→    html += '</div>';
+   877→    html += renderFooter();
+   878→    html += '</div>';
+   879→    html += renderModals();
+   880→
+   881→    root.innerHTML = html;
+   882→
+   883→    /* Restore scroll positions for main content */
+   884→ restoreScrollState();
+   885→  }
+   886→
+   887→  /* ------------------------------------------------------------------
+   888→     18. SCROLL STATE PRESERVATION
+   889→     ------------------------------------------------------------------ */
+   890→
+   891→  var _mainScrollTop = 0;
+   892→  var _sidebarScrollTop = 0;
+   893→
+   894→  function saveScrollState() {
+   895→    var main = document.querySelector('.main-content');
+   896→    if (main) _mainScrollTop = main.scrollTop;
+   897→    var sidebar = document.querySelector('.sidebar');
+   898→    if (sidebar) _sidebarScrollTop = sidebar.scrollTop;
+   899→  }
+   900→
+   901→  function restoreScrollState() {
+   902→    var main = document.querySelector('.main-content');
+   903→    if (main) main.scrollTop = _mainScrollTop;
+   904→    var sidebar = document.querySelector('.sidebar');
+   905→    if (sidebar) sidebar.scrollTop = _sidebarScrollTop;
+   906→  }
+   907→
+   908→  /* ------------------------------------------------------------------
+   909→     19. EVENT HANDLING (delegation)
+   910→     ------------------------------------------------------------------ */
+   911→
+   912→  function setupEventDelegation() {
+   913→    var root = document.getElementById('app');
+   914→
+   915→    root.addEventListener('click', function (e) {
+   916→      var target = e.target.closest('[data-action]');
+   917→      if (!target) return;
+   918→      var action = target.getAttribute('data-action');
+   919→      handleClick(action, target, e);
+   920→    });
+   921→
+   922→    root.addEventListener('input', function (e) {
+   923→      var target = e.target;
+   924→      var section = target.getAttribute('data-section');
+   925→      var rowAttr = target.getAttribute('data-row');
+   926→      var field = target.getAttribute('data-field');
+   927→      var nestedRow = target.getAttribute('data-nested-row');
+   928→      var nestedField = target.getAttribute('data-nested-field');
+   929→
+   930→      if (!section || rowAttr === null || !field) return;
+   931→      var rowIndex = parseInt(rowAttr, 10);
+   932→
+   933→      if (nestedRow !== null && nestedField !== null) {
+   934→        handleNestedInput(section, rowIndex, field, parseInt(nestedRow, 10), nestedField, target, e);
+   935→      } else {
+   936→        handleFieldInput(section, rowIndex, field, target, e);
+   937→      }
+   938→    });
+   939→
+   940→    root.addEventListener('change', function (e) {
+   941→      var target = e.target;
+   942→      var section = target.getAttribute('data-section');
+   943→      var rowAttr = target.getAttribute('data-row');
+   944→      var field = target.getAttribute('data-field');
+   945→      var nestedRow = target.getAttribute('data-nested-row');
+   946→      var nestedField = target.getAttribute('data-nested-field');
+   947→
+   948→      if (!section || rowAttr === null || !field) return;
+   949→      var rowIndex = parseInt(rowAttr, 10);
+   950→
+   951→      if (nestedRow !== null && nestedField !== null) {
+   952→        handleNestedChange(section, rowIndex, field, parseInt(nestedRow, 10), nestedField, target, e);
+   953→      } else {
+   954→        handleFieldChange(section, rowIndex, field, target, e);
+   955→      }
+   956→    });
+   957→  }
+   958→
+   959→  function handleClick(action, target, e) {
+   960→    switch (action) {
+   961→      case 'select-section':
+   962→        saveScrollState();
+   963→        APP.activeSection = target.getAttribute('data-section');
+   964→        renderApp();
+   965→        break;
+   966→
+   967→      case 'add-row':
+   968→        var addSec = target.getAttribute('data-section');
+   969→        if (!APP.data[addSec]) APP.data[addSec] = [];
+   970→        var newRow = {};
+   971→        var addSecDef = getSectionDef(addSec);
+   972→        if (addSecDef && addSecDef.fields) {
+   973→          for (var af = 0; af < addSecDef.fields.length; af++) {
+   974→            var afDef = addSecDef.fields[af];
+   975→            if (afDef.type === 'object') {
+   976→              newRow[afDef.key] = [];
+   977→            } else if (afDef.type === 'boolean') {
+   978→              newRow[afDef.key] = false;
+   979→            } else if (afDef.type === 'number') {
+   980→              newRow[afDef.key] = 0;
+   981→            } else {
+   982→              newRow[afDef.key] = '';
+   983→            }
+   984→          }
+   985→        }
+   986→        APP.data[addSec].push(newRow);
+   987→        checkDirty();
+   988→        renderApp();
+   989→        /* scroll to bottom of main content */
+   990→        setTimeout(function () {
+   991→          var mc = document.querySelector('.main-content');
+   992→          if (mc) mc.scrollTop = mc.scrollHeight;
+   993→        }, 50);
+   994→        break;
+   995→
+   996→      case 'delete-row':
+   997→        var delSec = target.getAttribute('data-section');
+   998→        var delRow = parseInt(target.getAttribute('data-row'), 10);
+   999→        if (APP.data[delSec]) {
+  1000→          APP.data[delSec].splice(delRow, 1);
+  1001→          checkDirty();
+  1002→          renderApp();
+  1003→        }
+  1004→        break;
+  1005→
+  1006→      case 'save':
+  1007→        APP.saveDialogOpen = true;
+  1008→        renderApp();
+  1009→        setTimeout(function () {
+  1010→          var nameInput = document.getElementById('save-author-name');
+  1011→          if (nameInput) nameInput.focus();
+  1012→        }, 50);
+  1013→        break;
+  1014→
+  1015→      case 'close-save-dialog':
+  1016→        APP.saveDialogOpen = false;
+  1017→        renderApp();
+  1018→        break;
+  1019→
+  1020→      case 'confirm-save':
+  1021→        var authorName = '';
+  1022→        var authorRole = '';
+  1023→        var nameEl = document.getElementById('save-author-name');
+  1024→        var roleEl = document.getElementById('save-author-role');
+  1025→        if (nameEl) authorName = nameEl.value;
+  1026→        if (roleEl) authorRole = roleEl.value;
+  1027→        APP.author.name = authorName;
+  1028→        APP.author.role = authorRole;
+  1029→        saveData({ name: authorName, role: authorRole });
+  1030→        break;
+  1031→
+  1032→      case 'import':
+  1033→        APP.importDialogOpen = true;
+  1034→        renderApp();
+  1035→        break;
+  1036→
+  1037→      case 'close-import-dialog':
+  1038→        APP.importDialogOpen = false;
+  1039→        renderApp();
+  1040→        break;
+  1041→
+  1042→      case 'confirm-import':
+  1043→        var fileInput = document.getElementById('import-file');
+  1044→        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+  1045→          importData(fileInput.files[0]);
+  1046→        } else {
+  1047→          alert('Пожалуйста, выберите файл для импорта.');
+  1048→        }
+  1049→        break;
+  1050→
+  1051→      case 'export':
+  1052→        exportData();
+  1053→        break;
+  1054→
+  1055→      case 'versions':
+  1056→        APP.versionsOpen = true;
+  1057→        renderApp();
+  1058→        break;
+  1059→
+  1060→      case 'close-versions-dialog':
+  1061→        APP.versionsOpen = false;
+  1062→        renderApp();
+  1063→        break;
+  1064→
+  1065→      case 'load-version':
+  1066→        var verId = target.getAttribute('data-version-id');
+  1067→        if (verId) loadVersion(verId);
+  1068→        break;
+  1069→
+  1070→      case 'reset':
+  1071→        APP.confirmDialogOpen = true;
+  1072→        renderApp();
+  1073→        break;
+  1074→
+  1075→      case 'close-confirm-dialog':
+  1076→        APP.confirmDialogOpen = false;
+  1077→        renderApp();
+  1078→        break;
+  1079→
+  1080→      case 'confirm-reset':
+  1081→        APP.data = deepClone(APP.initialData);
+  1082→        APP.dirty = false;
+  1083→        APP.confirmDialogOpen = false;
+  1084→        renderApp();
+  1085→        break;
+  1086→
+  1087→      case 'toggle-nested':
+  1088→        var body = target.parentElement.querySelector('.nested-body');
+  1089→        if (body) {
+  1090→          var isHidden = body.style.display === 'none';
+  1091→          body.style.display = isHidden ? '' : 'none';
+  1092→          var chevron = target.querySelector('.chevron-icon');
+  1093→          if (chevron) {
+  1094→            chevron.innerHTML = isHidden ? ICONS.chevronDown : ICONS.chevronRight;
+  1095→          }
+  1096→        }
+  1097→        break;
+  1098→
+  1099→      case 'add-nested':
+  1100→        var anSec = target.getAttribute('data-section');
+  1101→        var anRow = parseInt(target.getAttribute('data-row'), 10);
+  1102→        var anField = target.getAttribute('data-field');
+  1103→        var anFd = getFieldDef(anSec, anField);
+  1104→        if (!anFd || !anFd.nestedFields) break;
+  1105→        var newRowObj = {};
+  1106→        for (var anf = 0; anf < anFd.nestedFields.length; anf++) {
+  1107→          var anfDef = anFd.nestedFields[anf];
+  1108→          if (anfDef.type === 'boolean') newRowObj[anfDef.key] = false;
+  1109→          else if (anfDef.type === 'number') newRowObj[anfDef.key] = 0;
+  1110→          else newRowObj[anfDef.key] = '';
+  1111→        }
+  1112→        if (APP.data[anSec] && APP.data[anSec][anRow]) {
+  1113→          if (!APP.data[anSec][anRow][anField]) APP.data[anSec][anRow][anField] = [];
+  1114→          APP.data[anSec][anRow][anField].push(newRowObj);
+  1115→          checkDirty();
+  1116→          renderApp();
+  1117→        }
+  1118→        break;
+  1119→
+  1120→      case 'remove-nested':
+  1121→        var rnSec = target.getAttribute('data-section');
+  1122→        var rnRow = parseInt(target.getAttribute('data-row'), 10);
+  1123→        var rnField = target.getAttribute('data-field');
+  1124→        var rnIdx = parseInt(target.getAttribute('data-nested-row'), 10);
+  1125→        if (APP.data[rnSec] && APP.data[rnSec][rnRow] && Array.isArray(APP.data[rnSec][rnRow][rnField])) {
+  1126→          APP.data[rnSec][rnRow][rnField].splice(rnIdx, 1);
+  1127→          checkDirty();
+  1128→          renderApp();
+  1129→        }
+  1130→        break;
+  1131→    }
+  1132→  }
+  1133→
+  1134→  function handleFieldInput(sectionKey, rowIndex, fieldKey, target, e) {
+  1135→    if (!APP.data[sectionKey] || !APP.data[sectionKey][rowIndex]) return;
+  1136→    var fd = getFieldDef(sectionKey, fieldKey);
+  1137→    if (!fd) return;
+  1138→    var type = fd.type || 'text';
+  1139→
+  1140→    if (type === 'boolean') {
+  1141→      APP.data[sectionKey][rowIndex][fieldKey] = target.checked;
+  1142→    } else if (type === 'number') {
+  1143→      var numVal = target.value === '' ? null : parseFloat(target.value);
+  1144→      APP.data[sectionKey][rowIndex][fieldKey] = numVal;
+  1145→    } else if (type === 'array') {
+  1146→      var strVal = target.value.trim();
+  1147→      APP.data[sectionKey][rowIndex][fieldKey] = strVal ? strVal.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s !== ''; }) : [];
+  1148→    } else {
+  1149→      APP.data[sectionKey][rowIndex][fieldKey] = target.value;
+  1150→    }
+  1151→
+  1152→    checkDirty();
+  1153→  }
+  1154→
+  1155→  function handleFieldChange(sectionKey, rowIndex, fieldKey, target, e) {
+  1156→    if (!APP.data[sectionKey] || !APP.data[sectionKey][rowIndex]) return;
+  1157→    var fd = getFieldDef(sectionKey, fieldKey);
+  1158→    if (!fd) return;
+  1159→    var type = fd.type || 'text';
+  1160→
+  1161→    if (type === 'boolean') {
+  1162→      APP.data[sectionKey][rowIndex][fieldKey] = target.checked;
+  1163→      checkDirty();
+  1164→      return;
+  1165→    }
+  1166→
+  1167→    if (type === 'ref') {
+  1168→      APP.data[sectionKey][rowIndex][fieldKey] = target.value;
+  1169→      /* Check infra ref auto-fill */
+  1170→      if (INFRA_REF_MAP[fieldKey]) {
+  1171→        handleInfraRefChange(sectionKey, rowIndex, fieldKey, target.value);
+  1172→      }
+  1173→      checkDirty();
+  1174→      return;
+  1175→    }
+  1176→
+  1177→    if (type === 'virtual') {
+  1178→      APP.data[sectionKey][rowIndex][fieldKey] = target.value;
+  1179→      handleVirtualRefChange(sectionKey, rowIndex, fieldKey, target.value);
+  1180→      checkDirty();
+  1181→      renderApp();
+  1182→      return;
+  1183→    }
+  1184→
+  1185→    if (type === 'select') {
+  1186→      APP.data[sectionKey][rowIndex][fieldKey] = target.value;
+  1187→      checkDirty();
+  1188→      return;
+  1189→    }
+  1190→
+  1191→    /* For number type on change (spin buttons, etc.) */
+  1192→    if (type === 'number') {
+  1193→      var numVal2 = target.value === '' ? null : parseFloat(target.value);
+  1194→      APP.data[sectionKey][rowIndex][fieldKey] = numVal2;
+  1195→      checkDirty();
+  1196→      return;
+  1197→    }
+  1198→  }
+  1199→
+  1200→  function handleNestedInput(sectionKey, rowIndex, fieldKey, nestedRowIndex, nestedFieldKey, target, e) {
+  1201→    if (!APP.data[sectionKey] || !APP.data[sectionKey][rowIndex]) return;
+  1202→    var arr = APP.data[sectionKey][rowIndex][fieldKey];
+  1203→    if (!Array.isArray(arr) || !arr[nestedRowIndex]) return;
+  1204→
+  1205→    var fd = getFieldDef(sectionKey, fieldKey);
+  1206→    var nfDef = null;
+  1207→    if (fd && fd.nestedFields) {
+  1208→      for (var i = 0; i < fd.nestedFields.length; i++) {
+  1209→        if (fd.nestedFields[i].key === nestedFieldKey) { nfDef = fd.nestedFields[i]; break; }
+  1210→      }
+  1211→    }
+  1212→
+  1213→    var nType = nfDef ? nfDef.type : 'text';
+  1214→    if (nType === 'boolean') {
+  1215→      arr[nestedRowIndex][nestedFieldKey] = target.checked;
+  1216→    } else if (nType === 'number') {
+  1217→      arr[nestedRowIndex][nestedFieldKey] = target.value === '' ? null : parseFloat(target.value);
+  1218→    } else {
+  1219→      arr[nestedRowIndex][nestedFieldKey] = target.value;
+  1220→    }
+  1221→    checkDirty();
+  1222→  }
+  1223→
+  1224→  function handleNestedChange(sectionKey, rowIndex, fieldKey, nestedRowIndex, nestedFieldKey, target, e) {
+  1225→    if (!APP.data[sectionKey] || !APP.data[sectionKey][rowIndex]) return;
+  1226→    var arr = APP.data[sectionKey][rowIndex][fieldKey];
+  1227→    if (!Array.isArray(arr) || !arr[nestedRowIndex]) return;
+  1228→
+  1229→    var fd = getFieldDef(sectionKey, fieldKey);
+  1230→    var nfDef = null;
+  1231→    if (fd && fd.nestedFields) {
+  1232→      for (var i = 0; i < fd.nestedFields.length; i++) {
+  1233→        if (fd.nestedFields[i].key === nestedFieldKey) { nfDef = fd.nestedFields[i]; break; }
+  1234→      }
+  1235→    }
+  1236→
+  1237→    var nType = nfDef ? nfDef.type : 'text';
+  1238→    if (nType === 'boolean') {
+  1239→      arr[nestedRowIndex][nestedFieldKey] = target.checked;
+  1240→    } else if (nType === 'number') {
+  1241→      arr[nestedRowIndex][nestedFieldKey] = target.value === '' ? null : parseFloat(target.value);
+  1242→    } else if (nType === 'select') {
+  1243→      arr[nestedRowIndex][nestedFieldKey] = target.value;
+  1244→    }
+  1245→    checkDirty();
+  1246→  }
+  1247→
+  1248→  /* ------------------------------------------------------------------
+  1249→     20. KEYBOARD SHORTCUTS
+  1250→     ------------------------------------------------------------------ */
+  1251→
+  1252→  function setupKeyboardShortcuts() {
+  1253→    document.addEventListener('keydown', function (e) {
+  1254→      /* Ctrl+S / Cmd+S to save */
+  1255→      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+  1256→        e.preventDefault();
+  1257→        if (!APP.isSaving) {
+  1258→          APP.saveDialogOpen = true;
+  1259→          renderApp();
+  1260→          setTimeout(function () {
+  1261→            var nameInput = document.getElementById('save-author-name');
+  1262→            if (nameInput) nameInput.focus();
+  1263→          }, 50);
+  1264→        }
+  1265→      }
+  1266→      /* Escape to close modals */
+  1267→      if (e.key === 'Escape') {
+  1268→        if (APP.saveDialogOpen || APP.importDialogOpen || APP.versionsOpen || APP.confirmDialogOpen) {
+  1269→          APP.saveDialogOpen = false;
+  1270→          APP.importDialogOpen = false;
+  1271→          APP.versionsOpen = false;
+  1272→          APP.confirmDialogOpen = false;
+  1273→          renderApp();
+  1274→        }
+  1275→      }
+  1276→    });
+  1277→  }
+  1278→
+  1279→  /* ------------------------------------------------------------------
+  1280→     21. TOAST NOTIFICATIONS
+  1281→     ------------------------------------------------------------------ */
+  1282→
+  1283→  function showToast(message, type) {
+  1284→    type = type || 'info';
+  1285→    var colors = {
+  1286→      success: 'var(--primary)',
+  1287→      error: 'var(--destructive)',
+  1288→      info: 'var(--accent)',
+  1289→    };
+  1290→    var bgColor = colors[type] || colors.info;
+  1291→    var toast = document.createElement('div');
+  1292→    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:' + bgColor + ';color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);opacity:0;transform:translateY(10px);transition:all 0.3s;';
+  1293→    toast.textContent = message;
+  1294→    document.body.appendChild(toast);
+  1295→    requestAnimationFrame(function () {
+  1296→      toast.style.opacity = '1';
+  1297→      toast.style.transform = 'translateY(0)';
+  1298→    });
+  1299→    setTimeout(function () {
+  1300→      toast.style.opacity = '0';
+  1301→      toast.style.transform = 'translateY(10px)';
+  1302→      setTimeout(function () {
+  1303→        if (toast.parentNode) toast.parentNode.removeChild(toast);
+  1304→      }, 300);
+  1305→    }, 3000);
+  1306→  }
+  1307→
+  1308→  /* ------------------------------------------------------------------
+  1309→     22. INITIALIZATION
+  1310→     ------------------------------------------------------------------ */
+  1311→
+  1312→  function init() {
+  1313→    renderApp();
+  1314→    setupEventDelegation();
+  1315→    setupKeyboardShortcuts();
+  1316→
+  1317→    Promise.all([loadSchema(), loadData(), loadVersions()])
+  1318→      .then(function () {
+  1319→        APP.isLoading = false;
+  1320→        /* Set default active section to first available */
+  1321→        if (APP.schema && APP.schema.sections && APP.schema.sections.length > 0) {
+  1322→          APP.activeSection = APP.schema.sections[0].key;
+  1323→        }
+  1324→        renderApp();
+  1325→        showToast('Данные загружены', 'success');
+  1326→      })
+  1327→      .catch(function (err) {
+  1328→        APP.isLoading = false;
+  1329→        var root = document.getElementById('app');
+  1330→        if (root) {
+  1331→          root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:var(--background);">' +
+  1332→            '<div style="text-align:center;max-width:400px;">' +
+  1333→              '<p style="color:var(--destructive);font-size:16px;font-weight:500;">Ошибка загрузки данных</p>' +
+  1334→              '<p style="color:var(--muted-foreground);font-size:14px;margin-top:8px;">' + esc(err.message) + '</p>' +
+  1335→              '<button class="btn-primary" style="margin-top:16px;" onclick="location.reload()">Повторить</button>' +
+  1336→            '</div>' +
+  1337→          '</div>';
+  1338→        }
+  1339→      });
+  1340→  }
+  1341→
+  1342→  /* ------------------------------------------------------------------
+  1343→     23. BOOT
+  1344→     ------------------------------------------------------------------ */
+  1345→
+  1346→  if (document.readyState === 'loading') {
+  1347→    document.addEventListener('DOMContentLoaded', init);
+  1348→  } else {
+  1349→    init();
+  1350→  }
+  1351→
+  1352→})();
+  1353→

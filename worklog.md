@@ -1851,3 +1851,100 @@ All API endpoints tested via Flask test client:
 - Export returns JSON content-type
 - Reset clears to seed
 
+---
+Task ID: 4
+Agent: backend-builder
+Task: Build Flask backend for Python 3.8 rewrite
+
+Work Log:
+- Read and analyzed existing schema.py (30 sections, 516 fields, helper functions)
+- Created storage.py with file-based JSON storage and versioning:
+  - Constants: DATA_DIR, CURRENT_FILE, VERSIONS_DIR, VERSIONS_MANIFEST, SEED_FILE
+  - ensure_data_dir(): creates data/ and data/versions/ directories
+  - read_json_file(path): reads JSON, returns None on FileNotFoundError or JSONDecodeError
+  - detect_changed_sections(old, new): compares top-level keys between dicts
+  - migrate_data(data): ensures all 30 schema section keys exist (empty list for missing)
+  - load_current_data(): loads from current.json, initializes from seed if missing
+  - save_data(data, author_name, author_role): saves, creates version snapshot, returns version info
+  - get_versions(): lists version metadata from versions.json manifest
+  - load_version_data(version_id): loads specific version by UUID
+  - export_json(): returns current data as JSON string
+  - reset_to_seed(): resets current.json to seed data with system author
+  - import_data(data, author_name, author_role): replaces current data from external JSON
+  - VersionEntry: dict with id, timestamp, author_name, author_role, changed_sections, version_label, version, data_file
+- Created requirements.txt with Flask==2.2.5 and flask-cors==4.0.0
+- Created app.py Flask application factory:
+  - GET / — serves index.html via Jinja2
+  - GET /api/data — returns current data as JSON
+  - POST /api/data — saves data with author info, returns version metadata
+  - GET /api/versions — lists version metadata (strips internal data_file)
+  - GET /api/versions/<id> — loads specific version data
+  - POST /api/import — multipart file upload, parses JSON, replaces current data
+  - POST /api/reset — resets to seed data
+  - GET /api/export — downloads current data as JSON file
+  - GET /api/schema — returns SCHEMA_SECTIONS for frontend
+  - GET /api/schema/groups — returns section navigation groups (bonus)
+  - Error handlers for 404 and 500
+  - MAX_CONTENT_LENGTH set to 50MB
+  - CORS enabled via flask-cors
+  - if __name__ == '__main__': app.run(host='0.0.0.0', port=5000, debug=True)
+- Created templates/index.html: minimal Jinja2 template with lang="ru", charset, title, CSS link, defer JS, single #app div
+- Created static/css/style.css: comprehensive CSS with blue oklch theme
+  - CSS custom properties for all theme colors (primary, background, card, secondary, muted, accent, border, input, ring, destructive, sidebar)
+  - Reset/base styles, layout with flexbox (min-h-screen, flex-col, sticky footer)
+  - Sidebar: fixed left 280px, scrollable, group labels, active link highlighting
+  - Card styles with header/body/footer
+  - Form inputs: text, textarea, select, checkbox, date, number, readonly states
+  - Invalid fields: red border with var(--destructive)
+  - Badge styles: .badge-auto for "авто", .badge-ready for "Готово к сохранению"
+  - Button styles: primary, secondary, destructive, outline, ghost, sm, icon variants
+  - Tooltip styles for validation hints
+  - Scrollbar styling (webkit + firefox)
+  - Utility classes (flex, grid, gap, text, margin, padding, overflow, etc.)
+  - Responsive: sidebar hidden on mobile, grid columns collapse to single
+
+Stage Summary:
+- All 5 files created successfully:
+  1. /home/z/my-project/python-app/storage.py
+  2. /home/z/my-project/python-app/requirements.txt
+  3. /home/z/my-project/python-app/app.py
+  4. /home/z/my-project/python-app/templates/index.html
+  5. /home/z/my-project/python-app/static/css/style.css
+- Python 3.8 compatible (no walrus, no match/case, typing imports used)
+- All API routes match Next.js originals
+- Blue oklch theme with full component styling
+---
+Task ID: 5
+Agent: frontend-builder
+Task: Build frontend JavaScript (app.js) for Python 3.8 rewrite
+
+Work Log:
+- Created /home/z/my-project/python-app/static/js/app.js (1506 lines, plain JS, no React/JSX)
+- Implemented IIFE-wrapped SPA with global APP state object (schema, data, initialData, activeSection, dirty, modals, author, versions)
+- Built 20 format validation rules (ОГРНИП, ОГРН, ИНН variants, КПП, ОКПО, СНИЛС, БИК, bank accounts, email, fax, phone, IMO, MMSI, call_sign, latitude, longitude, reg_num)
+- Added type-based validation for number (finite check) and date (YYYY-MM-DD format check)
+- Implemented three-state field status system: empty (red dot + border), invalid (red border + tooltip with format hint), ok (normal)
+- Created inline SVG icon system (shield, ship, users, clipboard, file, map, waves, package, wrench, lock, database, camera, radio, zap, eye, alertTriangle, trash, plus, minus, upload, download, save, history, refreshCw, x, chevronDown, chevronRight) with section-icon mapping for all 30 sections
+- Built header with action buttons (Import, Export, Save with dirty badge, Versions, Reset)
+- Built scrollable sidebar (280px, grouped by section groups, shows row count + fill percentage stats per section, active highlighting)
+- Built main content area with vertical section cards (one card per data row, numbered "Запись #N" with delete button)
+- Implemented all 10 field types: text, textarea, number, date, boolean (checkbox), select, array (comma-separated), object (collapsible nested table), ref (dropdown from referenced section data), virtual (ref with auto-fill + blue badge)
+- Implemented infrastructure ref auto-fill (7 mappings: located_on, connected_to, berth, tsotb_location, tsotb_monitors, tsotb_powered_from, eng_instance_location)
+- Implemented virtual ref auto-fill via field.refAutoFill mapping
+- Built nested tables: collapsible sections with add/remove row buttons, per-sub-field type rendering (text, number, date, boolean, select)
+- Built 4 modal dialogs: Save (author name + role), Import (file input .json), Versions (list with click-to-load), Confirm Reset
+- Implemented dirty detection via JSON.stringify comparison with virtual fields stripped
+- Implemented virtual field stripping before save and for dirty comparison
+- Added scroll state preservation (main content + sidebar) across re-renders
+- Added keyboard shortcuts: Ctrl+S to save, Escape to close modals
+- Added beforeunload warning for unsaved changes
+- Added toast notification system
+- Event delegation on #app for all click/input/change events using data-* attributes
+- All UI text in Russian, desktop layout, CSS variable theming
+
+Stage Summary:
+- Single file /home/z/my-project/python-app/static/js/app.js (1506 lines, syntax-verified)
+- Full SPA matching Next.js version architecture: header, sidebar, main content, footer, modals
+- Complete field rendering with validation, auto-fill, nested tables, and virtual fields
+- API integration: fetches /api/schema, /api/data, /api/versions; POSTs /api/data, /api/import; GETs /api/export, /api/versions/<id>
+- Zero dependencies: plain JS using function declarations, var/let/const, no JSX/React/imports

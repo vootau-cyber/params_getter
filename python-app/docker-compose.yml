@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: params_getter
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./seed:/app/seed
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
