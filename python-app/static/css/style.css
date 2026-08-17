@@ -680,6 +680,54 @@ p {
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* --------------------------------------------------------------------------
+   Autocomplete (DB-sourced)
+   -------------------------------------------------------------------------- */
+.autocomplete-wrapper {
+    position: relative;
+}
+
+.ac-match-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background-color 0.1s ease;
+}
+
+.ac-match-item:hover {
+    background-color: var(--accent);
+}
+
+.ac-match-item:last-child {
+    border-bottom: none;
+}
+
+/* DB-sourced field badge */
+.badge-db {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    line-height: 1.4;
+    white-space: nowrap;
+    background-color: oklch(0.92 0.04 200);
+    color: oklch(0.35 0.12 260);
+    border: 1px solid oklch(0.80 0.06 260);
+}
+
+/* DB-sourced field input */
+.field-input.db-sourced {
+    background-color: oklch(0.97 0.01 240);
+    border-color: oklch(0.75 0.08 260);
+}
+
+.field-input.db-sourced:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px oklch(0.55 0.18 260 / 0.15);
+}
+
+/* --------------------------------------------------------------------------
    Responsive
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {

@@ -13,3 +13,12 @@ services:
     environment:
       - FLASK_ENV=production
       - PYTHONUNBUFFERED=1
+      # PostgreSQL connection (optional — overrides JSON config file)
+      # Uncomment and fill these to configure DB without using the UI dialog
+      # - PG_HOST=postgres
+      # - PG_PORT=5432
+      # - PG_DATABASE=maritime_db
+      # - PG_USERNAME=postgres
+      # - PG_PASSWORD=
+      # - PG_SSL=false
+      # - PG_GRAPH_NAME=

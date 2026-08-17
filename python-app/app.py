@@ -21,6 +21,7 @@ from flask_cors import CORS
 
 import storage
 from schema import SCHEMA_SECTIONS, get_section_groups
+import db_connection
 
 
 def create_app() -> Flask:
@@ -177,6 +178,148 @@ def create_app() -> Flask:
         """Return schema with sections and groups for frontend consumption."""
         groups = get_section_groups()
         return jsonify({'sections': SCHEMA_SECTIONS, 'groups': groups}), 200
+
+    # ------------------------------------------------------------------
+    # API: DB Connection — Get current config
+    # ------------------------------------------------------------------
+    @app.route('/api/db-config', methods=['GET'])
+    def api_get_db_config() -> Tuple[Response, int]:
+        """Return current PostgreSQL config (password masked)."""
+        config = db_connection.get_effective_pg_config()
+        if not config:
+            return jsonify({'postgresql': None}), 200
+        # Mask password for security
+        masked = dict(config)
+        if masked.get('password'):
+            masked['password'] = '********'
+        return jsonify({'postgresql': masked}), 200
+
+    # ------------------------------------------------------------------
+    # API: DB Connection — Save config
+    # ------------------------------------------------------------------
+    @app.route('/api/db-config', methods=['PUT'])
+    def api_save_db_config() -> Tuple[Response, int]:
+        """Save PostgreSQL connection config."""
+        body = request.get_json(silent=True)
+        if not body:
+            return jsonify({'error': 'Тело запроса отсутствует'}), 400
+
+        required = ['host', 'port', 'database', 'username', 'password']
+        for key in required:
+            if key not in body:
+                return jsonify({'error': 'Отсутствует обязательное поле: {}'.format(key)}), 400
+
+        config = {
+            'host': str(body['host']).strip(),
+            'port': int(body['port']),
+            'database': str(body['database']).strip(),
+            'username': str(body['username']).strip(),
+            'password': str(body['password']),
+            'ssl': bool(body.get('ssl', False)),
+            'graph_name': str(body.get('graph_name', '')).strip(),
+        }
+
+        # Validate port range
+        if not (1 <= config['port'] <= 65535):
+            return jsonify({'error': 'Порт должен быть от 1 до 65535'}), 400
+
+        db_connection.save_pg_config(config)
+        masked = dict(config)
+        if masked['password']:
+            masked['password'] = '********'
+        return jsonify({'postgresql': masked}), 200
+
+    # ------------------------------------------------------------------
+    # API: DB Connection — Delete config
+    # ------------------------------------------------------------------
+    @app.route('/api/db-config', methods=['DELETE'])
+    def api_delete_db_config() -> Tuple[Response, int]:
+        """Delete saved PostgreSQL config."""
+        db_connection.delete_pg_config()
+        return jsonify({'postgresql': None}), 200
+
+    # ------------------------------------------------------------------
+    # API: DB Connection — Test
+    # ------------------------------------------------------------------
+    @app.route('/api/db-config/test', methods=['POST'])
+    def api_test_db_config() -> Tuple[Response, int]:
+        """Test PostgreSQL connection."""
+        # Use the body config if provided, otherwise use saved config
+        body = request.get_json(silent=True)
+        if body and body.get('host'):
+            config = body
+        else:
+            config = db_connection.get_effective_pg_config()
+            if not config:
+                return jsonify({'ok': False, 'error': 'Подключение PostgreSQL не настроено'}), 400
+
+        result = db_connection.test_pg_connection(config)
+        status_code = 200 if result['ok'] else 400
+        return jsonify(result), status_code
+
+    # ------------------------------------------------------------------
+    # API: DB Autocomplete
+    # ------------------------------------------------------------------
+    @app.route('/api/autocomplete', methods=['POST'])
+    def api_autocomplete() -> Tuple[Response, int]:
+        """DB-powered autocomplete for a field value.
+
+        Body: {'sectionKey': str, 'fieldKey': str, 'value': str, 'limit'?: int}
+        Returns: [{'row': {...}, 'label': '...'}, ...]
+        """
+        body = request.get_json(silent=True)
+        if not body:
+            return jsonify({'error': 'Тело запроса отсутствует'}), 400
+
+        section_key = body.get('sectionKey', '').strip()
+        field_key = body.get('fieldKey', '').strip()
+        value = body.get('value', '').strip()
+        limit = body.get('limit', 10)
+
+        if not section_key or not field_key or not value:
+            return jsonify({
+                'error': 'Отсутствуют обязательные поля (sectionKey, fieldKey, value)',
+            }), 400
+
+        if len(value) < 2:
+            return jsonify([]), 200
+
+        try:
+            matches = db_connection.autocomplete(
+                section_key=section_key,
+                field_key=field_key,
+                value=value,
+                limit=int(limit),
+            )
+            return jsonify(matches), 200
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    # ------------------------------------------------------------------
+    # API: DB Status (for UI indicator)
+    # ------------------------------------------------------------------
+    @app.route('/api/db-status', methods=['GET'])
+    def api_db_status() -> Tuple[Response, int]:
+        """Return DB connection status (configured / not configured)."""
+        config = db_connection.get_effective_pg_config()
+        if not config:
+            return jsonify({
+                'configured': False,
+                'source': None,
+                'graph_name': '',
+            }), 200
+
+        # Determine source
+        env_config = db_connection.get_pg_config_from_env()
+        source = 'env' if env_config else 'file'
+
+        return jsonify({
+            'configured': True,
+            'source': source,
+            'graph_name': config.get('graph_name', ''),
+            'host': config.get('host', ''),
+            'database': config.get('database', ''),
+        }), 200
 
     # ------------------------------------------------------------------
     # Error handlers

@@ -24,7 +24,55 @@
     saveDialogOpen: false,
     confirmDialogOpen: false,
     dirty: false,
+    /* DB Autocomplete state */
+    dbConfigured: false,
+    dbSource: null,
+    dbName: '',
+    dbGraphName: '',
+    dbConfigDialogOpen: false,
+    dbTestResult: null,
+    dbTestLoading: false,
+    dbSaveLoading: false,
+    autocompleteResults: [],
+    autocompleteLoading: false,
+    autocompleteSectionKey: null,
+    autocompleteFieldKey: null,
+    autocompleteRowIndex: null,
+    dbSourcedFields: {},   /* {sectionKey: {"row:field": true}} */
   };
+
+  /* ------------------------------------------------------------------
+     1b. DB AUTOCOMPLETE FIELD PATTERNS
+     ------------------------------------------------------------------ */
+
+  var AUTOCOMPLETE_PATTERNS = [
+    /inn$/, /ogrn$/, /full_name$/, /short_name$/, /reg_num$/, /_name$/, /_fio$/, /imo$/
+  ];
+
+  function isAutocompleteField(fieldDef) {
+    if (fieldDef.readOnly === true || fieldDef.virtual === true || fieldDef.type !== 'text') return false;
+    var key = fieldDef.key || '';
+    for (var i = 0; i < AUTOCOMPLETE_PATTERNS.length; i++) {
+      if (AUTOCOMPLETE_PATTERNS[i].test(key)) return true;
+    }
+    return false;
+  }
+
+  function isDBSourced(sectionKey, rowIndex, fieldKey) {
+    var secMap = APP.dbSourcedFields[sectionKey];
+    if (!secMap) return false;
+    var k = rowIndex + ':' + fieldKey;
+    return !!secMap[k];
+  }
+
+  function markDBSourced(sectionKey, rowIndex, fieldKey) {
+    if (!APP.dbSourcedFields[sectionKey]) APP.dbSourcedFields[sectionKey] = {};
+    APP.dbSourcedFields[sectionKey][rowIndex + ':' + fieldKey] = true;
+  }
+
+  function clearDBSourced() {
+    APP.dbSourcedFields = {};
+  }
 
   /* ------------------------------------------------------------------
      2.  FORMAT VALIDATION RULES  (20 rules)
@@ -140,6 +188,8 @@
     save: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
     history: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
     refreshCw: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+    settings: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
+    database: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
     x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
     chevronDown: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
     chevronRight: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
@@ -463,6 +513,14 @@
           '<button class="btn-primary" data-action="save" style="position:relative;"' + savingDisabled + '>' + ICONS.save + ' ' + savingText + dirtyBadge + '</button>' +
           '<button class="btn-secondary" data-action="versions">' + ICONS.history + ' Версии</button>' +
           '<button class="btn-destructive" data-action="reset">' + ICONS.refreshCw + ' Сброс</button>' +
+          '<div style="width:1px;height:24px;background:var(--border);margin:0 4px;"></div>' +
+          '<button class="btn-secondary" data-action="db-settings" title="Настройки подключения к БД">' +
+            (APP.dbConfigured
+              ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(0.65 0.18 145);margin-right:4px;"></span>'
+              : '') +
+            ICONS.settings +
+            (APP.dbConfigured ? ' БД' : ' БД') +
+          '</button>' +
         '</div>' +
       '</div>' +
     '</header>';
@@ -533,9 +591,13 @@
       tooltipHtml = '<span class="invalid-tooltip">Поле ' + esc(label) + ' — некорректный формат ввода. Корректный формат: ' + esc(hint) + '</span>';
     }
 
+    var dbSourced = isDBSourced(sectionKey, rowIndex, key);
     var autoBadge = '';
     if (autoFilled || isVirtual) {
       autoBadge = ' <span class="badge-auto">авто</span>';
+    }
+    if (dbSourced) {
+      autoBadge += ' <span class="badge-db">из БД</span>';
     }
 
     var dataAttrs = ' data-section="' + esc(sectionKey) + '" data-row="' + rowIndex + '" data-field="' + esc(key) + '"';
@@ -587,7 +649,13 @@
       var arrStr = Array.isArray(value) ? value.join(', ') : (value || '');
       inputHtml = '<input type="text" class="field-input' + statusClass + '"' + dataAttrs + ' value="' + esc(arrStr) + '"' + disabledAttr + roClass + ' placeholder="Значения через запятую" />';
     } else {
-      inputHtml = '<input type="text" class="field-input' + statusClass + '"' + dataAttrs + ' value="' + esc(value) + '"' + disabledAttr + roClass + ' />';
+      var canAC = isAutocompleteField(fieldDef);
+      var acAttrs = canAC ? ' data-ac="true"' : '';
+      var dbSrcClass = dbSourced ? ' db-sourced' : '';
+      inputHtml = '<div class="autocomplete-wrapper' + (canAC ? '' : '') + '">' +
+        '<input type="text" class="field-input' + statusClass + dbSrcClass + '"' + dataAttrs + acAttrs + ' value="' + esc(value) + '"' + disabledAttr + roClass + ' autocomplete="off" />' +
+        (canAC ? renderAutocompleteDropdown(sectionKey, rowIndex, key) : '') +
+      '</div>';
     }
 
     return '<div class="field-wrapper" style="margin-bottom:16px;">' + labelHtml + inputHtml + '</div>';
@@ -853,6 +921,9 @@
       '</div>';
     }
 
+    /* DB Config dialog */
+    html += renderDBConfigDialog();
+
     return html;
   }
 
@@ -1092,6 +1163,52 @@
         renderApp();
         break;
 
+      case 'db-settings':
+        APP.dbConfigDialogOpen = true;
+        APP.dbTestResult = null;
+        renderApp();
+        /* Load existing config into dialog fields */
+        loadDBConfig().then(function (cfg) {
+          if (!cfg) return;
+          var h = document.getElementById('db-host');
+          if (h) h.value = cfg.host || '';
+          var p = document.getElementById('db-port');
+          if (p) p.value = cfg.port || 5432;
+          var d = document.getElementById('db-database');
+          if (d) d.value = cfg.database || '';
+          var u = document.getElementById('db-username');
+          if (u) u.value = cfg.username || '';
+          var s = document.getElementById('db-ssl');
+          if (s) s.checked = !!cfg.ssl;
+          var g = document.getElementById('db-graph-name');
+          if (g) g.value = cfg.graph_name || '';
+        });
+        break;
+
+      case 'close-db-dialog':
+        APP.dbConfigDialogOpen = false;
+        renderApp();
+        break;
+
+      case 'test-db-config':
+        testDBConfig();
+        break;
+
+      case 'save-db-config':
+        saveDBConfig();
+        break;
+
+      case 'delete-db-config':
+        deleteDBConfig();
+        break;
+
+      case 'apply-db-match':
+        var acSection = target.getAttribute('data-ac-section');
+        var acRow = parseInt(target.getAttribute('data-ac-row'), 10);
+        var matchIdx = parseInt(target.getAttribute('data-match-idx'), 10);
+        applyDBMatch(acSection, acRow, matchIdx);
+        break;
+
       case 'confirm-reset':
         APP.data = deepClone(APP.initialData);
         APP.dirty = false;
@@ -1166,6 +1283,10 @@
       APP.data[sectionKey][rowIndex][fieldKey] = target.value;
     } else {
       APP.data[sectionKey][rowIndex][fieldKey] = target.value;
+      /* Trigger DB autocomplete for eligible fields */
+      if (target.getAttribute('data-ac') === 'true') {
+        debouncedTriggerAC(sectionKey, rowIndex, fieldKey, target.value);
+      }
     }
 
     checkDirty();
@@ -1285,11 +1406,12 @@
       }
       /* Escape to close modals */
       if (e.key === 'Escape') {
-        if (APP.saveDialogOpen || APP.importDialogOpen || APP.versionsOpen || APP.confirmDialogOpen) {
+        if (APP.saveDialogOpen || APP.importDialogOpen || APP.versionsOpen || APP.confirmDialogOpen || APP.dbConfigDialogOpen) {
           APP.saveDialogOpen = false;
           APP.importDialogOpen = false;
           APP.versionsOpen = false;
           APP.confirmDialogOpen = false;
+          APP.dbConfigDialogOpen = false;
           renderApp();
         }
       }
@@ -1333,6 +1455,10 @@
     renderApp();
     setupEventDelegation();
     setupKeyboardShortcuts();
+    loadDBStatus();
+
+    /* Click outside to close autocomplete dropdowns */
+    document.addEventListener('mousedown', closeAllDropdowns);
 
     Promise.all([loadSchema(), loadData(), loadVersions()])
       .then(function () {
@@ -1487,7 +1613,392 @@
   }
 
   /* ------------------------------------------------------------------
-     27. BOOT
+     27. DB AUTOCOMPLETE
+     ------------------------------------------------------------------ */
+
+  var _acTimer = null;
+
+  function renderAutocompleteDropdown(sectionKey, rowIndex, fieldKey) {
+    var show = APP.autocompleteResults.length > 0 &&
+      APP.autocompleteSectionKey === sectionKey &&
+      APP.autocompleteFieldKey === fieldKey &&
+      APP.autocompleteRowIndex === rowIndex;
+
+    var html = '<div class="ac-dropdown" style="display:' + (show ? 'block' : 'none') + ';position:absolute;left:0;right:0;top:100%;z-index:60;margin-top:2px;">';
+
+    if (APP.autocompleteLoading) {
+      html += '<div style="padding:12px;text-align:center;color:var(--muted-foreground);font-size:13px;">Поиск в БД…</div>';
+    } else if (APP.autocompleteResults.length === 0) {
+      html += '';
+    } else {
+      html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,0.12);max-height:240px;overflow-y:auto;">';
+      for (var i = 0; i < APP.autocompleteResults.length; i++) {
+        var m = APP.autocompleteResults[i];
+        html += '<div class="ac-item ac-match-item" data-action="apply-db-match" data-match-idx="' + i + '" ' +
+          'data-ac-section="' + esc(sectionKey) + '" data-ac-row="' + rowIndex + '">' +
+          '<div style="font-size:13px;font-weight:500;color:var(--foreground);">' + esc(m.label) + '</div>' +
+          '<div style="font-size:11px;color:var(--muted-foreground);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">';
+        var previewParts = [];
+        var row = m.row || {};
+        var rowKeys = Object.keys(row);
+        for (var rk = 0; rk < Math.min(rowKeys.length, 4); rk++) {
+          var rv = row[rowKeys[rk]];
+          if (rv !== null && rv !== undefined && String(rv).trim() !== '' && rowKeys[rk] !== 'is_current_version') {
+            previewParts.push(esc(rowKeys[rk]) + ': ' + esc(String(rv).substring(0, 30)));
+          }
+        }
+        html += previewParts.join(' &middot; ');
+        html += '</div></div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function triggerAutocomplete(sectionKey, rowIndex, fieldKey, value) {
+    if (!APP.dbConfigured) return;
+    if (value.length < 2) {
+      APP.autocompleteResults = [];
+      APP.autocompleteSectionKey = null;
+      APP.autocompleteFieldKey = null;
+      APP.autocompleteRowIndex = null;
+      return;
+    }
+    APP.autocompleteSectionKey = sectionKey;
+    APP.autocompleteFieldKey = fieldKey;
+    APP.autocompleteRowIndex = rowIndex;
+    APP.autocompleteLoading = true;
+    /* Only update the dropdown, not the whole form */
+    updateAutocompleteDropdown();
+
+    fetch('/api/autocomplete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sectionKey: sectionKey, fieldKey: fieldKey, value: value, limit: 10 }),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        APP.autocompleteLoading = false;
+        APP.autocompleteResults = Array.isArray(data) ? data : [];
+        updateAutocompleteDropdown();
+      })
+      .catch(function () {
+        APP.autocompleteLoading = false;
+        APP.autocompleteResults = [];
+        updateAutocompleteDropdown();
+      });
+  }
+
+  function debounceAC(fn, ms) {
+    return function () {
+      var args = arguments;
+      var ctx = this;
+      clearTimeout(_acTimer);
+      _acTimer = setTimeout(function () { fn.apply(ctx, args); }, ms);
+    };
+  }
+
+  var debouncedTriggerAC = debounceAC(function (sk, ri, fk, v) { triggerAutocomplete(sk, ri, fk, v); }, 400);
+
+  function applyDBMatch(sectionKey, rowIndex, matchIdx) {
+    var match = APP.autocompleteResults[matchIdx];
+    if (!match || !match.row) return;
+
+    var secDef = getSectionDef(sectionKey);
+    if (!secDef) return;
+
+    var row = APP.data[sectionKey] && APP.data[sectionKey][rowIndex];
+    if (!row) return;
+
+    var dbRow = match.row;
+    var dbKeys = Object.keys(dbRow);
+    var filledCount = 0;
+
+    for (var i = 0; i < dbKeys.length; i++) {
+      var dbKey = dbKeys[i];
+      var dbValue = dbRow[dbKey];
+      if (dbValue === null || dbValue === undefined) continue;
+
+      /* Find matching field in section */
+      for (var f = 0; f < secDef.fields.length; f++) {
+        var fd = secDef.fields[f];
+        if (fd.key === dbKey && fd.readOnly !== true && fd.virtual !== true && fd.type === 'text') {
+          var strVal = String(dbValue);
+          row[fd.key] = strVal;
+          markDBSourced(sectionKey, rowIndex, fd.key);
+          filledCount++;
+          break;
+        }
+      }
+    }
+
+    /* Clear autocomplete */
+    APP.autocompleteResults = [];
+    APP.autocompleteSectionKey = null;
+    APP.autocompleteFieldKey = null;
+    APP.autocompleteRowIndex = null;
+
+    checkDirty();
+    renderApp();
+
+    if (filledCount > 0) {
+      showToast('Заполнено ' + filledCount + ' полей из БД', 'success');
+    }
+  }
+
+  function updateAutocompleteDropdown() {
+    /* Find and update the visible dropdown without full re-render */
+    var dropdowns = document.querySelectorAll('.ac-dropdown');
+    for (var d = 0; d < dropdowns.length; d++) {
+      var dd = dropdowns[d];
+      var wrapper = dd.closest('.autocomplete-wrapper');
+      if (!wrapper) continue;
+      var input = wrapper.querySelector('input[data-ac]');
+      if (!input) continue;
+      var sk = input.getAttribute('data-section');
+      var ri = input.getAttribute('data-row');
+      var fk = input.getAttribute('data-field');
+      var show = APP.autocompleteResults.length > 0 &&
+        APP.autocompleteSectionKey === sk &&
+        APP.autocompleteFieldKey === fk &&
+        APP.autocompleteRowIndex === parseInt(ri, 10);
+
+      if (show || APP.autocompleteLoading) {
+        dd.style.display = 'block';
+        if (APP.autocompleteLoading && APP.autocompleteResults.length === 0) {
+          dd.innerHTML = '<div style="padding:12px;text-align:center;color:var(--muted-foreground);font-size:13px;">Поиск в БД…</div>';
+        } else {
+          dd.innerHTML = buildDropdownContent(sk, parseInt(ri, 10));
+        }
+      } else {
+        dd.style.display = 'none';
+      }
+    }
+  }
+
+  function buildDropdownContent(sectionKey, rowIndex) {
+    var html = '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,0.12);max-height:240px;overflow-y:auto;">';
+    for (var i = 0; i < APP.autocompleteResults.length; i++) {
+      var m = APP.autocompleteResults[i];
+      html += '<div class="ac-item ac-match-item" data-action="apply-db-match" data-match-idx="' + i + '" ' +
+        'data-ac-section="' + esc(sectionKey) + '" data-ac-row="' + rowIndex + '">' +
+        '<div style="font-size:13px;font-weight:500;color:var(--foreground);">' + esc(m.label) + '</div>' +
+        '<div style="font-size:11px;color:var(--muted-foreground);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">';
+      var previewParts = [];
+      var row = m.row || {};
+      var rowKeys = Object.keys(row);
+      for (var rk = 0; rk < Math.min(rowKeys.length, 4); rk++) {
+        var rv = row[rowKeys[rk]];
+        if (rv !== null && rv !== undefined && String(rv).trim() !== '' && rowKeys[rk] !== 'is_current_version') {
+          previewParts.push(esc(rowKeys[rk]) + ': ' + esc(String(rv).substring(0, 30)));
+        }
+      }
+      html += previewParts.join(' &middot; ');
+      html += '</div></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function closeAllDropdowns(e) {
+    if (!e || !e.target) return;
+    if (e.target.closest('.ac-item')) return;
+    if (e.target.closest('.autocomplete-wrapper')) return;
+    APP.autocompleteResults = [];
+    APP.autocompleteSectionKey = null;
+    APP.autocompleteFieldKey = null;
+    APP.autocompleteRowIndex = null;
+    updateAutocompleteDropdown();
+  }
+
+  /* ------------------------------------------------------------------
+     28. DB CONFIG DIALOG
+     ------------------------------------------------------------------ */
+
+  function loadDBStatus() {
+    fetch('/api/db-status')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        APP.dbConfigured = !!data.configured;
+        APP.dbSource = data.source;
+        APP.dbName = data.database || '';
+        APP.dbGraphName = data.graph_name || '';
+        renderApp();
+      })
+      .catch(function () {
+        APP.dbConfigured = false;
+      });
+  }
+
+  function loadDBConfig() {
+    return fetch('/api/db-config')
+      .then(function (r) { return r.json(); })
+      .then(function (data) { return data.postgresql || null; });
+  }
+
+  function saveDBConfig() {
+    var config = {
+      host: document.getElementById('db-host').value.trim(),
+      port: parseInt(document.getElementById('db-port').value, 10) || 5432,
+      database: document.getElementById('db-database').value.trim(),
+      username: document.getElementById('db-username').value.trim(),
+      password: document.getElementById('db-password').value,
+      ssl: document.getElementById('db-ssl').checked,
+      graph_name: document.getElementById('db-graph-name').value.trim(),
+    };
+    if (!config.host || !config.database || !config.username) {
+      showToast('Заполните обязательные поля (хост, БД, пользователь)', 'error');
+      return;
+    }
+    APP.dbSaveLoading = true;
+    renderApp();
+    fetch('/api/db-config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    })
+      .then(function (r) {
+        if (!r.ok) return r.json().then(function (e) { throw new Error(e.error); });
+        return r.json();
+      })
+      .then(function () {
+        APP.dbSaveLoading = false;
+        APP.dbConfigured = true;
+        showToast('Подключение к БД сохранено', 'success');
+        loadDBStatus();
+      })
+      .catch(function (err) {
+        APP.dbSaveLoading = false;
+        showToast('Ошибка: ' + err.message, 'error');
+        renderApp();
+      });
+  }
+
+  function testDBConfig() {
+    var config = {
+      host: document.getElementById('db-host').value.trim(),
+      port: parseInt(document.getElementById('db-port').value, 10) || 5432,
+      database: document.getElementById('db-database').value.trim(),
+      username: document.getElementById('db-username').value.trim(),
+      password: document.getElementById('db-password').value,
+      ssl: document.getElementById('db-ssl').checked,
+      graph_name: document.getElementById('db-graph-name').value.trim(),
+    };
+    if (!config.host || !config.database || !config.username) {
+      showToast('Заполните обязательные поля', 'error');
+      return;
+    }
+    APP.dbTestLoading = true;
+    APP.dbTestResult = null;
+    renderApp();
+    fetch('/api/db-config/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        APP.dbTestLoading = false;
+        APP.dbTestResult = data;
+        renderApp();
+      })
+      .catch(function (err) {
+        APP.dbTestLoading = false;
+        APP.dbTestResult = { ok: false, error: err.message };
+        renderApp();
+      });
+  }
+
+  function deleteDBConfig() {
+    if (!confirm('Удалить настройки подключения к БД?')) return;
+    fetch('/api/db-config', { method: 'DELETE' })
+      .then(function () {
+        APP.dbConfigured = false;
+        APP.dbConfigDialogOpen = false;
+        APP.dbTestResult = null;
+        clearDBSourced();
+        showToast('Подключение к БД удалено', 'info');
+        renderApp();
+      });
+  }
+
+  function renderDBConfigDialog() {
+    if (!APP.dbConfigDialogOpen) return '';
+    var config = null;
+    /* Load config from server for the dialog */
+    /* We use a sync-ish approach: the dialog renders with placeholders, then fills in */
+
+    var testResultHtml = '';
+    if (APP.dbTestLoading) {
+      testResultHtml = '<div style="padding:10px;text-align:center;color:var(--muted-foreground);font-size:13px;">Проверка подключения…</div>';
+    } else if (APP.dbTestResult) {
+      if (APP.dbTestResult.ok) {
+        testResultHtml = '<div style="padding:10px;background:oklch(0.95 0.03 145);border-radius:var(--radius);color:oklch(0.25 0.05 145);font-size:13px;">' +
+          '✓ Подключение успешно (' + (APP.dbTestResult.latency_ms || '?') + ' мс)' +
+          (APP.dbTestResult.age_available ? ' &middot; Apache AGE доступен' : '') +
+          '</div>';
+      } else {
+        testResultHtml = '<div style="padding:10px;background:oklch(0.97 0.02 25);border-radius:var(--radius);color:var(--destructive);font-size:13px;">' +
+          '✗ ' + esc(APP.dbTestResult.error || 'Ошибка подключения') + '</div>';
+      }
+    }
+
+    return '<div class="modal-overlay" onclick="if(event.target===this){APP.dbConfigDialogOpen=false;renderApp();}">' +
+      '<div class="modal-content" style="width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">' +
+          '<h3 style="font-size:18px;font-weight:600;display:flex;align-items:center;gap:8px;">' + ICONS.database + ' Подключение к PostgreSQL</h3>' +
+          '<button class="btn-ghost" data-action="close-db-dialog">' + ICONS.x + '</button>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+          '<div class="form-group" style="grid-column:1/3;">' +
+            '<label class="form-label">Хост <span style="color:var(--destructive);">*</span></label>' +
+            '<input type="text" id="db-host" class="form-input" placeholder="localhost" value="" />' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Порт</label>' +
+            '<input type="number" id="db-port" class="form-input" placeholder="5432" value="5432" />' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">База данных <span style="color:var(--destructive);">*</span></label>' +
+            '<input type="text" id="db-database" class="form-input" placeholder="maritime_db" value="" />' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Пользователь <span style="color:var(--destructive);">*</span></label>' +
+            '<input type="text" id="db-username" class="form-input" placeholder="postgres" value="" />' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Пароль</label>' +
+            '<input type="password" id="db-password" class="form-input" placeholder="••••••••" />' +
+          '</div>' +
+          '<div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:4px;">' +
+            '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.85rem;">' +
+              '<input type="checkbox" id="db-ssl" class="form-checkbox" /> SSL' +
+            '</label>' +
+          '</div>' +
+          '<div class="form-group" style="grid-column:1/3;">' +
+            '<label class="form-label">Имя графа Apache AGE <span style="font-size:11px;color:var(--muted-foreground);font-weight:400;">(необязательно, для Cypher-запросов)</span></label>' +
+            '<input type="text" id="db-graph-name" class="form-input" placeholder="my_graph" value="" />' +
+          '</div>' +
+        '</div>' +
+        testResultHtml +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">' +
+          '<button class="btn-destructive btn-sm" data-action="delete-db-config">Удалить</button>' +
+          '<div style="display:flex;gap:8px;">' +
+            '<button class="btn-secondary" data-action="test-db-config"' + (APP.dbTestLoading ? ' disabled' : '') + '>' +
+              (APP.dbTestLoading ? 'Проверка…' : 'Проверить') +
+            '</button>' +
+            '<button class="btn-primary" data-action="save-db-config"' + (APP.dbSaveLoading ? ' disabled' : '') + '>' +
+              (APP.dbSaveLoading ? 'Сохранение…' : 'Сохранить') +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  /* ------------------------------------------------------------------
+     29. BOOT
      ------------------------------------------------------------------ */
 
   if (document.readyState === 'loading') {
